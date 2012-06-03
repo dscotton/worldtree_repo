@@ -51,7 +51,7 @@ class Hero(pygame.sprite.Sprite):
 
   # Actual size will be determined by the current image surface, but this is a 
   # default and guideline.
-  SIZE = (16, 32)
+  SIZE = (32, 64)
   COLOR = (0x00, 0xFF, 0x66)
   DEFAULT_STATE = (STAND, LEFT)
   SPEED = 4
