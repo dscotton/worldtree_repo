@@ -163,19 +163,19 @@ class Hero(pygame.sprite.Sprite):
   def update(self):
     self.SetCurrentImage()
     self.last_state = self.state
-    new_position = self.rect.move(self.movement)
+    new_rect = self.rect.move(self.movement)
     # TODO: check for obstacles and stuff, besides just the edge of the environment.
-    if not self.environment.contains(new_position):
-      if new_position.top < self.environment.top:
-        new_position.top = self.environment.top
-      if new_position.bottom > self.environment.bottom:
-        new_position.bottom = self.environment.bottom
-      if new_position.left < self.environment.left:
-        new_position.left = self.environment.left
-      if new_position.right > self.environment.right:
-        new_position.right = self.environment.right
+    if not self.environment.contains(new_rect):
+      if new_rect.top < self.environment.top:
+        new_rect.top = self.environment.top
+      if new_rect.bottom > self.environment.bottom:
+        new_rect.bottom = self.environment.bottom
+      if new_rect.left < self.environment.left:
+        new_rect.left = self.environment.left
+      if new_rect.right > self.environment.right:
+        new_rect.right = self.environment.right
 
-    self.rect = new_position
+    self.rect = new_rect
 
     if self.rect.bottom >= self.environment.bottom:
       self.Supported()

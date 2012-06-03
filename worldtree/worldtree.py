@@ -23,7 +23,7 @@ SCREEN_HEIGHT = 720
 SCREEN_SIZE = (SCREEN_WIDTH, SCREEN_HEIGHT)
 BLACK = (0, 0, 0)
 WHITE = (0xFF, 0xFF, 0xFF)
-GREY = (0x55, 0x55, 0x55)
+GREY = (0xAA, 0xAA, 0xAA)
 
 def RunGame():
   # root_path = os.getcwd()
