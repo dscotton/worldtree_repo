@@ -73,14 +73,22 @@ class Environment(object):
         col += 1
       row += 1
 
+  def VisibleTiles(self):
+    """Returns the indexes of the currently visible tiles.
+    
+    Return tuple is ((first_column, last_column), (first_row, last_row)) for the visible area.
+    """
+    first_x = self.screen_offset[0] / TILE_WIDTH
+    last_x = first_x + (worldtree.MAP_WIDTH / TILE_WIDTH)
+    first_y = self.screen_offset[1] / TILE_HEIGHT
+    last_y = first_x + (worldtree.MAP_HEIGHT / TILE_HEIGHT)
+    return ((first_x, last_x), (first_y, last_y))
+
   def GetImage(self):
     """Get the pygame.Surface for the portion of the environment currently in the game window."""
     if self._dirty:
       # Figure out which tiles fit in the current window
-      first_x = self.screen_offset[0] / TILE_WIDTH
-      last_x = first_x + (worldtree.MAP_WIDTH / TILE_WIDTH)
-      first_y = self.screen_offset[1] / TILE_HEIGHT
-      last_y = first_x + (worldtree.MAP_HEIGHT / TILE_HEIGHT)
+      (first_x, last_x), (first_y, last_y) = self.VisibleTiles()
       x_pixel_start = self.screen_offset[0] % TILE_WIDTH
       y_pixel_start = self.screen_offset[1] % TILE_HEIGHT
 
@@ -92,8 +100,8 @@ class Environment(object):
           if row >= len(self.map[col]):
             # Past the bottom of the map.
             break
-          tile_x_pos = col * TILE_WIDTH - x_pixel_start
-          tile_y_pos = row * TILE_HEIGHT - y_pixel_start
+          tile_x_pos = (col - first_x) * TILE_WIDTH - x_pixel_start
+          tile_y_pos = (row - first_y) * TILE_HEIGHT - y_pixel_start
           self.surface.blit(self.map[col][row].image, (tile_x_pos, tile_y_pos))
 
       self._dirty = False
