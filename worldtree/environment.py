@@ -119,7 +119,7 @@ class Environment(object):
     """
     # TODO: Make this work when the screen has an offset, or some tiles are hidden.
     # Hack to work around the environment not beginning at the top of the screen
-    sprite.rect.top += 80
+    sprite.rect.top -= 80
     dest = sprite.rect.move(vector)
     print sprite.rect, dest
     # Figure out which tiles contain the old and new position.
@@ -147,7 +147,8 @@ class Environment(object):
         dest.left = tile_rect.right + 1
 
     # TODO: remove this hack and handle it in a reasonable way.
-    dest.top -= 80
+    sprite.rect.top += 80
+    dest.top += 80
     return dest
 
   def TilesForRect(self, rect):

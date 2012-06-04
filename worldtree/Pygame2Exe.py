@@ -8,7 +8,7 @@
 # building exe none of this libraries are needed.
 #Please Note have a backup file in a different directory as if it crashes you 
 #will loose it all!(I lost 6 months of work because I did not do this)
- 
+
  
 try:
     from distutils.core import setup

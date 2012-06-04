@@ -43,11 +43,12 @@ def RunGame():
   screen.blit(env.GetImage(), MAP_POSITION)
   # TODO: System for figuring out initial position on the map.
   player = hero.Hero(env, position=(64, SCREEN_HEIGHT - MAP_HEIGHT))
+  player.rect.bottom = SCREEN_HEIGHT - environment.TILE_HEIGHT - 1
   player_group = pygame.sprite.RenderUpdates(player)
   
   pygame.display.flip()
-  # pygame.mixer.music.load(os.path.join(os.getcwd(), 'media', 'theme.ogg'))
-  # pygame.mixer.music.play()
+  pygame.mixer.music.load(os.path.join('media', 'music', 'bongo_wip.ogg'))
+  pygame.mixer.music.play()
   while pygame.QUIT not in (event.type for event in pygame.event.get()):
     clock.tick(60)
     screen.fill(BG_COLOR)
