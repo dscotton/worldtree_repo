@@ -75,7 +75,7 @@ class Environment(object):
 
   def VisibleTiles(self):
     """Returns the indexes of the currently visible tiles.
-    
+
     Return tuple is ((first_column, last_column), (first_row, last_row)) for the visible area.
     """
     first_x = self.screen_offset[0] / TILE_WIDTH
@@ -106,6 +106,74 @@ class Environment(object):
 
       self._dirty = False
     return self.surface
+
+  def AttemptMove(self, sprite, vector):
+    """Checks whether a sprite's attempted movement is legal.
+    
+    Args:
+      sprite: pygame.sprite.Sprite that's trying to move.
+      vector: the x, y motion vector the sprite is trying to move along.
+    Returns:
+      A Rect for the position the sprite ends up in based on its motion and interaction with
+      the environment.
+    """
+    # TODO: Make this work when the screen has an offset, or some tiles are hidden.
+    # Hack to work around the environment not beginning at the top of the screen
+    sprite.rect.top += 80
+    dest = sprite.rect.move(vector)
+    print sprite.rect, dest
+    # Figure out which tiles contain the old and new position.
+    old_tiles = self.TilesForRect(sprite.rect)
+    new_tiles = [tile for tile in self.TilesForRect(dest) if tile not in old_tiles]
+    print old_tiles, new_tiles
+    # For each new tile the sprite would occupy, check whether it blocks movement in the
+    # desired direction.
+    for col, row in new_tiles:
+      tile_rect = self.RectForTile(col, row)
+      tile = self.map[col][row]
+      # Handle motion in each cardinal direction separately.  Need to check three conditions:
+      # that sprite was previously on a particular side of the tile, and that entry from that
+      # side is forbidden, and that the movement in this direction hasn't already been stopped
+      # short.
+      if sprite.rect.bottom < tile_rect.top and tile.solid_top and dest.bottom >= tile_rect.top:
+        dest.bottom = tile_rect.top - 1
+      elif (sprite.rect.top > tile_rect.bottom and tile.solid_bottom
+            and dest.top <= tile_rect.bottom):
+        dest.top = tile_rect.bottom + 1
+      if sprite.rect.right < tile_rect.left and tile.solid_left and dest.right >= tile_rect.left:
+        dest.right = tile_rect.left - 1
+      elif (sprite.rect.left > tile_rect.right and tile.solid_right
+            and dest.left <= tile_rect.right):
+        dest.left = tile_rect.right + 1
+
+    # TODO: remove this hack and handle it in a reasonable way.
+    dest.top -= 80
+    return dest
+
+  def TilesForRect(self, rect):
+    """Returns a set of tiles that a rect falls in.
+
+    The rect is is a screen position not a map position.
+    """
+    left_col = (rect.left + self.screen_offset[0]) / TILE_WIDTH
+    right_col = (rect.right + self.screen_offset[0]) / TILE_WIDTH
+    top_row = (rect.top + self.screen_offset[1]) / TILE_HEIGHT
+    bottom_row = (rect.bottom + self.screen_offset[1]) / TILE_HEIGHT
+    return [(col, row) for col in range (left_col, right_col+1)
+            for row in range(top_row, bottom_row+1)]
+
+  def TileIndexForPoint(self, x, y):
+    """Return the col, row index for the tile containing screen coordinate (x, y)."""
+    map_x = x + self.screen_offset[0]
+    map_y = y + self.screen_offset[1]
+    return (map_x / TILE_WIDTH, map_y / TILE_HEIGHT)
+
+  def RectForTile(self, col, row):
+    """Return the Rect object for a particular tile, from its map column and row."""
+    left = col * TILE_WIDTH - self.screen_offset[0]
+    top = row * TILE_HEIGHT - self.screen_offset[1]
+    return pygame.Rect(left, top, TILE_WIDTH, TILE_HEIGHT)
+
 
 def TestMap():
   """Simple test for this class - load "test.map" and validate."""

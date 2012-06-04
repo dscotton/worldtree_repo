@@ -30,7 +30,7 @@ class Hero(pygame.sprite.Sprite):
   Attributes:
     image: Surface object that currently represents the character.  Should be changed
       to the appropriate value in the images dict as the character moves.
-    environment: the Rect object of the screen the character is moving through.
+    environment: an Environment class representing the area the character is in.
     direction: int LEFT or RIGHT, the direction the character is currently facing.
     rect: pygame Rect object representing the sprite's position.
     movement: [x, y] pair representing the character's rate of movement.  (Positive numbers
@@ -59,7 +59,7 @@ class Hero(pygame.sprite.Sprite):
   GRAVITY = 2
   TERMINAL_VELOCITY = 8
     
-  def __init__(self, position=(0, 0)):
+  def __init__(self, environment, position=(0, 0)):
     pygame.sprite.Sprite.__init__(self)
   
     # Load the sprite graphics once so we don't need to reload on the fly.
@@ -69,7 +69,7 @@ class Hero(pygame.sprite.Sprite):
     self.STAND_LEFT = Hero.LoadImage('hero_stand_left.png')
     self.STAND_RIGHT = pygame.transform.flip(self.STAND_LEFT, True, False)
 
-    self.environment = pygame.display.get_surface().get_rect()
+    self.environment = environment
     self.action, self.direction = self.DEFAULT_STATE
     self.image = self.STAND_LEFT
     self.rect = self.image.get_rect()
@@ -106,7 +106,7 @@ class Hero(pygame.sprite.Sprite):
     if controller.JUMP in actions:
       self.Jump()
     else:
-      self.StopJumping()
+      self.StopUpwardMovement()
   
   def Walk(self, direction):
     if self.action != JUMP:
@@ -123,7 +123,7 @@ class Hero(pygame.sprite.Sprite):
       self.action = STAND
     self.movement[0] = 0
     
-  def StopJumping(self):
+  def StopUpwardMovement(self):
     if self.action == JUMP and self.movement[1] < 0:
       self.movement[1] = 0
   
@@ -137,7 +137,7 @@ class Hero(pygame.sprite.Sprite):
     self.action = STAND
     self.movement[1] = 0
     
-  def Gravity(self):
+  def Fall(self):
     """Decreases the character's upward momentum.
     
     This should only be called when the character is in the air (in JUMP action).
@@ -161,23 +161,16 @@ class Hero(pygame.sprite.Sprite):
       self.image = self.STAND_RIGHT
 
   def update(self):
+    # TODO: It is now possible to walk off the edge of the screen if it isn't blocked by an
+    # impassible tile - should this be fixed?
+    new_rect = self.environment.AttemptMove(self, self.movement)
+    if self.movement[1] > 0 and new_rect.bottom == self.rect.bottom:
+      # If y momentum is positive but the environment didn't let hero move down, this implies
+      # the character is on solid ground and no longer falling.
+      self.Supported()
+    elif self.action == JUMP:
+      self.Fall()
     self.SetCurrentImage()
     self.last_state = self.state
-    new_rect = self.rect.move(self.movement)
-    # TODO: check for obstacles and stuff, besides just the edge of the environment.
-    if not self.environment.contains(new_rect):
-      if new_rect.top < self.environment.top:
-        new_rect.top = self.environment.top
-      if new_rect.bottom > self.environment.bottom:
-        new_rect.bottom = self.environment.bottom
-      if new_rect.left < self.environment.left:
-        new_rect.left = self.environment.left
-      if new_rect.right > self.environment.right:
-        new_rect.right = self.environment.right
 
     self.rect = new_rect
-
-    if self.rect.bottom >= self.environment.bottom:
-      self.Supported()
-    else:
-      self.Gravity()

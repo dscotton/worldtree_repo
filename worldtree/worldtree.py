@@ -15,7 +15,7 @@ import pygame
 pygame.init()
 
 from characters import hero
-import controller
+import environment
 
 GAME_NAME = 'World Tree'
 SCREEN_WIDTH = 960
@@ -36,24 +36,23 @@ def RunGame():
   pygame.display.set_caption(GAME_NAME)
   screen = pygame.display.set_mode(SCREEN_SIZE)
   screen.fill(BG_COLOR)
-  pygame.display.flip()
   clock = pygame.time.Clock()
-  # Define a CONTROLLER - returns the present input state in terms of actions
-  # Define a CONTEXT - Menu, Game, etc., that determines how input is handled
-  player = hero.Hero()
-  player.rect.bottom = SCREEN_HEIGHT
+
+  fh = open(os.path.join(environment.MAPS_PATH, 'test.map'))
+  env = environment.Environment(fh.read())
+  screen.blit(env.GetImage(), MAP_POSITION)
+  # TODO: System for figuring out initial position on the map.
+  player = hero.Hero(env, position=(64, SCREEN_HEIGHT - MAP_HEIGHT))
   player_group = pygame.sprite.RenderUpdates(player)
+  
+  pygame.display.flip()
   # pygame.mixer.music.load(os.path.join(os.getcwd(), 'media', 'theme.ogg'))
   # pygame.mixer.music.play()
   while pygame.QUIT not in (event.type for event in pygame.event.get()):
     clock.tick(60)
     screen.fill(BG_COLOR)
+    screen.blit(env.GetImage(), MAP_POSITION)
     dirty_rects = []
-    # Get player input
-    # Update player position based on input (and momentum/state)
-    # Update enemy position
-    # Update projectiles
-    # Check for collisions
     
     # Input test
     '''
