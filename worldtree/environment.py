@@ -117,39 +117,41 @@ class Environment(object):
       A Rect for the position the sprite ends up in based on its motion and interaction with
       the environment.
     """
-    # TODO: Make this work when the screen has an offset, or some tiles are hidden.
     # Hack to work around the environment not beginning at the top of the screen
-    sprite.rect.top -= 80
-    dest = sprite.rect.move(vector)
-    print sprite.rect, dest
+    sprite.rect.left -= worldtree.MAP_POSITION[0]
+    sprite.rect.top -= worldtree.MAP_POSITION[1]
+    hitbox = sprite.Hitbox()
+    dest = hitbox.move(vector)
+    new_vector = list(vector)
     # Figure out which tiles contain the old and new position.
-    old_tiles = self.TilesForRect(sprite.rect)
+    old_tiles = self.TilesForRect(hitbox)
     new_tiles = [tile for tile in self.TilesForRect(dest) if tile not in old_tiles]
-    print old_tiles, new_tiles
+#    print old_tiles, new_tiles
     # For each new tile the sprite would occupy, check whether it blocks movement in the
     # desired direction.
     for col, row in new_tiles:
       tile_rect = self.RectForTile(col, row)
+      print col, row, tile_rect, tile_rect.top, tile_rect.bottom
       tile = self.map[col][row]
       # Handle motion in each cardinal direction separately.  Need to check three conditions:
       # that sprite was previously on a particular side of the tile, and that entry from that
       # side is forbidden, and that the movement in this direction hasn't already been stopped
       # short.
-      if sprite.rect.bottom < tile_rect.top and tile.solid_top and dest.bottom >= tile_rect.top:
-        dest.bottom = tile_rect.top - 1
-      elif (sprite.rect.top > tile_rect.bottom and tile.solid_bottom
+      if hitbox.bottom < tile_rect.top and tile.solid_top and dest.bottom >= tile_rect.top:
+        new_vector[1] = tile_rect.top - hitbox.bottom - 1
+      elif (hitbox.top > tile_rect.bottom and tile.solid_bottom
             and dest.top <= tile_rect.bottom):
-        dest.top = tile_rect.bottom + 1
-      if sprite.rect.right < tile_rect.left and tile.solid_left and dest.right >= tile_rect.left:
-        dest.right = tile_rect.left - 1
-      elif (sprite.rect.left > tile_rect.right and tile.solid_right
+        new_vector[1] = tile_rect.bottom - hitbox.top + 1
+      if hitbox.right < tile_rect.left and tile.solid_left and dest.right >= tile_rect.left:
+        new_vector[0] = tile_rect.left - hitbox.right - 1
+      elif (hitbox.left > tile_rect.right and tile.solid_right
             and dest.left <= tile_rect.right):
-        dest.left = tile_rect.right + 1
+        new_vector[0] = tile_rect.right - hitbox.left + 1
 
-    # TODO: remove this hack and handle it in a reasonable way.
-    sprite.rect.top += 80
-    dest.top += 80
-    return dest
+    # TODO: handle this adjustment more elegantly.
+    sprite.rect.left += worldtree.MAP_POSITION[0]
+    sprite.rect.top += worldtree.MAP_POSITION[1]
+    return sprite.rect.move(new_vector)
 
   def TilesForRect(self, rect):
     """Returns a set of tiles that a rect falls in.
@@ -173,8 +175,18 @@ class Environment(object):
     """Return the Rect object for a particular tile, from its map column and row."""
     left = col * TILE_WIDTH - self.screen_offset[0]
     top = row * TILE_HEIGHT - self.screen_offset[1]
-    return pygame.Rect(left, top, TILE_WIDTH, TILE_HEIGHT)
-
+    return pygame.Rect(left, top, TILE_WIDTH-1, TILE_HEIGHT-1)
+  
+  def IsRectSupported(self, rect):
+    """Returns true if there is a solid tile directly under a rectangle."""
+    dest = rect.move((0, 1))
+    old_tiles = self.TilesForRect(rect)
+    new_tiles = [tile for tile in self.TilesForRect(dest) if tile not in old_tiles]
+    for col, row in new_tiles:
+      if map[col][row].solid_top:
+        return True
+    return False
+  
 
 def TestMap():
   """Simple test for this class - load "test.map" and validate."""

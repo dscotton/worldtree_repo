@@ -43,7 +43,7 @@ def RunGame():
   screen.blit(env.GetImage(), MAP_POSITION)
   # TODO: System for figuring out initial position on the map.
   player = hero.Hero(env, position=(64, SCREEN_HEIGHT - MAP_HEIGHT))
-  player.rect.bottom = SCREEN_HEIGHT - environment.TILE_HEIGHT - 1
+  player.rect.bottom = SCREEN_HEIGHT - environment.TILE_HEIGHT
   player_group = pygame.sprite.RenderUpdates(player)
   
   pygame.display.flip()
@@ -67,7 +67,6 @@ def RunGame():
     '''
     player.HandleInput()
     player_group.update()
-    # TODO(dscotton): draw the background on the screen instead.
     dirty_rects = player_group.draw(screen)
     pygame.display.update(dirty_rects)
     
