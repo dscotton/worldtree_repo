@@ -6,7 +6,7 @@
 map_data = {
 #tileset
 #tile
-#tilebitmap <TileSetIdentifier>-<TileNumber>.png
+#tilebitmap <TileSetIdentifier>-<TileNumber+1>.png
 #end tilebitmap
 #end tile
 #map
