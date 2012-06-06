@@ -12,7 +12,9 @@ Created on Jun 2, 2012
 import os
 
 import pygame
+
 import controller
+import game_constants
 
 # TODO(dscotton): These almost certainly belong a level higher, in a shared character class.
 # Descriptive constants
@@ -51,7 +53,9 @@ class Hero(pygame.sprite.Sprite):
 
   # Actual size will be determined by the current image surface, but this is a 
   # default and guideline.
-  SIZE = (32, 64)
+  WIDTH = 32
+  HEIGHT = 64
+  SIZE = (WIDTH, HEIGHT)
   COLOR = (0x00, 0xFF, 0x66)
   DEFAULT_STATE = (STAND, LEFT)
   SPEED = 4
@@ -82,6 +86,16 @@ class Hero(pygame.sprite.Sprite):
   def state(self):
     return (self.action, self.direction)
 
+  def Hitbox(self):
+    """Get the Map hitbox for the sprite, which is relative to the map rather than the screen.
+    
+    The Hitbox needs to be smaller than the sprite, partly because of weird PyGame behavior
+    where a rect of width X and height y actually touches (x+1) * (y+1) pixels.
+    """
+    return pygame.Rect(self.rect.left + 1 - game_constants.MAP_POSITION[0], 
+                       self.rect.top + 1 - game_constants.MAP_POSITION[1],
+                       self.WIDTH-2, self.HEIGHT-2)
+    
   @classmethod
   def LoadImage(cls, filename):
     """Load and return a sprite image from its filename."""
@@ -137,12 +151,11 @@ class Hero(pygame.sprite.Sprite):
     self.action = STAND
     self.movement[1] = 0
     
-  def Fall(self):
+  def Gravity(self):
     """Decreases the character's upward momentum.
     
     This should only be called when the character is in the air (in JUMP action).
     """
-    assert self.action == JUMP
     if self.movement[1] < self.TERMINAL_VELOCITY:
       self.movement[1] = min(self.movement[1] + self.GRAVITY, self.TERMINAL_VELOCITY)
 
@@ -168,8 +181,10 @@ class Hero(pygame.sprite.Sprite):
       # If y momentum is positive but the environment didn't let hero move down, this implies
       # the character is on solid ground and no longer falling.
       self.Supported()
-    elif self.action == JUMP:
-      self.Fall()
+    elif not self.environment.IsRectSupported(self.Hitbox()):
+      # If the character actually is falling, set them in jump status.
+      self.action = JUMP
+      self.Gravity()
     self.SetCurrentImage()
     self.last_state = self.state
 

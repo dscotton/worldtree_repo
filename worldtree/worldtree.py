@@ -16,18 +16,7 @@ pygame.init()
 
 from characters import hero
 import environment
-
-GAME_NAME = 'World Tree'
-SCREEN_WIDTH = 960
-SCREEN_HEIGHT = 720
-MAP_WIDTH = 960
-MAP_HEIGHT = 640
-MAP_POSITION = (0, SCREEN_HEIGHT - MAP_HEIGHT)
-SCREEN_SIZE = (SCREEN_WIDTH, SCREEN_HEIGHT)
-MAP_SIZE = (SCREEN_WIDTH, MAP_HEIGHT)
-BLACK = (0, 0, 0)
-WHITE = (0xFF, 0xFF, 0xFF)
-BG_COLOR = (0xAA, 0xAA, 0xAA)
+from game_constants import *
 
 def RunGame():
   # root_path = os.getcwd()
@@ -43,7 +32,7 @@ def RunGame():
   screen.blit(env.GetImage(), MAP_POSITION)
   # TODO: System for figuring out initial position on the map.
   player = hero.Hero(env, position=(64, SCREEN_HEIGHT - MAP_HEIGHT))
-  player.rect.bottom = SCREEN_HEIGHT - environment.TILE_HEIGHT - 1
+  player.rect.bottom = SCREEN_HEIGHT - environment.TILE_HEIGHT
   player_group = pygame.sprite.RenderUpdates(player)
   
   pygame.display.flip()
@@ -67,7 +56,6 @@ def RunGame():
     '''
     player.HandleInput()
     player_group.update()
-    # TODO(dscotton): draw the background on the screen instead.
     dirty_rects = player_group.draw(screen)
     pygame.display.update(dirty_rects)
     
