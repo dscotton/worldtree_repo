@@ -13,7 +13,6 @@ import pygame
 
 from game_constants import *
 import tile
-import worldtree
 
 MAPS_PATH = os.path.join('media', 'maps')
 
@@ -50,7 +49,7 @@ class Environment(object):
     # [y][x]) we need to build a list of columns rather than a list of rows.
     self.map = []
     self.screen_offset = offset
-    self.surface = pygame.Surface(worldtree.MAP_SIZE)
+    self.surface = pygame.Surface(MAP_SIZE)
     self._dirty = True  # Whether the surface needs to be refreshed.
     row = 0
     for line in ascii_map.splitlines():
@@ -75,9 +74,9 @@ class Environment(object):
     Return tuple is ((first_column, last_column), (first_row, last_row)) for the visible area.
     """
     first_x = self.screen_offset[0] / TILE_WIDTH
-    last_x = first_x + (worldtree.MAP_WIDTH / TILE_WIDTH)
+    last_x = first_x + (MAP_WIDTH / TILE_WIDTH)
     first_y = self.screen_offset[1] / TILE_HEIGHT
-    last_y = first_x + (worldtree.MAP_HEIGHT / TILE_HEIGHT)
+    last_y = first_x + (MAP_HEIGHT / TILE_HEIGHT)
     return ((first_x, last_x), (first_y, last_y))
 
   def GetImage(self):
@@ -193,10 +192,10 @@ class Environment(object):
 def TestMap():
   """Simple test for this class - load "test.map" and validate."""
   pygame.display.set_caption("Map Test")
-  screen = pygame.display.set_mode(worldtree.SCREEN_SIZE)
+  screen = pygame.display.set_mode(SCREEN_SIZE)
   fh = open(os.path.join(MAPS_PATH, 'test.map'))
   env = Environment(fh.read())
-  screen.blit(env.GetImage(), worldtree.MAP_POSITION)
+  screen.blit(env.GetImage(), MAP_POSITION)
   pygame.display.flip()
   print 'No errors reading the map!'
   while pygame.QUIT not in (event.type for event in pygame.event.get()):

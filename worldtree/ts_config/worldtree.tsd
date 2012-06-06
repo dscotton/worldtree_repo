@@ -5,6 +5,8 @@
 #end tileset
 
 #map
-#file <MapIdentifier.map>
-#end file
+  #file <MapIdentifier.map>
+  #mapdata
+    
+  #end file
 #end map
