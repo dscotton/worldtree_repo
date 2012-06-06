@@ -54,7 +54,7 @@ class Hero(pygame.sprite.Sprite):
   # Actual size will be determined by the current image surface, but this is a 
   # default and guideline.
   WIDTH = 32
-  HEIGHT = 64
+  HEIGHT = 58
   SIZE = (WIDTH, HEIGHT)
   COLOR = (0x00, 0xFF, 0x66)
   DEFAULT_STATE = (STAND, LEFT)
@@ -94,7 +94,7 @@ class Hero(pygame.sprite.Sprite):
     """
     return pygame.Rect(self.rect.left + 1 - game_constants.MAP_POSITION[0], 
                        self.rect.top + 1 - game_constants.MAP_POSITION[1],
-                       self.WIDTH-2, self.HEIGHT-2)
+                       self.rect.width - 2, self.rect.height - 2)
     
   @classmethod
   def LoadImage(cls, filename):
