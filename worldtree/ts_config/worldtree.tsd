@@ -1,0 +1,10 @@
+; Output tilesets and maps.
+#tileset
+#tstilebitmap <TileSetIdentifier>.png
+#end tstilebitmap
+#end tileset
+
+#map
+#file <MapIdentifier.map>
+#end file
+#end map
