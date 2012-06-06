@@ -1,12 +1,22 @@
 ; Output tilesets and maps.
-#tileset
-#tstilebitmap <TileSetIdentifier>.png
-#end tstilebitmap
-#end tileset
+; Note - for some reason the TileNumber of the saved file is one less than the corresponding
+; TileNumber in the map.
 
+#file map.py
+map_data = {
+#tileset
+#tile
+#tilebitmap <TileSetIdentifier>-<TileNumber>.png
+#end tilebitmap
+#end tile
 #map
-  #file <MapIdentifier.map>
-  #mapdata
-    
-  #end file
+  '<MapIdentifier>' : {
+    'tileset' : '<TileSetIdentifier>',
+    'layout' :
+#mapdata  "[\n      ["  ","  ",\n"  "],\n      ["  "    ],\n]"
+ <TileNumber:"%2d"> 
+#end mapdata
+  }
 #end map
+#end tileset
+}
