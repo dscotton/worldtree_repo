@@ -41,17 +41,27 @@ def RunGame():
   
   pygame.display.flip()
   pygame.mixer.music.load(os.path.join('media', 'music', 'photosynthesis_wip.ogg'))
-  pygame.mixer.music.play()
+  pygame.mixer.music.play(-1)
   while pygame.QUIT not in (event.type for event in pygame.event.get()):
     clock.tick(60)
-    screen.fill(BG_COLOR)
+    screen.fill(BLACK)
     screen.blit(env.GetImage(), MAP_POSITION)
     dirty_rects = []
     
     player.HandleInput()
     player_group.update()
     dirty_rects = player_group.draw(screen)
-    pygame.display.update(dirty_rects)
+    if env.dirty:
+      pygame.display.flip()
+    else:
+      for rect in dirty_rects:
+        # For some reason the returned dirty_rects doesn't draw the entire sprite for the
+        # main character when moving.
+        rect.top -= 3
+        rect.left -= 3
+        rect.width += 6
+        rect.height += 6
+      pygame.display.update(dirty_rects)
     
   sys.exit()
 

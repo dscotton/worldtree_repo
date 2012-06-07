@@ -42,12 +42,14 @@ class Environment(object):
     # This is a little convoluted because in order to address tiles as [x][y] (rather than
     # [y][x]) we need to build a list of columns rather than a list of rows.
     self.grid = []
+    self.height = map_data['height']
+    self.width = map_data['width']
     self.screen_offset = offset
     self.surface = pygame.Surface(MAP_SIZE)
-    self._dirty = True  # Whether the surface needs to be refreshed.
+    self.dirty = True  # Whether the surface needs to be refreshed.
     image_cache = {}  # Only create one Surface for each image.
-    for row in range(map_data['height']):
-      for col in range(map_data['width']):
+    for row in range(self.height):
+      for col in range(self.width):
         print col, row
         if row == 0:
           # Extend the grid to width = col.
@@ -78,7 +80,7 @@ class Environment(object):
 
   def GetImage(self):
     """Get the pygame.Surface for the portion of the environment currently in the game window."""
-    if self._dirty:
+    if self.dirty:
       self.surface.fill(BG_COLOR)
       # Figure out which tiles fit in the current window
       (first_x, last_x), (first_y, last_y) = self.VisibleTiles()
@@ -100,7 +102,7 @@ class Environment(object):
           except TypeError:
             print col, row, type(self.grid[col][row])
 
-      self._dirty = False
+      self.dirty = False
     return self.surface
 
   def AttemptMove(self, sprite, vector):
@@ -119,29 +121,44 @@ class Environment(object):
     new_vector = list(vector)
     # Figure out which tiles contain the old and new position.
     old_tiles = self.TilesForRect(hitbox)
-    new_tiles = [tile for tile in self.TilesForRect(dest) if tile not in old_tiles]
+    new_tiles = [t for t in self.TilesForRect(dest) if t not in old_tiles]
 #    print old_tiles, new_tiles
     # For each new tile the sprite would occupy, check whether it blocks movement in the
     # desired direction.
     for col, row in new_tiles:
       tile_rect = self.RectForTile(col, row)
-      tile = self.grid[col][row]
+      # Check if outside the edges of the area.
+      # TODO: Possibly add movement to other areas here.
+      if col < 0:
+        square = tile.Tile(solid=(False, True, False, False))
+      elif col >= self.width:
+        square = tile.Tile(solid=(True, False, False, False))
+      elif row < 0:
+        square = tile.Tile(solid=(False, False, False, True))
+      elif row >= self.height:
+        square = tile.Tile(solid=(False, False, True, False))
+      else:
+        square = self.grid[col][row]
+
       # Handle motion in each cardinal direction separately.  Need to check three conditions:
       # that sprite was previously on a particular side of the tile, and that entry from that
       # side is forbidden, and that the movement in this direction hasn't already been stopped
       # short.
-      if hitbox.bottom < tile_rect.top and tile.solid_top and dest.bottom >= tile_rect.top:
+      if hitbox.bottom < tile_rect.top and square.solid_top and dest.bottom >= tile_rect.top:
         new_vector[1] = tile_rect.top - hitbox.bottom - 1
-      elif (hitbox.top > tile_rect.bottom and tile.solid_bottom
+      elif (hitbox.top > tile_rect.bottom and square.solid_bottom
             and dest.top <= tile_rect.bottom):
         new_vector[1] = tile_rect.bottom - hitbox.top + 1
-      if hitbox.right < tile_rect.left and tile.solid_left and dest.right >= tile_rect.left:
+      if hitbox.right < tile_rect.left and square.solid_left and dest.right >= tile_rect.left:
         new_vector[0] = tile_rect.left - hitbox.right - 1
-      elif (hitbox.left > tile_rect.right and tile.solid_right
+      elif (hitbox.left > tile_rect.right and square.solid_right
             and dest.left <= tile_rect.right):
         new_vector[0] = tile_rect.right - hitbox.left + 1
 
-    return sprite.rect.move(new_vector)
+    scroll_vector = self.Scroll(hitbox.move(new_vector))
+    new_position = sprite.rect.move(new_vector)
+    return new_position.move(scroll_vector)
+    
 
   def TilesForRect(self, rect):
     """Returns a set of tiles that a rect falls in.
@@ -178,16 +195,24 @@ class Environment(object):
     old_tiles = self.TilesForRect(rect)
     new_tiles = [tile for tile in self.TilesForRect(dest) if tile not in old_tiles]
     for col, row in new_tiles:
-      try:
-        if self.grid[col][row].solid_top:
-          return True
-      except (TypeError, IndexError) as e:
-        print col, row
-        print len(self.grid), len(self.grid[0])
-        print type(self.grid[col]), len(self.grid[col])
-        print self.grid[col][row], type(self.grid[col][row])
-        raise e
+      if row >= self.height:
+        # TODO: Change this if we want to enable falling to your death
+        return True
+      if self.grid[col][row].solid_top:
+        return True
     return False
+  
+  def Scroll(self, rect):
+    """If necessary, scroll the map to follow the position of rect.
+    
+    Returns:
+      (x, y) vector to apply to rect to maintain its relative position with the landscape.
+    """
+    if False:
+      # If near an edge of the screen AND more map exists in that direction, scroll.
+      pass
+    else:
+      return (0, 0)
   
 
 def TestMap():
