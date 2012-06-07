@@ -36,7 +36,7 @@ def RunGame():
   player_group = pygame.sprite.RenderUpdates(player)
   
   pygame.display.flip()
-  pygame.mixer.music.load(os.path.join('media', 'music', 'bongo_wip.ogg'))
+  pygame.mixer.music.load(os.path.join('media', 'music', 'photosynthesis_wip.ogg'))
   pygame.mixer.music.play()
   while pygame.QUIT not in (event.type for event in pygame.event.get()):
     clock.tick(60)

@@ -12,9 +12,17 @@ map_data = {
 #map
   '<MapIdentifier>' : {
     'tileset' : '<TileSetIdentifier>',
-    'layout' :
-#mapdata  "[\n      ["  ","  ",\n"  "],\n      ["  "    ],\n]"
+    'layout' : 
+#mapdata  "[\n      ["  ","  ",\n"  "],\n      ["  "],\n    ],"
  <TileNumber:"%2d"> 
+#end mapdata
+    'bounds' : 
+#mapdata  "[\n      ["  ","  ",\n"  "],\n      ["  "],\n    ],"
+ <Bounds:"%2d"> 
+#end mapdata
+    'mapcodes' : 
+#mapdata  "[\n      ["  ","  ",\n"  "],\n      ["  "],\n    ]"
+ <MapCode:"%2d"> 
 #end mapdata
   }
 #end map
