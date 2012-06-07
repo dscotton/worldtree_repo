@@ -8,7 +8,6 @@ Created on June 2, 2012
 @author: dscotton@gmail.com (David Scotton)
 """
 
-import os
 import sys
 
 import pygame
@@ -16,23 +15,28 @@ pygame.init()
 
 from characters import hero
 import environment
+import map_data
 from game_constants import *
 
 def RunGame():
-  # root_path = os.getcwd()
-  # media_path = os.path.join(root_path, 'media')
-  # image_path = os.path.join(media_path, 'sprites')
   pygame.display.set_caption(GAME_NAME)
   screen = pygame.display.set_mode(SCREEN_SIZE)
-  screen.fill(BG_COLOR)
+  screen.fill(BLACK)
   clock = pygame.time.Clock()
 
-  fh = open(os.path.join(environment.MAPS_PATH, 'test.map'))
-  env = environment.Environment(fh.read())
+  # TODO: handle initial map setup more intelligently.
+  env = environment.Environment(map_data.map_data['Map1'])
+  font = pygame.font.Font(os.path.join('media', 'font', 'PressStart2P.ttf'), 24)
+  text = font.render("Level 1", False, WHITE)
+  text_box = text.get_rect()
+  text_box.top = 10
+  text_box.left = 10
+  screen.blit(text, text_box)
+
   screen.blit(env.GetImage(), MAP_POSITION)
   # TODO: System for figuring out initial position on the map.
   player = hero.Hero(env, position=(64, SCREEN_HEIGHT - MAP_HEIGHT))
-  player.rect.bottom = SCREEN_HEIGHT - environment.TILE_HEIGHT
+  # player.rect.bottom = SCREEN_HEIGHT - environment.TILE_HEIGHT
   player_group = pygame.sprite.RenderUpdates(player)
   
   pygame.display.flip()
@@ -44,16 +48,6 @@ def RunGame():
     screen.blit(env.GetImage(), MAP_POSITION)
     dirty_rects = []
     
-    # Input test
-    '''
-    font = pygame.font.Font(os.path.join('media', 'font', 'PressStart2P.ttf'), 36)
-    status_text = ', '.join(str(x) for x in controller.GetInput())
-    text = font.render(status_text, False, BLACK)
-    text_box = text.get_rect()
-    text_box.centerx = screen.get_rect().centerx
-    text_box.centery = screen.get_rect().centery
-    screen.blit(text, text_box)
-    '''
     player.HandleInput()
     player_group.update()
     dirty_rects = player_group.draw(screen)
