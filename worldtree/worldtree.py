@@ -51,8 +51,10 @@ def RunGame():
     player.HandleInput()
     player_group.update()
     dirty_rects = player_group.draw(screen)
-    if env.dirty:
-      pygame.display.flip()
+#    if env.dirty:
+    if True:
+      # TODO: Get the dirty rect animation working correctly.
+      pygame.display.update(pygame.Rect(MAP_POSITION[0], MAP_POSITION[1], MAP_WIDTH, MAP_HEIGHT))
     else:
       for rect in dirty_rects:
         # For some reason the returned dirty_rects doesn't draw the entire sprite for the

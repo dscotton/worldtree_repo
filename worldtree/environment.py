@@ -28,11 +28,11 @@ class Environment(object):
   Attributes:
     grid: A two-dimensional array of map tiles.
     surface: pygame.Surface containing the appearance of the visible part of the environment.
-    screen_offset: (x, y) pixel offset of the upper-right corner of the current screen
-      from the upper-right corner of the map.
+    screen_offset: [x, y] pixel offset of the upper-right corner of the current visible area
+      from the upper-right corner of the whole map.  Must be a mutable object to support scrolling.
   """
   
-  def __init__(self, map_data, offset=(0,0)):
+  def __init__(self, map_data, offset=None):
     """Constructor.
     
     Args:
@@ -45,6 +45,8 @@ class Environment(object):
     self.height = map_data['height']
     self.width = map_data['width']
     self.screen_offset = offset
+    if offset is None:
+      self.screen_offset = [0, 0]
     self.surface = pygame.Surface(MAP_SIZE)
     self.dirty = True  # Whether the surface needs to be refreshed.
     image_cache = {}  # Only create one Surface for each image.
@@ -75,7 +77,7 @@ class Environment(object):
     first_x = self.screen_offset[0] / TILE_WIDTH
     last_x = first_x + (MAP_WIDTH / TILE_WIDTH)
     first_y = self.screen_offset[1] / TILE_HEIGHT
-    last_y = first_x + (MAP_HEIGHT / TILE_HEIGHT)
+    last_y = first_y + (MAP_HEIGHT / TILE_HEIGHT)
     return ((first_x, last_x), (first_y, last_y))
 
   def GetImage(self):
@@ -201,35 +203,35 @@ class Environment(object):
       if self.grid[col][row].solid_top:
         return True
     return False
-  
+
   def Scroll(self, rect):
     """If necessary, scroll the map to follow the position of rect.
     
     Returns:
       (x, y) vector to apply to rect to maintain its relative position with the landscape.
     """
-    if False:
-      # If near an edge of the screen AND more map exists in that direction, scroll.
-      pass
-    else:
-      return (0, 0)
-  
-
-def TestMap():
-  """Simple test for this class - load "test.grid" and validate."""
-  pygame.display.set_caption("Map Test")
-  screen = pygame.display.set_mode(SCREEN_SIZE)
-  fh = open(os.path.join(MAPS_PATH, 'test.grid'))
-  env = Environment(fh.read())
-  screen.blit(env.GetImage(), MAP_POSITION)
-  pygame.display.flip()
-  print 'No errors reading the grid!'
-  while pygame.QUIT not in (event.type for event in pygame.event.get()):
-    # Show the grid until exit.
-    pass
-
-
-if __name__ == '__main__':
-  # Set up dir correctly - required for compiled .exe to work reliably
-  os.chdir(os.path.dirname(sys.argv[0]))
-  TestMap()
+    x_scroll = 0
+    y_scroll = 0
+    if rect.centerx < SCROLL_MARGIN and self.screen_offset[0] > 0:
+      x_scroll = SCROLL_MARGIN - rect.centerx
+      self.screen_offset[0] = max(0, self.screen_offset[0] - x_scroll)
+      self.dirty = True
+    elif (rect.centerx > MAP_WIDTH - SCROLL_MARGIN
+          and self.screen_offset[0] + MAP_WIDTH < self.width * TILE_WIDTH):
+      x_scroll = MAP_WIDTH - SCROLL_MARGIN - rect.centerx
+      self.screen_offset[0] = min(self.screen_offset[0] - x_scroll,
+                                  self.width * TILE_WIDTH - MAP_WIDTH)
+      self.dirty = True
+      
+    if rect.centery < SCROLL_MARGIN and self.screen_offset[1] > 0:
+      y_scroll = SCROLL_MARGIN - rect.centery
+      self.screen_offset[1] = max(0, self.screen_offset[1] - y_scroll)
+      self.dirty = True
+    elif (rect.centery > MAP_HEIGHT - SCROLL_MARGIN
+          and self.screen_offset[1] + MAP_HEIGHT < self.height * TILE_HEIGHT):
+      y_scroll = MAP_HEIGHT - SCROLL_MARGIN - rect.centery
+      self.screen_offset[1] = min(self.screen_offset[1] - y_scroll,
+                                  self.height * TILE_HEIGHT - MAP_HEIGHT)
+      self.dirty = True
+    
+    return (x_scroll, y_scroll)

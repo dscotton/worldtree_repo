@@ -177,11 +177,9 @@ class Hero(pygame.sprite.Sprite):
     # TODO: It is now possible to walk off the edge of the screen if it isn't blocked by an
     # impassible tile - should this be fixed?
     new_rect = self.environment.AttemptMove(self, self.movement)
-    if self.movement[1] > 0 and new_rect.bottom == self.rect.bottom:
-      # If y momentum is positive but the environment didn't let hero move down, this implies
-      # the character is on solid ground and no longer falling.
+    if self.environment.IsRectSupported(self.Hitbox()):
       self.Supported()
-    elif not self.environment.IsRectSupported(self.Hitbox()):
+    else:
       # If the character actually is falling, set them in jump status.
       self.action = JUMP
       self.Gravity()

@@ -2,7 +2,7 @@
 ; Note - for some reason the TileNumber of the saved file is one less than the corresponding
 ; TileNumber in the map.
 
-#file map.py
+#file map_data.py
 map_data = {
 #tileset
 #tile
