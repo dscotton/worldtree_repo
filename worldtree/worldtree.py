@@ -43,6 +43,7 @@ def RunGame():
   pygame.mixer.music.load(os.path.join('media', 'music', 'photosynthesis_wip.ogg'))
   pygame.mixer.music.play(-1)
   while pygame.QUIT not in (event.type for event in pygame.event.get()):
+    refresh_map = env.dirty
     clock.tick(60)
     screen.fill(BLACK)
     screen.blit(env.GetImage(), MAP_POSITION)
@@ -51,8 +52,7 @@ def RunGame():
     player.HandleInput()
     player_group.update()
     dirty_rects = player_group.draw(screen)
-#    if env.dirty:
-    if True:
+    if refresh_map:
       # TODO: Get the dirty rect animation working correctly.
       pygame.display.update(pygame.Rect(MAP_POSITION[0], MAP_POSITION[1], MAP_WIDTH, MAP_HEIGHT))
     else:
