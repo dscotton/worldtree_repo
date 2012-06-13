@@ -49,44 +49,30 @@ class Hero(character.Character):
   HEIGHT = 58
   SIZE = (WIDTH, HEIGHT)
   COLOR = (0x00, 0xFF, 0x66)
-  DEFAULT_STATE = (character.STAND, character.LEFT)
   SPEED = 4
   JUMP_FORCE = 24
   GRAVITY = 2
   TERMINAL_VELOCITY = 8
+
+  # Store surfaces in class variables so they're only loaded once.
+  STAND_LEFT = None
+  STAND_RIGHT = None
     
   def __init__(self, environment, position=(0, 0)):
-    character.Character.__init__(self)
+    character.Character.__init__(self, environment, position)
   
     # Load the sprite graphics once so we don't need to reload on the fly.
     # TODO: These ideally would be class constants, but because of the dependency on LoadImage
     # they can't be without ugly formatting.  See if it's possibly by moving LoadImage to
     # a higher level.
-    self.STAND_LEFT = Hero.LoadImage('hero_stand_left.png')
-    self.STAND_RIGHT = pygame.transform.flip(self.STAND_LEFT, True, False)
 
-    self.environment = environment
-    self.action, self.direction = self.DEFAULT_STATE
+    if Hero.STAND_LEFT is None:
+      Hero.STAND_LEFT = character.LoadImage(
+          'hero_stand_left.png', default_width=self.WIDTH, default_height=self.HEIGHT)
+      Hero.STAND_RIGHT = pygame.transform.flip(Hero.STAND_LEFT, True, False)
     self.image = self.STAND_LEFT
-    self.rect = self.image.get_rect()
-    self.rect.left, self.rect.top = position
-    self.movement = [0, 0]
     self.last_state = (self.direction, self.action)
     self.animation_frame = 0
-
-  @property
-  def state(self):
-    return (self.action, self.direction)
-
-  def Hitbox(self):
-    """Get the Map hitbox for the sprite, which is relative to the map rather than the screen.
-    
-    The Hitbox needs to be smaller than the sprite, partly because of weird PyGame behavior
-    where a rect of width X and height y actually touches (x+1) * (y+1) pixels.
-    """
-    return pygame.Rect(self.rect.left + 1 - game_constants.MAP_POSITION[0], 
-                       self.rect.top + 1 - game_constants.MAP_POSITION[1],
-                       self.rect.width - 2, self.rect.height - 2)
 
   def HandleInput(self):
     """Handles user input to move the character and change his action."""
@@ -117,11 +103,6 @@ class Hero(character.Character):
       self.movement[1] = self.movement[1] - self.JUMP_FORCE
     self.action = character.JUMP
     
-  def Supported(self):
-    """The character is standing on something solid. This is the only way to leave JUMP action."""
-    self.action = character.STAND
-    self.movement[1] = 0
-    
   def SetCurrentImage(self):
     """Sets the image to the appropriate one for the current action, if it exists.
     
@@ -137,8 +118,8 @@ class Hero(character.Character):
       self.image = self.STAND_RIGHT
 
   def update(self):
-    new_rect = self.environment.AttemptMove(self, self.movement)
-    if self.environment.IsRectSupported(self.Hitbox()):
+    new_rect = self.env.AttemptMove(self, self.movement)
+    if self.env.IsRectSupported(self.Hitbox()):
       self.Supported()
     else:
       # If the character actually is falling, set them in jump status.

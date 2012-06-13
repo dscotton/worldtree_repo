@@ -11,6 +11,7 @@ import sys
 
 import pygame
 
+from characters import enemies
 from game_constants import *
 import tile
 
@@ -19,7 +20,9 @@ MAPS_PATH = os.path.join('media', 'maps')
 # TODO: Add images here as the second argument.
 EMPTY_TILE = tile.Tile()
 
+# Map of map codes to enemy class
 ENEMIES = {
+  1 : enemies.Badger
 }
 
 class Environment(object):
@@ -30,6 +33,13 @@ class Environment(object):
     surface: pygame.Surface containing the appearance of the visible part of the environment.
     screen_offset: [x, y] pixel offset of the upper-right corner of the current visible area
       from the upper-right corner of the whole map.  Must be a mutable object to support scrolling.
+    height: The height of the map in number of tiles.
+    width: The width of the map in number of tiles.
+    dirty: boolean that's True if the map needs to be redrawn.  Is not effected by player or
+      enemy movement since those aren't drawn as part of the map - only by scrolling or actually
+      changing the map tiles.
+    enemy_group: RendererUpdates object containing all enemy sprites.  Should be manipulated
+      by the main engine and not by this class.
   """
   
   def __init__(self, map_data, offset=None):
@@ -49,6 +59,7 @@ class Environment(object):
       self.screen_offset = [0, 0]
     self.surface = pygame.Surface(MAP_SIZE)
     self.dirty = True  # Whether the surface needs to be refreshed.
+    self.enemy_group = pygame.sprite.RenderUpdates()
     image_cache = {}  # Only create one Surface for each image.
     for row in range(self.height):
       for col in range(self.width):
@@ -67,6 +78,11 @@ class Environment(object):
           image_cache[image_name] = image
         self.grid[col].append(tile.Tile(image=image_cache[image_name],
                                         bound_byte=map_data['bounds'][row][col]))
+        enemy_number = map_data['mapcodes'][row][col]
+        if enemy_number != 0:
+          if enemy_number not in ENEMIES:
+            raise Exception("Unknown enemy type in mapcodes: %s" % enemy_number)
+          self.enemy_group.add(ENEMIES[enemy_number](self, (col, row)))
     # TODO: Implement Map Codes for things line enemies and items.
 
   def VisibleTiles(self):
@@ -161,32 +177,39 @@ class Environment(object):
     new_position = sprite.rect.move(new_vector)
     return new_position.move(scroll_vector)
     
-
   def TilesForRect(self, rect):
     """Returns a set of tiles that a rect falls in.
 
-    The rect is position in the map area of the window - not the entire map, or the 
-    screen position.
+    The rect is a position on the map, including any portions currently offscreen.
     """
-    left_col = (rect.left + self.screen_offset[0]) / TILE_WIDTH
-    right_col = (rect.right + self.screen_offset[0]) / TILE_WIDTH
-    top_row = (rect.top + self.screen_offset[1]) / TILE_HEIGHT
-    bottom_row = (rect.bottom + self.screen_offset[1]) / TILE_HEIGHT
+    left_col = rect.left / TILE_WIDTH
+    right_col = rect.right / TILE_WIDTH
+    top_row = rect.top / TILE_HEIGHT
+    bottom_row = rect.bottom / TILE_HEIGHT
     return [(col, row) for col in range (left_col, right_col+1)
             for row in range(top_row, bottom_row+1)]
 
-  def TileIndexForPoint(self, x, y):
-    """Return the col, row index for the tile containing map pane coordinate (x, y)."""
-    map_x = x + self.screen_offset[0]
-    map_y = y + self.screen_offset[1]
-    return (map_x / TILE_WIDTH, map_y / TILE_HEIGHT)
-
   def RectForTile(self, col, row):
-    """Return the Rect object for a particular tile, from its map column and row."""
-    left = col * TILE_WIDTH - self.screen_offset[0]
-    top = row * TILE_HEIGHT - self.screen_offset[1]
+    """Return a Rect object for a particular tile, from its map column and row.
+    
+    This rect is relative to the origin of the map, not the screen.
+    """
+    left = col * TILE_WIDTH
+    top = row * TILE_HEIGHT
     return pygame.Rect(left, top, TILE_WIDTH-1, TILE_HEIGHT-1)
+
+  def TileIndexForPoint(self, x, y):
+    """Return the col, row index for the tile containing map coordinate (x, y)."""
+    return (x / TILE_WIDTH, y / TILE_HEIGHT)
+
+  def ScreenCoordinateForMapPoint(self, x, y):
+    """Convert map-relative (x, y) pixel coordinates into screen-relative coordinates."""
+    return (x + MAP_X - self.screen_offset[0], y + MAP_Y - self.screen_offset[1])
   
+  def MapCoordinateForScreenPoint(self, x, y):
+    """Convert screen-relative (x, y) point into a map-relative coordinate."""
+    return (x - MAP_X + self.screen_offset[0], y - MAP_Y + self.screen_offset[1])
+
   def IsRectSupported(self, rect):
     """Returns true if there is a solid tile directly under a rectangle.
     
