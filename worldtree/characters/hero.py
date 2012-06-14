@@ -119,6 +119,8 @@ class Hero(character.Character):
 
   def update(self):
     new_rect = self.env.AttemptMove(self, self.movement)
+    scroll_vector = self.env.Scroll(self.rect)
+    new_rect = new_rect.move(scroll_vector)
     if self.env.IsRectSupported(self.Hitbox()):
       self.Supported()
     else:

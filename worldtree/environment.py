@@ -173,9 +173,8 @@ class Environment(object):
             and dest.left <= tile_rect.right):
         new_vector[0] = tile_rect.right - hitbox.left + 1
 
-    scroll_vector = self.Scroll(sprite.rect.move(new_vector))
     new_position = sprite.rect.move(new_vector)
-    return new_position.move(scroll_vector)
+    return new_position
     
   def TilesForRect(self, rect):
     """Returns a set of tiles that a rect falls in.
@@ -256,5 +255,9 @@ class Environment(object):
       self.screen_offset[1] = min(self.screen_offset[1] - y_scroll,
                                   self.height * TILE_HEIGHT - MAP_HEIGHT)
       self.dirty = True
-    
-    return (x_scroll, y_scroll)
+
+    scroll_vector = (x_scroll, y_scroll)
+    # Must move all enemies to account for the shifted window.
+    for enemy in self.enemy_group:
+      enemy.rect = enemy.rect.move(scroll_vector)
+    return scroll_vector

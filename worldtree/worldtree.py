@@ -36,7 +36,6 @@ def RunGame():
   screen.blit(env.GetImage(), MAP_POSITION)
   # TODO: System for figuring out initial position on the map.
   player = hero.Hero(env, position=(2, 0))
-  # player.rect.bottom = SCREEN_HEIGHT - environment.TILE_HEIGHT
   player_group = pygame.sprite.RenderUpdates(player)
   enemy_group = env.enemy_group
   
@@ -56,7 +55,6 @@ def RunGame():
     dirty_rects = player_group.draw(screen)
     dirty_rects.extend(enemy_group.draw(screen))
     if refresh_map:
-      # TODO: Get the dirty rect animation working correctly.
       pygame.display.update(pygame.Rect(MAP_POSITION[0], MAP_POSITION[1], MAP_WIDTH, MAP_HEIGHT))
     else:
       for rect in dirty_rects:
