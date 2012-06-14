@@ -173,7 +173,7 @@ class Environment(object):
             and dest.left <= tile_rect.right):
         new_vector[0] = tile_rect.right - hitbox.left + 1
 
-    scroll_vector = self.Scroll(hitbox.move(new_vector))
+    scroll_vector = self.Scroll(sprite.rect.move(new_vector))
     new_position = sprite.rect.move(new_vector)
     return new_position.move(scroll_vector)
     
@@ -246,13 +246,13 @@ class Environment(object):
                                   self.width * TILE_WIDTH - MAP_WIDTH)
       self.dirty = True
       
-    if rect.centery < SCROLL_MARGIN and self.screen_offset[1] > 0:
-      y_scroll = SCROLL_MARGIN - rect.centery
+    if rect.centery < SCROLL_MARGIN + MAP_Y and self.screen_offset[1] > 0:
+      y_scroll = SCROLL_MARGIN + MAP_Y - rect.centery
       self.screen_offset[1] = max(0, self.screen_offset[1] - y_scroll)
       self.dirty = True
-    elif (rect.centery > MAP_HEIGHT - SCROLL_MARGIN
+    elif (rect.centery > MAP_HEIGHT + MAP_Y - SCROLL_MARGIN
           and self.screen_offset[1] + MAP_HEIGHT < self.height * TILE_HEIGHT):
-      y_scroll = MAP_HEIGHT - SCROLL_MARGIN - rect.centery
+      y_scroll = MAP_HEIGHT + MAP_Y - SCROLL_MARGIN - rect.centery
       self.screen_offset[1] = min(self.screen_offset[1] - y_scroll,
                                   self.height * TILE_HEIGHT - MAP_HEIGHT)
       self.dirty = True
