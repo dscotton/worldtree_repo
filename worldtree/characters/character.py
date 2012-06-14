@@ -6,6 +6,7 @@ Created on Jun 11, 2012
 @author: dscotton@gmail.com (David Scotton)
 """
 
+import glob
 import os
 
 import pygame
@@ -131,11 +132,22 @@ class Character(pygame.sprite.Sprite):
 
   def WalkBackAndForth(self):
     """Get movement for walking back and forth on the current platform occupied."""
+    if self.direction == LEFT:
+      dest_tile = self.env.TileIndexForPoint(
+          self.Hitbox().left + self.movement[0], self.Hitbox().bottom)
+    elif self.direction == RIGHT:
+      dest_tile = self.env.TileIndexForPoint(
+          self.Hitbox().right + self.movement[0], self.Hitbox().bottom)
+      
+    # Check boundaries using existing AttemptMove method.  Kinda ugly.
     new_rect = self.env.AttemptMove(self, self.movement)
-    if new_rect == self.rect:
-      # TODO: Figure out why this stops from entering an unsupported tile instead of stopping
-      # from going all the way over the edge.
+
+    if new_rect == self.rect or not self.env.IsTileSupported(*dest_tile):
       self.movement[0] = -self.movement[0]
+      if self.direction == LEFT:
+        self.direction = RIGHT
+      else:
+        self.direction = LEFT
     return self.movement
 
   def update(self):
@@ -143,6 +155,7 @@ class Character(pygame.sprite.Sprite):
     if self.env.IsRectSupported(self.Hitbox()):
       self.Supported()
     else:
+      print "Falling...", self.rect
       # If the character actually is falling, set them in jump status.
       self.action = JUMP
       self.Gravity()
@@ -156,12 +169,35 @@ class Character(pygame.sprite.Sprite):
 
 
 def LoadImage(filename, default_width=game_constants.TILE_WIDTH, 
-              default_height=game_constants.TILE_HEIGHT):
+              default_height=game_constants.TILE_HEIGHT, scaled=False, colorkey=None):
   """Load and return a sprite image from its filename."""
-  # TODO: This should really be in a shared class.
+  # TODO: Make this just call LoadImages
   try:
-    return pygame.image.load(os.path.join(PATH, filename)).convert_alpha()
-  except pygame.error:
+    return LoadImages(filename, scaled=scaled, colorkey=colorkey)[0]
+  except pygame.error as e:
+    print filename, e
     placeholder = pygame.Surface((default_width, default_height)).convert_alpha()
     placeholder.fill(game_constants.WHITE)
     return placeholder
+
+
+def LoadImages(fileglob, scaled=False, colorkey=None):
+  """Load and return a list of Surface objects matching the passed in pattern.
+  
+  Args:
+    fileglob: String pattern of files to look for in media/sprites.
+    scaled: True if the image should be scaled up 2x.
+    colorkey: RGB value to use for transparent.  If none, uses per-pixel alpha instead.
+  """
+
+  images = []
+  for filename in sorted(glob.glob(os.path.join(PATH, fileglob))):
+    image = pygame.image.load(filename)
+    if scaled:
+      image = pygame.transform.scale2x(image)
+    if colorkey is not None:
+      image.set_colorkey(colorkey)
+      images.append(image.convert())
+    else:
+      images.append(image.convert_alpha())
+  return images  

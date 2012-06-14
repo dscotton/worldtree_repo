@@ -9,10 +9,12 @@ Created on Jun 2, 2012
 @author: dscotton@gmail.com (David Scotton)
 """
 
+import glob
 import os
 
 import pygame
 
+import animation
 import character
 import controller
 import game_constants
@@ -46,17 +48,19 @@ class Hero(character.Character):
   # Actual size will be determined by the current image surface, but this is a 
   # default and guideline.
   WIDTH = 32
-  HEIGHT = 58
+  HEIGHT = 64
   SIZE = (WIDTH, HEIGHT)
   COLOR = (0x00, 0xFF, 0x66)
-  SPEED = 4
+  SPEED = 3
   JUMP_FORCE = 24
   GRAVITY = 2
   TERMINAL_VELOCITY = 8
 
   # Store surfaces in class variables so they're only loaded once.
-  STAND_LEFT = None
-  STAND_RIGHT = None
+  WALK_RIGHT_ANIMATION = None
+  WALK_LEFT_ANIMATION = None
+  JUMP_RIGHT_IMAGE = None
+  JUMP_LEFT_IMAGE = None
     
   def __init__(self, environment, position=(0, 0)):
     character.Character.__init__(self, environment, position)
@@ -66,13 +70,24 @@ class Hero(character.Character):
     # they can't be without ugly formatting.  See if it's possibly by moving LoadImage to
     # a higher level.
 
-    if Hero.STAND_LEFT is None:
-      Hero.STAND_LEFT = character.LoadImage(
-          'hero_stand_left.png', default_width=self.WIDTH, default_height=self.HEIGHT)
-      Hero.STAND_RIGHT = pygame.transform.flip(Hero.STAND_LEFT, True, False)
-    self.image = self.STAND_LEFT
+    if Hero.WALK_RIGHT_ANIMATION is None:
+      self.InitImage()
+    self.image = self.WALK_RIGHT_ANIMATION.NextFrame()
     self.last_state = (self.direction, self.action)
     self.animation_frame = 0
+
+  # TODO: customize the hitbox to better correspond with the part of the frame he actually takes up
+
+  def InitImage(self):
+    # Walking animation
+    images = character.LoadImages('treeguywalk*.png', scaled=True, 
+                                  colorkey=game_constants.SPRITE_COLORKEY)
+    self.WALK_RIGHT_ANIMATION = animation.Animation(images)
+    self.WALK_LEFT_ANIMATION = animation.Animation([pygame.transform.flip(i, 1, 0) for i in images])
+    self.JUMP_RIGHT_IMAGE = character.LoadImage('treeguyjump0000.png', scaled=True,
+                                                colorkey=game_constants.SPRITE_COLORKEY)
+    self.JUMP_LEFT_IMAGE = pygame.transform.flip(self.JUMP_RIGHT_IMAGE, 1, 0)
+    
 
   def HandleInput(self):
     """Handles user input to move the character and change his action."""
@@ -113,9 +128,15 @@ class Hero(character.Character):
     # at handling cases where we don't want a different image for every possible state. This
     # way we can only apply animation logic when there are multiple frames to animate.
     if character.LEFT == self.direction:
-      self.image = self.STAND_LEFT
+      if character.JUMP == self.action:
+        self.image = self.JUMP_LEFT_IMAGE
+      else:
+        self.image = self.WALK_LEFT_ANIMATION.NextFrame()
     elif character.RIGHT == self.direction:
-      self.image = self.STAND_RIGHT
+      if character.JUMP == self.action:
+        self.image = self.JUMP_RIGHT_IMAGE
+      else:
+        self.image = self.WALK_RIGHT_ANIMATION.NextFrame()
 
   def update(self):
     new_rect = self.env.AttemptMove(self, self.movement)

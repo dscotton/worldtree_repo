@@ -63,7 +63,6 @@ class Environment(object):
     image_cache = {}  # Only create one Surface for each image.
     for row in range(self.height):
       for col in range(self.width):
-        print col, row
         if row == 0:
           # Extend the grid to width = col.
           self.grid.append([])
@@ -226,6 +225,10 @@ class Environment(object):
         return True
     return False
 
+  def IsTileSupported(self, col, row):
+    """Returns true if there is a solid tile directly under the tile being checked."""
+    return self.IsRectSupported(self.RectForTile(col, row))
+
   def Scroll(self, rect):
     """If necessary, scroll the map to follow the position of rect.
     
@@ -260,4 +263,6 @@ class Environment(object):
     # Must move all enemies to account for the shifted window.
     for enemy in self.enemy_group:
       enemy.rect = enemy.rect.move(scroll_vector)
+      if y_scroll != 0:
+        print scroll_vector, enemy.rect
     return scroll_vector
