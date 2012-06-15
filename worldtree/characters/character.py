@@ -21,6 +21,7 @@ JUMP = 3
 RUN = 4
 LEFT = controller.LEFT
 RIGHT = controller.RIGHT
+ATTACK = controller.ATTACK
 PATH = os.path.join('media', 'sprites')
 
 class Character(pygame.sprite.Sprite):
@@ -129,7 +130,8 @@ class Character(pygame.sprite.Sprite):
 
   def Supported(self):
     """The character is standing on something solid. This is the only way to leave JUMP action."""
-    self.action = STAND
+    if self.action == JUMP:
+      self.action = STAND
     self.movement[1] = 0
     
   def GetMove(self):
@@ -138,25 +140,36 @@ class Character(pygame.sprite.Sprite):
     Must be implemented by any subclass that doesn't also override update().
     """
     raise NotImplementedError()
+  
+  def CollisionPushback(self, other):
+    """Calculate and apply a movement vector for being hit by another character."""
+    pushback_x = self.rect.centerx - other.rect.centerx
+    pushback_y = self.rect.centery - other.rect.centery
+    pushback_scalar = other.PUSHBACK / (float(pushback_x ** 2 + pushback_y ** 2) ** 0.5)
+    self.movement[0] += int(pushback_x * pushback_scalar)
+    self.movement[1] += int(pushback_y * pushback_scalar)
+    print '%s is getting knocked back! %s' % (type(self), self.movement)
 
   def WalkBackAndForth(self):
     """Get movement for walking back and forth on the current platform occupied."""
-    if self.direction == LEFT:
+    if self.movement[0] < 0:
+      self.Walk(LEFT)
       dest_tile = self.env.TileIndexForPoint(
           self.Hitbox().left + self.movement[0], self.Hitbox().bottom)
-    elif self.direction == RIGHT:
+    elif self.movement[0] > 0:
+      self.Walk(RIGHT)
       dest_tile = self.env.TileIndexForPoint(
           self.Hitbox().right + self.movement[0], self.Hitbox().bottom)
       
+    print self.movement
     # Check boundaries using existing AttemptMove method.  Kinda ugly.
     new_rect = self.env.AttemptMove(self, self.movement)
 
     if new_rect == self.rect or not self.env.IsTileSupported(*dest_tile):
-      self.movement[0] = -self.movement[0]
       if self.direction == LEFT:
-        self.direction = RIGHT
+        self.Walk(RIGHT)
       else:
-        self.direction = LEFT
+        self.Walk(LEFT)
     return self.movement
 
   def update(self):

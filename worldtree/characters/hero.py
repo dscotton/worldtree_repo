@@ -32,7 +32,7 @@ class Hero(character.Character):
       are right and down).
     state: (direction, action) tuple describing what the character is doing.
     last_state: (direction, action) tuple for the previous frame.
-    animation_frame: int for the frame of animation being shown in a particular action.
+    ongoing_action: int number of frames the last action continues, disallowing new input.
       
   Constants:
     SIZE: default (x, y) size of the character. Overridden by the actual size of the current image.
@@ -77,22 +77,33 @@ class Hero(character.Character):
     self.image = self.WALK_RIGHT_ANIMATION.NextFrame()
     self.last_state = (self.direction, self.action)
     self.animation_frame = 0
+    self.ongoing_action = 0
 
   # TODO: customize the hitbox to better correspond with the part of the frame he actually takes up
 
   def InitImage(self):
     # Walking animation
-    images = character.LoadImages('treeguywalk*.png', scaled=True, 
-                                  colorkey=game_constants.SPRITE_COLORKEY)
-    self.WALK_RIGHT_ANIMATION = animation.Animation(images)
-    self.WALK_LEFT_ANIMATION = animation.Animation([pygame.transform.flip(i, 1, 0) for i in images])
+    walk_images = character.LoadImages('treeguywalk*.png', scaled=True,
+                                       colorkey=game_constants.SPRITE_COLORKEY)
+    self.WALK_RIGHT_ANIMATION = animation.Animation(walk_images)
+    self.WALK_LEFT_ANIMATION = animation.Animation(
+        [pygame.transform.flip(i, 1, 0) for i in walk_images])
     self.JUMP_RIGHT_IMAGE = character.LoadImage('treeguyjump0000.png', scaled=True,
                                                 colorkey=game_constants.SPRITE_COLORKEY)
     self.JUMP_LEFT_IMAGE = pygame.transform.flip(self.JUMP_RIGHT_IMAGE, 1, 0)
-    
+    attack_images = character.LoadImages('treeguystrike1*.png', scaled=True,
+                                         colorkey=game_constants.SPRITE_COLORKEY)
+    self.ATTACK_RIGHT_ANIMATION = animation.Animation(attack_images)
+    self.ATTACK_LEFT_ANIMATION = animation.Animation(
+        [pygame.transform.flip(i, 1, 0) for i in attack_images])
 
   def HandleInput(self):
     """Handles user input to move the character and change his action."""
+    if self.ongoing_action:
+      # TODO: Make attack take a little longer, and not loop.
+      self.ongoing_action -= 1
+      return
+
     actions = controller.GetInput()
     if ((controller.LEFT in actions and controller.RIGHT in actions) or
         (controller.LEFT not in actions and controller.RIGHT not in actions)):
@@ -105,6 +116,8 @@ class Hero(character.Character):
       self.Jump()
     else:
       self.StopUpwardMovement()
+    if controller.ATTACK in actions:
+      self.Attack()
   
   def StopMoving(self):
     if self.movement[0] > 0:
@@ -124,6 +137,12 @@ class Hero(character.Character):
       self.movement[1] = self.movement[1] - self.JUMP_FORCE
     self.action = character.JUMP
     
+  def Attack(self):
+    """Initiate an attack action."""
+    print 'attack!'
+    self.ongoing_action = 8
+    self.action = character.ATTACK
+    
   def SetCurrentImage(self):
     """Sets the image to the appropriate one for the current action, if it exists.
     
@@ -136,11 +155,15 @@ class Hero(character.Character):
     if character.LEFT == self.direction:
       if character.JUMP == self.action:
         self.image = self.JUMP_LEFT_IMAGE
+      elif character.ATTACK == self.action:
+        self.image = self.ATTACK_LEFT_ANIMATION.NextFrame()
       else:
         self.image = self.WALK_LEFT_ANIMATION.NextFrame()
     elif character.RIGHT == self.direction:
       if character.JUMP == self.action:
         self.image = self.JUMP_RIGHT_IMAGE
+      elif character.ATTACK == self.action:
+        self.image = self.ATTACK_RIGHT_ANIMATION.NextFrame()
       else:
         self.image = self.WALK_RIGHT_ANIMATION.NextFrame()
     if self.invulnerable > 0 and self.invulnerable % 4 > 0:
@@ -150,17 +173,14 @@ class Hero(character.Character):
 
   def CollideWith(self, enemy):
     """Handle what happens when the player collides with an enemy."""
+    if self.action == controller.ATTACK:
+      enemy.hp -= self.DAMAGE
+      enemy.CollisionPushback(self)
     if self.invulnerable == 0:
       self.hp -= enemy.DAMAGE
       self.invulnerable = self.INVULNERABILITY_FRAMES
       # Calculate pushback
-      pushback_x = self.rect.centerx - enemy.rect.centerx
-      pushback_y = self.rect.centery - enemy.rect.centery
-      pushback_scalar = enemy.PUSHBACK / (float(pushback_x ** 2 + pushback_y ** 2) ** 0.5)
-      self.movement[0] += int(pushback_x * pushback_scalar)
-      self.movement[1] += int(pushback_y * pushback_scalar)
-      print pushback_x, pushback_y, pushback_scalar
-      print int(pushback_x * pushback_scalar), int(pushback_y * pushback_scalar)
+      self.CollisionPushback(enemy)
       print 'Player health: %s' % self.hp
       # TODO: Calculate pushback vector here and modify movement.  This also will mean making
       # lateral movement behave with inertia.
