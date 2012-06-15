@@ -46,6 +46,7 @@ class Character(pygame.sprite.Sprite):
   INVULNERABLE = False
   GRAVITY = 0
   TERMINAL_VELOCITY = 0
+  ACCEL = 100
   SPEED = 0
   WIDTH = 32
   HEIGHT = 32
@@ -54,7 +55,7 @@ class Character(pygame.sprite.Sprite):
   STARTING_MOVEMENT = [0, 0]
   IMAGE = None
   IMAGE_FILE = 'nothing'
-  PUSHBACK = 4
+  PUSHBACK = 16
   DAMAGE = 0
 
   def __init__(self, environment, position=(0, 0)):
@@ -106,10 +107,17 @@ class Character(pygame.sprite.Sprite):
       self.action = WALK
     if direction == LEFT:
       self.direction = LEFT
-      self.movement[0] = -self.SPEED
+      # Accelerate or decelerate to movement speed over time.
+      if self.movement[0] < -self.SPEED:
+        self.movement[0] += self.GRAVITY
+      else:
+        self.movement[0] = max(self.movement[0] - self.ACCEL, -self.SPEED)
     elif direction == RIGHT:      
       self.direction = RIGHT
-      self.movement[0] = self.SPEED
+      if self.movement[0] > self.SPEED:
+        self.movement[0] -= self.GRAVITY
+      else:
+        self.movement[0] = min(self.movement[0] + self.ACCEL, self.SPEED)
 
   def Gravity(self):
     """Apply the force of gravity to the character.

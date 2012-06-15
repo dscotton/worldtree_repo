@@ -9,6 +9,8 @@ Created on Jun 2, 2012
 @author: dscotton@gmail.com (David Scotton)
 """
 
+import math
+
 import pygame
 
 import animation
@@ -49,6 +51,7 @@ class Hero(character.Character):
   HEIGHT = 64
   SIZE = (WIDTH, HEIGHT)
   COLOR = (0x00, 0xFF, 0x66)
+  ACCEL = 2
   SPEED = 4
   JUMP_FORCE = 24
   GRAVITY = 2
@@ -104,13 +107,17 @@ class Hero(character.Character):
       self.StopUpwardMovement()
   
   def StopMoving(self):
-    if self.action != character.JUMP:
+    if self.movement[0] > 0:
+      self.movement[0] = max(self.movement[0] - self.GRAVITY, 0)
+    elif self.movement[0] < 0:
+      self.movement[0] = min(self.movement[0] + self.GRAVITY, 0)
+
+    if self.action != character.JUMP and self.movement[0] == 0:
       self.action = character.STAND
-    self.movement[0] = 0
     
   def StopUpwardMovement(self):
     if self.action == character.JUMP and self.movement[1] < 0:
-      self.movement[1] = 0
+      self.movement[1] += 1
   
   def Jump(self):
     if self.action != character.JUMP:
@@ -146,6 +153,14 @@ class Hero(character.Character):
     if self.invulnerable == 0:
       self.hp -= enemy.DAMAGE
       self.invulnerable = self.INVULNERABILITY_FRAMES
+      # Calculate pushback
+      pushback_x = self.rect.centerx - enemy.rect.centerx
+      pushback_y = self.rect.centery - enemy.rect.centery
+      pushback_scalar = enemy.PUSHBACK / (float(pushback_x ** 2 + pushback_y ** 2) ** 0.5)
+      self.movement[0] += int(pushback_x * pushback_scalar)
+      self.movement[1] += int(pushback_y * pushback_scalar)
+      print pushback_x, pushback_y, pushback_scalar
+      print int(pushback_x * pushback_scalar), int(pushback_y * pushback_scalar)
       print 'Player health: %s' % self.hp
       # TODO: Calculate pushback vector here and modify movement.  This also will mean making
       # lateral movement behave with inertia.
