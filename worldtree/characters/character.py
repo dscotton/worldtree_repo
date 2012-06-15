@@ -44,7 +44,6 @@ class Character(pygame.sprite.Sprite):
   STARTING_HP = 1
   SOLID = True
   INVULNERABLE = False
-  HARMFUL = False
   GRAVITY = 0
   TERMINAL_VELOCITY = 0
   SPEED = 0
@@ -55,6 +54,8 @@ class Character(pygame.sprite.Sprite):
   STARTING_MOVEMENT = [0, 0]
   IMAGE = None
   IMAGE_FILE = 'nothing'
+  PUSHBACK = 4
+  DAMAGE = 0
 
   def __init__(self, environment, position=(0, 0)):
     """Constructor.
@@ -151,11 +152,12 @@ class Character(pygame.sprite.Sprite):
     return self.movement
 
   def update(self):
+    old_info = (self.rect.left, self.rect.top)
     new_rect = self.env.AttemptMove(self, self.GetMove())
     if self.env.IsRectSupported(self.Hitbox()):
       self.Supported()
     else:
-      print "Falling...", self.rect
+      print "Falling...", old_info, self.rect
       # If the character actually is falling, set them in jump status.
       self.action = JUMP
       self.Gravity()

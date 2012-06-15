@@ -19,7 +19,7 @@ class Badger(character.Character):
   GRAVITY = 2
   TERMINAL_VELOCITY = 2
   STARTING_MOVEMENT = [-SPEED, 0]
-  HARMFUL = True
+  DAMAGE = 5
   IMAGE_FILE = 'badger.png'
   # TODO: assign self.image to something
 

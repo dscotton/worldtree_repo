@@ -235,34 +235,35 @@ class Environment(object):
     Returns:
       (x, y) vector to apply to rect to maintain its relative position with the landscape.
     """
+    # x_scroll and y_scroll are calculated with opposite signs (meaning subtracted from the
+    # current screen offset) in order to correctly move characters around the map to maintain
+    # relative position.
     x_scroll = 0
     y_scroll = 0
     if rect.centerx < SCROLL_MARGIN and self.screen_offset[0] > 0:
-      x_scroll = SCROLL_MARGIN - rect.centerx
-      self.screen_offset[0] = max(0, self.screen_offset[0] - x_scroll)
+      x_scroll = min(SCROLL_MARGIN - rect.centerx, self.screen_offset[0])
+      self.screen_offset[0] = self.screen_offset[0] - x_scroll
       self.dirty = True
     elif (rect.centerx > MAP_WIDTH - SCROLL_MARGIN
           and self.screen_offset[0] + MAP_WIDTH < self.width * TILE_WIDTH):
-      x_scroll = MAP_WIDTH - SCROLL_MARGIN - rect.centerx
-      self.screen_offset[0] = min(self.screen_offset[0] - x_scroll,
-                                  self.width * TILE_WIDTH - MAP_WIDTH)
+      x_scroll = max(MAP_WIDTH - SCROLL_MARGIN - rect.centerx,
+                     self.screen_offset[0] - self.width * TILE_WIDTH - MAP_WIDTH)
+      self.screen_offset[0] = self.screen_offset[0] - x_scroll
       self.dirty = True
       
     if rect.centery < SCROLL_MARGIN + MAP_Y and self.screen_offset[1] > 0:
-      y_scroll = SCROLL_MARGIN + MAP_Y - rect.centery
-      self.screen_offset[1] = max(0, self.screen_offset[1] - y_scroll)
+      y_scroll = min(SCROLL_MARGIN + MAP_Y - rect.centery, self.screen_offset[1])
+      self.screen_offset[1] = self.screen_offset[1] - y_scroll
       self.dirty = True
     elif (rect.centery > MAP_HEIGHT + MAP_Y - SCROLL_MARGIN
           and self.screen_offset[1] + MAP_HEIGHT < self.height * TILE_HEIGHT):
-      y_scroll = MAP_HEIGHT + MAP_Y - SCROLL_MARGIN - rect.centery
-      self.screen_offset[1] = min(self.screen_offset[1] - y_scroll,
-                                  self.height * TILE_HEIGHT - MAP_HEIGHT)
+      y_scroll = max(MAP_HEIGHT + MAP_Y - SCROLL_MARGIN - rect.centery,
+                     self.screen_offset[1] + MAP_Y - self.height * TILE_HEIGHT - MAP_HEIGHT)
+      self.screen_offset[1] = self.screen_offset[1] - y_scroll
       self.dirty = True
 
     scroll_vector = (x_scroll, y_scroll)
     # Must move all enemies to account for the shifted window.
     for enemy in self.enemy_group:
       enemy.rect = enemy.rect.move(scroll_vector)
-      if y_scroll != 0:
-        print scroll_vector, enemy.rect
     return scroll_vector

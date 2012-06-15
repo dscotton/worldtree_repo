@@ -9,9 +9,6 @@ Created on Jun 2, 2012
 @author: dscotton@gmail.com (David Scotton)
 """
 
-import glob
-import os
-
 import pygame
 
 import animation
@@ -45,16 +42,18 @@ class Hero(character.Character):
     TERMINAL_VELOCITY: Maximum rate at which you can fall.
   """
 
+  STARTING_HP = 99
   # Actual size will be determined by the current image surface, but this is a 
   # default and guideline.
   WIDTH = 32
   HEIGHT = 64
   SIZE = (WIDTH, HEIGHT)
   COLOR = (0x00, 0xFF, 0x66)
-  SPEED = 3
+  SPEED = 4
   JUMP_FORCE = 24
   GRAVITY = 2
   TERMINAL_VELOCITY = 8
+  INVULNERABILITY_FRAMES = 120
 
   # Store surfaces in class variables so they're only loaded once.
   WALK_RIGHT_ANIMATION = None
@@ -137,6 +136,19 @@ class Hero(character.Character):
         self.image = self.JUMP_RIGHT_IMAGE
       else:
         self.image = self.WALK_RIGHT_ANIMATION.NextFrame()
+    if self.invulnerable > 0 and self.invulnerable % 4 > 0:
+      self.image.set_alpha(128)
+    else:
+      self.image.set_alpha(255)
+
+  def CollideWith(self, enemy):
+    """Handle what happens when the player collides with an enemy."""
+    if self.invulnerable == 0:
+      self.hp -= enemy.DAMAGE
+      self.invulnerable = self.INVULNERABILITY_FRAMES
+      print 'Player health: %s' % self.hp
+      # TODO: Calculate pushback vector here and modify movement.  This also will mean making
+      # lateral movement behave with inertia.
 
   def update(self):
     new_rect = self.env.AttemptMove(self, self.movement)
@@ -148,7 +160,8 @@ class Hero(character.Character):
       # If the character actually is falling, set them in jump status.
       self.action = character.JUMP
       self.Gravity()
+    if self.invulnerable > 0:
+      self.invulnerable -= 1
     self.SetCurrentImage()
     self.last_state = self.state
-
     self.rect = new_rect

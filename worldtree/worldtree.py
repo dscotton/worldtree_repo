@@ -27,6 +27,7 @@ def RunGame():
   # TODO: handle initial map setup more intelligently.
   env = environment.Environment(map_data.map_data['Map1'])
   font = pygame.font.Font(os.path.join('media', 'font', 'PressStart2P.ttf'), 24)
+  # TODO: Make the status bar a class
   text = font.render("Level 1", False, WHITE)
   text_box = text.get_rect()
   text_box.top = 10
@@ -35,7 +36,7 @@ def RunGame():
 
   screen.blit(env.GetImage(), MAP_POSITION)
   # TODO: System for figuring out initial position on the map.
-  player = hero.Hero(env, position=(2, 0))
+  player = hero.Hero(env, position=(1, 2))
   player_group = pygame.sprite.RenderUpdates(player)
   enemy_group = env.enemy_group
   
@@ -52,6 +53,10 @@ def RunGame():
     enemy_group.update()
     player.HandleInput()
     player_group.update()
+    # TODO: Write a custom collided method, to use hitboxes if nothing else
+    collisions = pygame.sprite.spritecollide(player, enemy_group, False, collided=None)
+    for enemy in collisions:
+      player.CollideWith(enemy)
     dirty_rects = player_group.draw(screen)
     dirty_rects.extend(enemy_group.draw(screen))
     if refresh_map:
