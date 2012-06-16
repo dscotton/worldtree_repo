@@ -45,12 +45,13 @@ class Character(pygame.sprite.Sprite):
   STARTING_HP = 1
   SOLID = True
   INVULNERABLE = False
+  INVULNERABILITY_FRAMES = 30
   GRAVITY = 0
   TERMINAL_VELOCITY = 0
   ACCEL = 100
   SPEED = 0
-  WIDTH = 32
-  HEIGHT = 32
+  WIDTH = 48
+  HEIGHT = 48
   SIZE = (WIDTH, HEIGHT)
   DEFAULT_STATE = (STAND, LEFT)
   STARTING_MOVEMENT = [0, 0]
@@ -75,7 +76,7 @@ class Character(pygame.sprite.Sprite):
     self.action, self.direction = self.DEFAULT_STATE
     self.movement = self.STARTING_MOVEMENT
     self.hp = self.STARTING_HP
-    self.invulnerable = False
+    self.invulnerable = 0
     self.solid = True
     self.InitImage()
 
@@ -85,8 +86,8 @@ class Character(pygame.sprite.Sprite):
 
   def InitImage(self):
     if Character.IMAGE is None:
-      raw_image = LoadImage(self.IMAGE_FILE, default_width=self.WIDTH, default_height=self.HEIGHT)
-      Character.IMAGE = pygame.transform.scale(raw_image, self.SIZE).convert_alpha()
+      Character.IMAGE = LoadImage(self.IMAGE_FILE, scaled=True, 
+                                  colorkey=game_constants.SPRITE_COLORKEY)
     self.image = self.IMAGE
 
   def Hitbox(self):
@@ -102,6 +103,10 @@ class Character(pygame.sprite.Sprite):
   def SetCurrentImage(self):
     """Set self.image to the appropriate value.  Should be overriden for classes with animation."""
     self.image = self.IMAGE
+    if self.invulnerable > 0 and self.invulnerable % 4 > 0:
+      self.image.set_alpha(128)
+    else:
+      self.image.set_alpha(255)
     
   def Walk(self, direction):
     if self.action != JUMP:
@@ -141,6 +146,20 @@ class Character(pygame.sprite.Sprite):
     """
     raise NotImplementedError()
   
+  def TakeHit(self, damage):
+    """Take a hit for a given amount of damage."""
+    self.hp -= damage
+    print self.hp
+    if self.hp <= 0:
+      self.Die()
+    else:
+      self.invulnerable = self.INVULNERABILITY_FRAMES
+      
+  def Die(self):
+    """This character dies."""
+    # TODO: Add death animations and multi-frame events (ongoing_action?)
+    self.kill()
+  
   def CollisionPushback(self, other):
     """Calculate and apply a movement vector for being hit by another character."""
     pushback_x = self.rect.centerx - other.rect.centerx
@@ -161,7 +180,6 @@ class Character(pygame.sprite.Sprite):
       dest_tile = self.env.TileIndexForPoint(
           self.Hitbox().right + self.movement[0], self.Hitbox().bottom)
       
-    print self.movement
     # Check boundaries using existing AttemptMove method.  Kinda ugly.
     new_rect = self.env.AttemptMove(self, self.movement)
 
@@ -175,6 +193,7 @@ class Character(pygame.sprite.Sprite):
   def update(self):
     old_info = (self.rect.left, self.rect.top)
     new_rect = self.env.AttemptMove(self, self.GetMove())
+    self.rect = new_rect
     if self.env.IsRectSupported(self.Hitbox()):
       self.Supported()
     else:
@@ -183,9 +202,10 @@ class Character(pygame.sprite.Sprite):
       self.action = JUMP
       self.Gravity()
     self.SetCurrentImage()
+    if self.invulnerable > 0:
+      self.invulnerable -= 1
     self.last_state = self.state
 
-    self.rect = new_rect
     
   def __repr__(self):
     str(type(self))
@@ -194,7 +214,6 @@ class Character(pygame.sprite.Sprite):
 def LoadImage(filename, default_width=game_constants.TILE_WIDTH, 
               default_height=game_constants.TILE_HEIGHT, scaled=False, colorkey=None):
   """Load and return a sprite image from its filename."""
-  # TODO: Make this just call LoadImages
   try:
     return LoadImages(filename, scaled=scaled, colorkey=colorkey)[0]
   except pygame.error as e:
@@ -209,7 +228,7 @@ def LoadImages(fileglob, scaled=False, colorkey=None):
   
   Args:
     fileglob: String pattern of files to look for in media/sprites.
-    scaled: True if the image should be scaled up 2x.
+    scaled: True if the image should be scaled up (most game assets are shown at 3x).
     colorkey: RGB value to use for transparent.  If none, uses per-pixel alpha instead.
   """
 
@@ -217,7 +236,7 @@ def LoadImages(fileglob, scaled=False, colorkey=None):
   for filename in sorted(glob.glob(os.path.join(PATH, fileglob))):
     image = pygame.image.load(filename)
     if scaled:
-      image = pygame.transform.scale2x(image)
+      image = pygame.transform.scale(image, (image.get_width() * 3, image.get_height() * 3))
     if colorkey is not None:
       image.set_colorkey(colorkey)
       images.append(image.convert())

@@ -45,15 +45,16 @@ class Hero(character.Character):
   """
 
   STARTING_HP = 99
+  DAMAGE = 10
   # Actual size will be determined by the current image surface, but this is a 
   # default and guideline.
-  WIDTH = 32
-  HEIGHT = 64
+  WIDTH = 72
+  HEIGHT = 96
   SIZE = (WIDTH, HEIGHT)
   COLOR = (0x00, 0xFF, 0x66)
   ACCEL = 2
   SPEED = 4
-  JUMP_FORCE = 24
+  JUMP_FORCE = 30
   GRAVITY = 2
   TERMINAL_VELOCITY = 8
   INVULNERABILITY_FRAMES = 120
@@ -146,12 +147,17 @@ class Hero(character.Character):
   def SetCurrentImage(self):
     """Sets the image to the appropriate one for the current action, if it exists.
     
-    This method also handles cycling through frames of animation if there is more than
-    one image for a given state.
+    Specialized behavior for the player character - changes the sprite width to match the image,
+    and right-aligns the sprite when facing left rather than using default left-alignment.
     """
     # A dict of state->image seemed nice and pythonic at first, but it's not nearly as good
     # at handling cases where we don't want a different image for every possible state. This
     # way we can only apply animation logic when there are multiple frames to animate.
+
+    # Save right edge to maintain right-alignment if width changes and sprite is facing left.
+    # TODO: This could allow the character to penetrate walls with an attack, and if moving
+    # possibly end up inside the wall afterward?  Investigate whether it's a problem.
+    right = self.rect.right
     if character.LEFT == self.direction:
       if character.JUMP == self.action:
         self.image = self.JUMP_LEFT_IMAGE
@@ -159,6 +165,7 @@ class Hero(character.Character):
         self.image = self.ATTACK_LEFT_ANIMATION.NextFrame()
       else:
         self.image = self.WALK_LEFT_ANIMATION.NextFrame()
+      self.rect.right = right
     elif character.RIGHT == self.direction:
       if character.JUMP == self.action:
         self.image = self.JUMP_RIGHT_IMAGE
@@ -170,15 +177,19 @@ class Hero(character.Character):
       self.image.set_alpha(128)
     else:
       self.image.set_alpha(255)
+    
+    self.rect.width = self.image.get_width()
+    if self.direction == character.LEFT:
+      self.rect.right = right
 
   def CollideWith(self, enemy):
     """Handle what happens when the player collides with an enemy."""
     if self.action == controller.ATTACK:
-      enemy.hp -= self.DAMAGE
-      enemy.CollisionPushback(self)
-    if self.invulnerable == 0:
-      self.hp -= enemy.DAMAGE
-      self.invulnerable = self.INVULNERABILITY_FRAMES
+      if not enemy.invulnerable:
+        enemy.TakeHit(self.DAMAGE)
+        enemy.CollisionPushback(self)
+    elif self.invulnerable == 0:
+      self.TakeHit(enemy.DAMAGE)
       # Calculate pushback
       self.CollisionPushback(enemy)
       print 'Player health: %s' % self.hp
@@ -186,9 +197,11 @@ class Hero(character.Character):
       # lateral movement behave with inertia.
 
   def update(self):
+    self.SetCurrentImage()
     new_rect = self.env.AttemptMove(self, self.movement)
     scroll_vector = self.env.Scroll(self.rect)
     new_rect = new_rect.move(scroll_vector)
+    self.rect = new_rect
     if self.env.IsRectSupported(self.Hitbox()):
       self.Supported()
     else:
@@ -197,6 +210,4 @@ class Hero(character.Character):
       self.Gravity()
     if self.invulnerable > 0:
       self.invulnerable -= 1
-    self.SetCurrentImage()
     self.last_state = self.state
-    self.rect = new_rect
