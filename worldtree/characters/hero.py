@@ -58,6 +58,7 @@ class Hero(character.Character):
   GRAVITY = 2
   TERMINAL_VELOCITY = 8
   INVULNERABILITY_FRAMES = 120
+  ATTACK_DURATION = 30
 
   # Store surfaces in class variables so they're only loaded once.
   WALK_RIGHT_ANIMATION = None
@@ -94,15 +95,23 @@ class Hero(character.Character):
     self.JUMP_LEFT_IMAGE = pygame.transform.flip(self.JUMP_RIGHT_IMAGE, 1, 0)
     attack_images = character.LoadImages('treeguystrike1*.png', scaled=True,
                                          colorkey=game_constants.SPRITE_COLORKEY)
-    self.ATTACK_RIGHT_ANIMATION = animation.Animation(attack_images)
+    self.ATTACK_RIGHT_ANIMATION = animation.Animation(attack_images, looping=False)
     self.ATTACK_LEFT_ANIMATION = animation.Animation(
-        [pygame.transform.flip(i, 1, 0) for i in attack_images])
+        [pygame.transform.flip(i, 1, 0) for i in attack_images], looping=False)
+
+  def ResetAnimations(self):
+    """Reset the non-looping animations."""
+    self.ATTACK_LEFT_ANIMATION.Reset()
+    self.ATTACK_RIGHT_ANIMATION.Reset()
 
   def HandleInput(self):
     """Handles user input to move the character and change his action."""
     if self.ongoing_action:
       # TODO: Make attack take a little longer, and not loop.
+      self.StopMoving()
       self.ongoing_action -= 1
+      if self.ongoing_action == 0:
+        self.ResetAnimations()
       return
 
     actions = controller.GetInput()
@@ -126,7 +135,7 @@ class Hero(character.Character):
     elif self.movement[0] < 0:
       self.movement[0] = min(self.movement[0] + self.GRAVITY, 0)
 
-    if self.action != character.JUMP and self.movement[0] == 0:
+    if self.action != character.JUMP and self.ongoing_action == 0 and self.movement[0] == 0:
       self.action = character.STAND
     
   def StopUpwardMovement(self):
@@ -141,7 +150,7 @@ class Hero(character.Character):
   def Attack(self):
     """Initiate an attack action."""
     print 'attack!'
-    self.ongoing_action = 8
+    self.ongoing_action = self.ATTACK_DURATION
     self.action = character.ATTACK
     
   def SetCurrentImage(self):
