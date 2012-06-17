@@ -11,7 +11,6 @@ import os
 
 import pygame
 
-import controller
 import game_constants
 
 # Enum of possible character action states.
@@ -19,9 +18,9 @@ STAND = 1
 WALK = 2
 JUMP = 3
 RUN = 4
-LEFT = controller.LEFT
-RIGHT = controller.RIGHT
-ATTACK = controller.ATTACK
+LEFT = game_constants.LEFT
+RIGHT = game_constants.RIGHT
+ATTACK = game_constants.ATTACK
 PATH = os.path.join('media', 'sprites')
 
 class Character(pygame.sprite.Sprite):
@@ -59,6 +58,7 @@ class Character(pygame.sprite.Sprite):
   IMAGE_FILE = 'nothing'
   PUSHBACK = 16
   DAMAGE = 0
+  IS_PLAYER = False
 
   def __init__(self, environment, position=(0, 0)):
     """Constructor.
@@ -107,6 +107,13 @@ class Character(pygame.sprite.Sprite):
       self.image.set_alpha(128)
     else:
       self.image.set_alpha(255)
+
+  def ChangeRooms(self, env, position):
+    """Move this sprite to a new environment.  Probably only should be used for the player."""
+    self.env = env
+    map_rect = self.env.RectForTile(*position)
+    self.rect = pygame.Rect(self.env.ScreenCoordinateForMapPoint(map_rect.left, map_rect.top),
+                            (self.WIDTH, self.HEIGHT))
     
   def Walk(self, direction):
     if self.action != JUMP:

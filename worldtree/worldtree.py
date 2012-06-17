@@ -15,8 +15,9 @@ pygame.init()
 
 from characters import hero
 import environment
-import map_data
 from game_constants import *
+import map_data
+import map_transitions
 
 def RunGame():
   pygame.display.set_caption(GAME_NAME)
@@ -24,8 +25,8 @@ def RunGame():
   screen.fill(BLACK)
   clock = pygame.time.Clock()
 
-  # TODO: handle initial map setup more intelligently.
-  env = environment.Environment(map_data.map_data['Map1'])
+  current_room = 'Map1'
+  env = environment.Environment(map_data.map_data[current_room])
   font = pygame.font.Font(os.path.join('media', 'font', 'PressStart2P.ttf'), 24)
   # TODO: Make the status bar a class
   text = font.render("Level 1", False, WHITE)
@@ -41,15 +42,15 @@ def RunGame():
   enemy_group = env.enemy_group
   
   pygame.display.flip()
-  pygame.mixer.music.load(os.path.join('media', 'music', 'photosynthesis_wip.ogg'))
-  pygame.mixer.music.play(-1)
+#  pygame.mixer.music.load(os.path.join('media', 'music', 'photosynthesis_wip.ogg'))
+#  pygame.mixer.music.play(-1)
   while pygame.QUIT not in (event.type for event in pygame.event.get()):
     refresh_map = env.dirty
     clock.tick(60)
     screen.fill(BLACK)
     screen.blit(env.GetImage(), MAP_POSITION)
     dirty_rects = []
-    
+
     enemy_group.update()
     player.HandleInput()
     player_group.update()
@@ -70,6 +71,56 @@ def RunGame():
         rect.width += 6
         rect.height += 6
       pygame.display.update(dirty_rects)
+      
+    # Check if character is leaving the area and make the transition.
+    if env.IsOutsideMap(player.Hitbox()):
+      # Use the character's center to determine when they leave the map, but for all other
+      # positioning use their upper left corner for precision.
+      tile_x, tile_y = env.TileIndexForPoint(player.Hitbox().centerx, player.Hitbox().centery)
+      ul_x, ul_y = env.TileIndexForPoint(player.Hitbox().left, player.Hitbox().top)
+      if tile_x < 0:
+        for trans in map_transitions.transitions[current_room][LEFT]:
+          if ul_y >= trans.first and ul_y <= trans.last:
+            current_room = trans.dest
+            new_map = map_data.map_data[current_room]
+            x_pos = new_map['width'] - 1
+            y_pos = ul_y + trans.offset
+            screen_offset_x = new_map['width'] * TILE_WIDTH - MAP_WIDTH
+            screen_offset_y = min(new_map['height'] * TILE_HEIGHT - MAP_HEIGHT,
+                                  max(env.screen_offset[1] + trans.offset * TILE_HEIGHT, 0))
+      elif tile_x >= env.width:
+        for trans in map_transitions.transitions[current_room][RIGHT]:
+          if ul_y >= trans.first and ul_y <= trans.last:
+            current_room = trans.dest
+            new_map = map_data.map_data[current_room]
+            x_pos = 0
+            y_pos = ul_y + trans.offset
+            screen_offset_x = 0
+            screen_offset_y = min(new_map['height'] * TILE_HEIGHT - MAP_HEIGHT,
+                                  max(env.screen_offset[1] + trans.offset * TILE_HEIGHT, 0))
+      elif tile_y < 0:
+        for trans in map_transitions.transitions[current_room][UP]:
+          if ul_x >= trans.first and ul_x <= trans.last:
+            current_room = trans.dest
+            new_map = map_data.map_data[current_room]
+            x_pos = ul_x + trans.offset
+            y_pos = new_map['height'] - 1
+            screen_offset_x = min(new_map['width'] * TILE_WIDTH - MAP_WIDTH,
+                                  max(env.screen_offset[0] + trans.offset * TILE_WIDTH, 0))
+            screen_offset_y = new_map['height'] * TILE_HEIGHT - MAP_HEIGHT
+      elif tile_y >= env.height:
+        for trans in map_transitions.transitions[current_room][DOWN]:
+          if ul_x >= trans.first and ul_x <= trans.last:
+            current_room = trans.dest
+            new_map = map_data.map_data[current_room]
+            x_pos = ul_x + trans.offset
+            y_pos = 0
+            screen_offset_x = min(new_map['width'] * TILE_WIDTH - MAP_WIDTH,
+                                  max(env.screen_offset[0] + trans.offset * TILE_WIDTH, 0))
+            screen_offset_y = 0
+      env = environment.Environment(new_map, offset=(screen_offset_x, screen_offset_y))
+      player.ChangeRooms(env, (x_pos, y_pos))
+      enemy_group = env.enemy_group
     
   sys.exit()
 

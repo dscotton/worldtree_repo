@@ -10,6 +10,7 @@ Created on June 5, 2012
 
 import os
 
+# These are mostly graphics setup constants.
 GAME_NAME = 'World Tree'
 SCREEN_WIDTH = 960
 SCREEN_HEIGHT = 720
@@ -31,3 +32,12 @@ TILE_SIZE = (TILE_WIDTH, TILE_HEIGHT)
 TILE_DIR = os.path.join('media', 'tiles')
 HORIZONTAL_TILE_COUNT = MAP_WIDTH / TILE_SIZE[0]
 VERTICAL_TILE_COUNT = MAP_HEIGHT / TILE_SIZE[1]
+
+# These constants represent the meaning of the user input to the game.
+UP = 1
+DOWN = 2
+LEFT = 3
+RIGHT = 4
+JUMP = 5
+ATTACK = 6
+START = 7

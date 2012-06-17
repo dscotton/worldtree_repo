@@ -10,14 +10,13 @@ but if we have time we can add support for gamepads and/or configurable keys.
 
 import pygame
 
-# These constants represent the meaning of the user input to the game.
-UP = 1
-DOWN = 2
-LEFT = 3
-RIGHT = 4
-JUMP = 5
-ATTACK = 6
-START = 7
+from game_constants import UP
+from game_constants import DOWN
+from game_constants import LEFT
+from game_constants import RIGHT
+from game_constants import JUMP
+from game_constants import ATTACK
+from game_constants import START
 
 ALL_ACTIONS = (UP, DOWN, LEFT, RIGHT, JUMP, ATTACK, START)
 

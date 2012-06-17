@@ -54,9 +54,10 @@ class Environment(object):
     self.grid = []
     self.height = map_data['height']
     self.width = map_data['width']
-    self.screen_offset = offset
     if offset is None:
       self.screen_offset = [0, 0]
+    else:
+      self.screen_offset = list(offset)
     self.surface = pygame.Surface(MAP_SIZE)
     self.dirty = True  # Whether the surface needs to be refreshed.
     self.enemy_group = pygame.sprite.RenderUpdates()
@@ -139,21 +140,17 @@ class Environment(object):
     # Figure out which tiles contain the old and new position.
     old_tiles = self.TilesForRect(hitbox)
     new_tiles = [t for t in self.TilesForRect(dest) if t not in old_tiles]
-#    print old_tiles, new_tiles
     # For each new tile the sprite would occupy, check whether it blocks movement in the
     # desired direction.
     for col, row in new_tiles:
       tile_rect = self.RectForTile(col, row)
-      # Check if outside the edges of the area.
-      # TODO: Possibly add movement to other areas here.
-      if col < 0:
-        square = tile.Tile(solid=(False, True, False, False))
-      elif col >= self.width:
-        square = tile.Tile(solid=(True, False, False, False))
-      elif row < 0:
-        square = tile.Tile(solid=(False, False, False, True))
-      elif row >= self.height:
-        square = tile.Tile(solid=(False, False, True, False))
+      # Stop non-player sprites from moving outside the room.  Allow players to move this way,
+      # And check for transitions in the main loop.
+      if col < 0 or col >= self.width or row < 0 or row >= self.height:
+        if sprite.IS_PLAYER:
+          square = tile.Tile(solid=(False, False, False, False))
+        else:
+          square = tile.Tile(solid=(True, True, True, True))
       else:
         square = self.grid[col][row]
 
@@ -208,6 +205,13 @@ class Environment(object):
     """Convert screen-relative (x, y) point into a map-relative coordinate."""
     return (x - MAP_X + self.screen_offset[0], y - MAP_Y + self.screen_offset[1])
 
+  def IsOutsideMap(self, rect):
+    """True if the center of rect has moved outside the map."""
+    col, row = self.TileIndexForPoint(rect.centerx, rect.centery)
+    if col < 0 or col >= self.width or row < 0 or row >= self.height:
+      return True
+    return False
+
   def IsRectSupported(self, rect):
     """Returns true if there is a solid tile directly under a rectangle.
     
@@ -218,11 +222,17 @@ class Environment(object):
     old_tiles = self.TilesForRect(rect)
     new_tiles = [tile for tile in self.TilesForRect(dest) if tile not in old_tiles]
     for col, row in new_tiles:
+      if col < 0 or col >= self.width:
+        continue
       if row >= self.height:
         # TODO: Change this if we want to enable falling to your death
         return True
-      if self.grid[col][row].solid_top:
-        return True
+      try:
+        if self.grid[col][row].solid_top:
+          return True
+      except IndexError:
+        print col, row
+        raise
     return False
 
   def IsTileSupported(self, col, row):

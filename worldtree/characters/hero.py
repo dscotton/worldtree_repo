@@ -16,6 +16,9 @@ import pygame
 import animation
 import character
 import controller
+from game_constants import LEFT
+from game_constants import RIGHT
+from game_constants import ATTACK
 import game_constants
 
 
@@ -59,6 +62,7 @@ class Hero(character.Character):
   TERMINAL_VELOCITY = 8
   INVULNERABILITY_FRAMES = 120
   ATTACK_DURATION = 30
+  IS_PLAYER = True
 
   # Store surfaces in class variables so they're only loaded once.
   WALK_RIGHT_ANIMATION = None
@@ -115,18 +119,18 @@ class Hero(character.Character):
       return
 
     actions = controller.GetInput()
-    if ((controller.LEFT in actions and controller.RIGHT in actions) or
-        (controller.LEFT not in actions and controller.RIGHT not in actions)):
+    if ((LEFT in actions and RIGHT in actions) or
+        (LEFT not in actions and RIGHT not in actions)):
       self.StopMoving()
-    elif controller.LEFT in actions:
-      self.Walk(character.LEFT)
-    elif controller.RIGHT in actions:
-      self.Walk(character.RIGHT)
+    elif LEFT in actions:
+      self.Walk(LEFT)
+    elif RIGHT in actions:
+      self.Walk(RIGHT)
     if controller.JUMP in actions:
       self.Jump()
     else:
       self.StopUpwardMovement()
-    if controller.ATTACK in actions:
+    if ATTACK in actions:
       self.Attack()
   
   def StopMoving(self):
@@ -151,7 +155,7 @@ class Hero(character.Character):
     """Initiate an attack action."""
     print 'attack!'
     self.ongoing_action = self.ATTACK_DURATION
-    self.action = character.ATTACK
+    self.action = ATTACK
     
   def SetCurrentImage(self):
     """Sets the image to the appropriate one for the current action, if it exists.
@@ -167,18 +171,18 @@ class Hero(character.Character):
     # TODO: This could allow the character to penetrate walls with an attack, and if moving
     # possibly end up inside the wall afterward?  Investigate whether it's a problem.
     right = self.rect.right
-    if character.LEFT == self.direction:
+    if LEFT == self.direction:
       if character.JUMP == self.action:
         self.image = self.JUMP_LEFT_IMAGE
-      elif character.ATTACK == self.action:
+      elif ATTACK == self.action:
         self.image = self.ATTACK_LEFT_ANIMATION.NextFrame()
       else:
         self.image = self.WALK_LEFT_ANIMATION.NextFrame()
       self.rect.right = right
-    elif character.RIGHT == self.direction:
+    elif RIGHT == self.direction:
       if character.JUMP == self.action:
         self.image = self.JUMP_RIGHT_IMAGE
-      elif character.ATTACK == self.action:
+      elif ATTACK == self.action:
         self.image = self.ATTACK_RIGHT_ANIMATION.NextFrame()
       else:
         self.image = self.WALK_RIGHT_ANIMATION.NextFrame()
@@ -188,12 +192,12 @@ class Hero(character.Character):
       self.image.set_alpha(255)
     
     self.rect.width = self.image.get_width()
-    if self.direction == character.LEFT:
+    if self.direction == LEFT:
       self.rect.right = right
 
   def CollideWith(self, enemy):
     """Handle what happens when the player collides with an enemy."""
-    if self.action == controller.ATTACK:
+    if self.action == ATTACK:
       if not enemy.invulnerable:
         enemy.TakeHit(self.DAMAGE)
         enemy.CollisionPushback(self)
