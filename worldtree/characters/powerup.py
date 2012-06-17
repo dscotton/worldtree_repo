@@ -45,6 +45,7 @@ class Powerup(pygame.sprite.Sprite):
     self.row = position[1]
     self.cleanup = cleanup
     self.sound = sound
+    self.dead = False
     map_rect = self.env.RectForTile(*position)
     self.rect = pygame.Rect(self.env.ScreenCoordinateForMapPoint(map_rect.left, map_rect.top),
                             (self.WIDTH, self.HEIGHT))
@@ -65,6 +66,7 @@ class Powerup(pygame.sprite.Sprite):
     self.Use(character)
     if self.cleanup:
       map_data.map_data[self.env.name]['mapcodes'][self.row][self.col] = 0
+    self.env.dirty = True  # Needed to make the image vanish right away.
     self.kill()
     
     

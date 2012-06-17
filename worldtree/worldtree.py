@@ -36,20 +36,20 @@ def RunGame():
   screen.blit(text, text_box)
 
   screen.blit(env.GetImage(), MAP_POSITION)
-  # TODO: System for figuring out initial position on the map.
   player = hero.Hero(env, position=(1, 2))
   player_group = pygame.sprite.RenderUpdates(player)
   enemy_group = env.enemy_group
   item_group = env.item_group
+  item_group.draw(screen)
+  player_group.draw(screen)
+  enemy_group.draw(screen)
   
   pygame.display.flip()
   pygame.mixer.music.load(os.path.join('media', 'music', 'photosynthesis_wip.ogg'))
   pygame.mixer.music.play(-1)
   while pygame.QUIT not in (event.type for event in pygame.event.get()):
-    refresh_map = env.dirty
     clock.tick(60)
     screen.fill(BLACK)
-    screen.blit(env.GetImage(), MAP_POSITION)
     dirty_rects = []
 
     player.HandleInput()
@@ -64,9 +64,11 @@ def RunGame():
     item_pickups = pygame.sprite.spritecollide(player, item_group, False, collided=None)
     for item in item_pickups:
       item.PickUp(player)
+    refresh_map = env.dirty
+    screen.blit(env.GetImage(), MAP_POSITION)
+    dirty_rects.extend(item_group.draw(screen))  # Not necessary to draw every frame unless animated
     dirty_rects = player_group.draw(screen)
     dirty_rects.extend(enemy_group.draw(screen))
-    dirty_rects.extend(item_group.draw(screen))  # Not necessary to draw every frame unless animated
     if refresh_map:
       pygame.display.update(pygame.Rect(MAP_POSITION[0], MAP_POSITION[1], MAP_WIDTH, MAP_HEIGHT))
     else:
