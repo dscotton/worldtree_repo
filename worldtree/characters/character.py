@@ -75,6 +75,7 @@ class Character(pygame.sprite.Sprite):
                             (self.WIDTH, self.HEIGHT))
     self.action, self.direction = self.DEFAULT_STATE
     self.movement = self.STARTING_MOVEMENT
+    self.max_hp = self.STARTING_HP
     self.hp = self.STARTING_HP
     self.invulnerable = 0
     self.solid = True

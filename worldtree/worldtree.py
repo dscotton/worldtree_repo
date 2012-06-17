@@ -26,7 +26,7 @@ def RunGame():
   clock = pygame.time.Clock()
 
   current_room = 'Map1'
-  env = environment.Environment(map_data.map_data[current_room])
+  env = environment.Environment(current_room)
   font = pygame.font.Font(os.path.join('media', 'font', 'PressStart2P.ttf'), 24)
   # TODO: Make the status bar a class
   text = font.render("Level 1", False, WHITE)
@@ -40,10 +40,11 @@ def RunGame():
   player = hero.Hero(env, position=(1, 2))
   player_group = pygame.sprite.RenderUpdates(player)
   enemy_group = env.enemy_group
+  item_group = env.item_group
   
   pygame.display.flip()
-#  pygame.mixer.music.load(os.path.join('media', 'music', 'photosynthesis_wip.ogg'))
-#  pygame.mixer.music.play(-1)
+  pygame.mixer.music.load(os.path.join('media', 'music', 'photosynthesis_wip.ogg'))
+  pygame.mixer.music.play(-1)
   while pygame.QUIT not in (event.type for event in pygame.event.get()):
     refresh_map = env.dirty
     clock.tick(60)
@@ -51,15 +52,21 @@ def RunGame():
     screen.blit(env.GetImage(), MAP_POSITION)
     dirty_rects = []
 
-    enemy_group.update()
     player.HandleInput()
     player_group.update()
+    item_group.update()
+    enemy_group.update()
     # TODO: Write a custom collided method, to use hitboxes if nothing else
     collisions = pygame.sprite.spritecollide(player, enemy_group, False, collided=None)
     for enemy in collisions:
       player.CollideWith(enemy)
+    # TODO: Powerup hitbox is too big
+    item_pickups = pygame.sprite.spritecollide(player, item_group, False, collided=None)
+    for item in item_pickups:
+      item.PickUp(player)
     dirty_rects = player_group.draw(screen)
     dirty_rects.extend(enemy_group.draw(screen))
+    dirty_rects.extend(item_group.draw(screen))  # Not necessary to draw every frame unless animated
     if refresh_map:
       pygame.display.update(pygame.Rect(MAP_POSITION[0], MAP_POSITION[1], MAP_WIDTH, MAP_HEIGHT))
     else:
@@ -118,9 +125,10 @@ def RunGame():
             screen_offset_x = min(new_map['width'] * TILE_WIDTH - MAP_WIDTH,
                                   max(env.screen_offset[0] + trans.offset * TILE_WIDTH, 0))
             screen_offset_y = 0
-      env = environment.Environment(new_map, offset=(screen_offset_x, screen_offset_y))
+      env = environment.Environment(current_room, offset=(screen_offset_x, screen_offset_y))
       player.ChangeRooms(env, (x_pos, y_pos))
       enemy_group = env.enemy_group
+      item_group = env.item_group
     
   sys.exit()
 
