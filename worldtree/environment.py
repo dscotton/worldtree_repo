@@ -225,8 +225,7 @@ class Environment(object):
       if col < 0 or col >= self.width:
         continue
       if row >= self.height:
-        # TODO: Change this if we want to enable falling to your death
-        return True
+        return False
       try:
         if self.grid[col][row].solid_top:
           return True
