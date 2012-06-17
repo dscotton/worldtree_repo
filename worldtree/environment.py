@@ -264,24 +264,24 @@ class Environment(object):
     # relative position.
     x_scroll = 0
     y_scroll = 0
-    if rect.centerx < SCROLL_MARGIN and self.screen_offset[0] > 0:
-      x_scroll = min(SCROLL_MARGIN - rect.centerx, self.screen_offset[0])
+    if rect.centerx < SCROLL_MARGIN_X and self.screen_offset[0] > 0:
+      x_scroll = min(SCROLL_MARGIN_X - rect.centerx, self.screen_offset[0])
       self.screen_offset[0] = self.screen_offset[0] - x_scroll
       self.dirty = True
-    elif (rect.centerx > MAP_WIDTH - SCROLL_MARGIN
+    elif (rect.centerx > MAP_WIDTH - SCROLL_MARGIN_X
           and self.screen_offset[0] + MAP_WIDTH < self.width * TILE_WIDTH):
-      x_scroll = max(MAP_WIDTH - SCROLL_MARGIN - rect.centerx,
+      x_scroll = max(MAP_WIDTH - SCROLL_MARGIN_X - rect.centerx,
                      self.screen_offset[0] - self.width * TILE_WIDTH - MAP_WIDTH)
       self.screen_offset[0] = self.screen_offset[0] - x_scroll
       self.dirty = True
       
-    if rect.centery < SCROLL_MARGIN + MAP_Y and self.screen_offset[1] > 0:
-      y_scroll = min(SCROLL_MARGIN + MAP_Y - rect.centery, self.screen_offset[1])
+    if rect.centery < SCROLL_MARGIN_Y + MAP_Y and self.screen_offset[1] > 0:
+      y_scroll = min(SCROLL_MARGIN_Y + MAP_Y - rect.centery, self.screen_offset[1])
       self.screen_offset[1] = self.screen_offset[1] - y_scroll
       self.dirty = True
-    elif (rect.centery > MAP_HEIGHT + MAP_Y - SCROLL_MARGIN
+    elif (rect.centery > MAP_HEIGHT + MAP_Y - SCROLL_MARGIN_Y
           and self.screen_offset[1] + MAP_HEIGHT < self.height * TILE_HEIGHT):
-      y_scroll = max(MAP_HEIGHT + MAP_Y - SCROLL_MARGIN - rect.centery,
+      y_scroll = max(MAP_HEIGHT + MAP_Y - SCROLL_MARGIN_Y - rect.centery,
                      self.screen_offset[1] + MAP_Y - self.height * TILE_HEIGHT - MAP_HEIGHT)
       self.screen_offset[1] = self.screen_offset[1] - y_scroll
       self.dirty = True

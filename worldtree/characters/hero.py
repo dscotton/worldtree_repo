@@ -9,8 +9,6 @@ Created on Jun 2, 2012
 @author: dscotton@gmail.com (David Scotton)
 """
 
-import math
-
 import pygame
 
 import animation
@@ -215,7 +213,9 @@ class Hero(character.Character):
     scroll_vector = self.env.Scroll(self.rect)
     new_rect = new_rect.move(scroll_vector)
     self.rect = new_rect
-    if self.env.IsRectSupported(self.Hitbox()):
+    print self.movement
+    if (self.env.IsRectSupported(self.Hitbox())
+        or self.env.IsRectSupported(self.Hitbox().move(self.movement[0], 0))):  # Second part needed for wall jumping
       self.Supported()
     else:
       # If the character actually is falling, set them in jump status.
