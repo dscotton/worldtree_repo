@@ -16,8 +16,10 @@ import game_constants
 # Enum of possible character action states.
 STAND = 1
 WALK = 2
-JUMP = 3
-RUN = 4
+RUN = 3
+JUMP = 4
+FALL= 5
+GROUNDED = 6
 LEFT = game_constants.LEFT
 RIGHT = game_constants.RIGHT
 ATTACK = game_constants.ATTACK
@@ -36,6 +38,9 @@ class Character(pygame.sprite.Sprite):
     rect: pygame Rect object representing the sprite's position.
     movement: [x, y] pair representing the character's rate of movement.  (Positive numbers
       are right and down).
+    direction: int LEFT or RIGHT, the direction the character is currently facing.
+    horizontal: int STAND, WALK, or RUN, the move action in the horizontal direction.
+    vertical: int JUMP, FALL, or GROUNDED, the move action in the vertical direction.
     state: (direction, action) tuple describing what the character is doing.
     last_state: (direction, action) tuple for the previous frame.
   """
@@ -49,6 +54,8 @@ class Character(pygame.sprite.Sprite):
   TERMINAL_VELOCITY = 0
   ACCEL = 100
   SPEED = 0
+  JUMP_DURATION = 0
+  JUMP_COOLDOWN = 0
   WIDTH = 48
   HEIGHT = 48
   SIZE = (WIDTH, HEIGHT)
@@ -74,8 +81,11 @@ class Character(pygame.sprite.Sprite):
     self.rect = pygame.Rect(self.env.ScreenCoordinateForMapPoint(map_rect.left, map_rect.top),
                             (self.WIDTH, self.HEIGHT))
     self.action, self.direction = self.DEFAULT_STATE
+    self.vertical = FALL
     self.movement = self.STARTING_MOVEMENT
     self.max_hp = self.STARTING_HP
+    self.jump_duration = self.JUMP_DURATION
+    self.jump_cooldown = 0
     self.hp = self.STARTING_HP
     self.invulnerable = 0
     self.solid = True
@@ -142,9 +152,10 @@ class Character(pygame.sprite.Sprite):
       self.movement[1] = min(self.movement[1] + self.GRAVITY, self.TERMINAL_VELOCITY)
 
   def Supported(self):
-    """The character is standing on something solid. This is the only way to leave JUMP action."""
-    if self.action == JUMP:
-      self.action = STAND
+    """The character is standing on something solid."""
+    if self.vertical == FALL:
+      self.jump_cooldown = self.JUMP_COOLDOWN
+    self.vertical = GROUNDED
     self.movement[1] = 0
     
   def GetMove(self):
@@ -204,6 +215,8 @@ class Character(pygame.sprite.Sprite):
     self.rect = new_rect
     if self.env.IsRectSupported(self.Hitbox()):
       self.Supported()
+      # TODO: Put this somewhere else to enable double jumps
+      self.jump_cooldown -= 1
     else:
       print "Falling...", old_info, self.rect
       # If the character actually is falling, set them in jump status.

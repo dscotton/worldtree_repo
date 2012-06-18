@@ -55,9 +55,11 @@ class Hero(character.Character):
   COLOR = (0x00, 0xFF, 0x66)
   ACCEL = 2
   SPEED = 4
-  JUMP_FORCE = 30
+  JUMP_FORCE = 10
+  JUMP_DURATION = 22
+  JUMP_COOLDOWN = 8
   GRAVITY = 2
-  TERMINAL_VELOCITY = 8
+  TERMINAL_VELOCITY = 10
   INVULNERABILITY_FRAMES = 120
   ATTACK_DURATION = 30
   IS_PLAYER = True
@@ -80,7 +82,6 @@ class Hero(character.Character):
       self.InitImage()
     self.image = self.WALK_RIGHT_ANIMATION.NextFrame()
     self.last_state = (self.direction, self.action)
-    self.animation_frame = 0
     self.ongoing_action = 0
 
   # TODO: customize the hitbox to better correspond with the part of the frame he actually takes up
@@ -141,13 +142,19 @@ class Hero(character.Character):
       self.action = character.STAND
     
   def StopUpwardMovement(self):
-    if self.action == character.JUMP and self.movement[1] < 0:
-      self.movement[1] += 1
+    if self.vertical == character.JUMP:
+      self.vertical = character.FALL
+      self.jump_duration = 0
   
   def Jump(self):
-    if self.action != character.JUMP:
-      self.movement[1] = self.movement[1] - self.JUMP_FORCE
-    self.action = character.JUMP
+    if self.vertical == character.GROUNDED and self.jump_cooldown == 0:
+      self.vertical = character.JUMP
+      self.jump_duration = self.JUMP_DURATION
+      self.movement[1] = -self.JUMP_FORCE
+    elif self.vertical == character.JUMP:
+      self.jump_duration -= 1
+      if self.jump_duration == 0:
+        self.vertical = character.FALL
     
   def Attack(self):
     """Initiate an attack action."""
@@ -170,7 +177,7 @@ class Hero(character.Character):
     # possibly end up inside the wall afterward?  Investigate whether it's a problem.
     right = self.rect.right
     if LEFT == self.direction:
-      if character.JUMP == self.action:
+      if character.JUMP == self.vertical or character.FALL == self.vertical:
         self.image = self.JUMP_LEFT_IMAGE
       elif ATTACK == self.action:
         self.image = self.ATTACK_LEFT_ANIMATION.NextFrame()
@@ -178,7 +185,7 @@ class Hero(character.Character):
         self.image = self.WALK_LEFT_ANIMATION.NextFrame()
       self.rect.right = right
     elif RIGHT == self.direction:
-      if character.JUMP == self.action:
+      if character.JUMP == self.vertical or character.FALL == self.vertical:
         self.image = self.JUMP_RIGHT_IMAGE
       elif ATTACK == self.action:
         self.image = self.ATTACK_RIGHT_ANIMATION.NextFrame()
@@ -216,9 +223,12 @@ class Hero(character.Character):
     if (self.env.IsRectSupported(self.Hitbox())
         or self.env.IsRectSupported(self.Hitbox().move(self.movement[0], 0))):  # Second part needed for wall jumping
       self.Supported()
-    else:
-      # If the character actually is falling, set them in jump status.
-      self.action = character.JUMP
+      # TODO: Put this somewhere else to enable double jumps
+      if self.jump_cooldown > 0:
+        self.jump_cooldown -= 1
+    elif self.vertical != character.JUMP:
+      # If not supported and not jumping, handle FALL status.
+      self.vertical = character.FALL
       self.Gravity()
     if self.invulnerable > 0:
       self.invulnerable -= 1
