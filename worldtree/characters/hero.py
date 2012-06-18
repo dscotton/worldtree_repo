@@ -213,7 +213,6 @@ class Hero(character.Character):
     scroll_vector = self.env.Scroll(self.rect)
     new_rect = new_rect.move(scroll_vector)
     self.rect = new_rect
-    print self.movement
     if (self.env.IsRectSupported(self.Hitbox())
         or self.env.IsRectSupported(self.Hitbox().move(self.movement[0], 0))):  # Second part needed for wall jumping
       self.Supported()
