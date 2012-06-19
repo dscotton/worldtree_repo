@@ -70,8 +70,12 @@ class Hero(character.Character):
   # Store surfaces in class variables so they're only loaded once.
   WALK_RIGHT_ANIMATION = None
   WALK_LEFT_ANIMATION = None
+  STAND_RIGHT_IMAGE = None
+  STAND_LEFT_IMAGE = None
   JUMP_RIGHT_IMAGE = None
   JUMP_LEFT_IMAGE = None
+  FALL_RIGHT_IMAGE = None
+  FALL_LEFT_IMAGE = None
     
   def __init__(self, environment, position=(0, 0)):
     character.Character.__init__(self, environment, position)
@@ -100,9 +104,15 @@ class Hero(character.Character):
     self.WALK_RIGHT_ANIMATION = animation.Animation(walk_images)
     self.WALK_LEFT_ANIMATION = animation.Animation(
         [pygame.transform.flip(i, 1, 0) for i in walk_images])
+    self.STAND_RIGHT_IMAGE = character.LoadImage('treeguyidle0000.png', scaled=True,
+                                                colorkey=game_constants.SPRITE_COLORKEY)
+    self.STAND_LEFT_IMAGE = pygame.transform.flip(self.STAND_RIGHT_IMAGE, 1, 0)
     self.JUMP_RIGHT_IMAGE = character.LoadImage('treeguyjump0000.png', scaled=True,
                                                 colorkey=game_constants.SPRITE_COLORKEY)
     self.JUMP_LEFT_IMAGE = pygame.transform.flip(self.JUMP_RIGHT_IMAGE, 1, 0)
+    self.FALL_RIGHT_IMAGE = character.LoadImage('treeguyfall0000.png', scaled=True,
+                                                colorkey=game_constants.SPRITE_COLORKEY)
+    self.FALL_LEFT_IMAGE = pygame.transform.flip(self.FALL_RIGHT_IMAGE, 1, 0)
     attack_images = character.LoadImages('treeguystrike1*.png', scaled=True,
                                          colorkey=game_constants.SPRITE_COLORKEY)
     self.ATTACK_RIGHT_ANIMATION = animation.Animation(attack_images, looping=False)
@@ -202,20 +212,29 @@ class Hero(character.Character):
     # possibly end up inside the wall afterward?  Investigate whether it's a problem.
     right = self.rect.right
     if LEFT == self.direction:
-      if character.JUMP == self.vertical or character.FALL == self.vertical:
-        self.image = self.JUMP_LEFT_IMAGE
-      elif ATTACK == self.action:
+      if ATTACK == self.action:
         self.image = self.ATTACK_LEFT_ANIMATION.NextFrame()
-      else:
+      elif character.JUMP == self.vertical:
+        self.image = self.JUMP_LEFT_IMAGE
+      elif character.FALL == self.vertical:
+        self.image = self.FALL_LEFT_IMAGE
+      elif character.WALK == self.action:
         self.image = self.WALK_LEFT_ANIMATION.NextFrame()
+      else:
+        self.image = self.STAND_LEFT_IMAGE
       self.rect.right = right
     elif RIGHT == self.direction:
-      if character.JUMP == self.vertical or character.FALL == self.vertical:
-        self.image = self.JUMP_RIGHT_IMAGE
-      elif ATTACK == self.action:
+      if ATTACK == self.action:
         self.image = self.ATTACK_RIGHT_ANIMATION.NextFrame()
-      else:
+      elif character.JUMP == self.vertical:
+        self.image = self.JUMP_RIGHT_IMAGE
+      elif character.FALL == self.vertical:
+        self.image = self.FALL_RIGHT_IMAGE
+      elif character.WALK == self.action:
         self.image = self.WALK_RIGHT_ANIMATION.NextFrame()
+      else:
+        self.image = self.STAND_RIGHT_IMAGE
+      self.rect.right = right
     if self.invulnerable > 0 and self.invulnerable % 4 > 0:
       self.image.set_alpha(128)
     else:
