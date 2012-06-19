@@ -206,15 +206,11 @@ class Character(pygame.sprite.Sprite):
     return self.movement
 
   def update(self):
-    old_info = (self.rect.left, self.rect.top)
     new_rect = self.env.AttemptMove(self, self.GetMove())
     self.rect = new_rect
     if self.env.IsRectSupported(self.Hitbox()):
       self.Supported()
     else:
-      print "Falling...", old_info, self.rect
-      # If the character actually is falling, set them in jump status.
-      self.action = JUMP
       self.Gravity()
     self.SetCurrentImage()
     if self.invulnerable > 0:
