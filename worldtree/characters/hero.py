@@ -57,7 +57,6 @@ class Hero(character.Character):
   SPEED = 4
   JUMP_FORCE = 10
   JUMP_DURATION = 22
-  JUMP_COOLDOWN = 8
   GRAVITY = 2
   TERMINAL_VELOCITY = 10
   INVULNERABILITY_FRAMES = 120
@@ -82,6 +81,7 @@ class Hero(character.Character):
       self.InitImage()
     self.image = self.WALK_RIGHT_ANIMATION.NextFrame()
     self.last_state = (self.direction, self.action)
+    self.jump_ready = True
     self.ongoing_action = 0
 
   # TODO: customize the hitbox to better correspond with the part of the frame he actually takes up
@@ -127,8 +127,10 @@ class Hero(character.Character):
       self.Walk(RIGHT)
     if controller.JUMP in actions:
       self.Jump()
+      self.jump_ready = False
     else:
       self.StopUpwardMovement()
+      self.jump_ready = True
     if ATTACK in actions:
       self.Attack()
   
@@ -147,7 +149,7 @@ class Hero(character.Character):
       self.jump_duration = 0
   
   def Jump(self):
-    if self.vertical == character.GROUNDED and self.jump_cooldown == 0:
+    if self.vertical == character.GROUNDED and self.jump_ready:
       self.vertical = character.JUMP
       self.jump_duration = self.JUMP_DURATION
       self.movement[1] = -self.JUMP_FORCE
@@ -223,9 +225,6 @@ class Hero(character.Character):
     if (self.env.IsRectSupported(self.Hitbox())
         or self.env.IsRectSupported(self.Hitbox().move(self.movement[0], 0))):  # Second part needed for wall jumping
       self.Supported()
-      # TODO: Put this somewhere else to enable double jumps
-      if self.jump_cooldown > 0:
-        self.jump_cooldown -= 1
     elif self.vertical != character.JUMP:
       # If not supported and not jumping, handle FALL status.
       self.vertical = character.FALL

@@ -55,7 +55,6 @@ class Character(pygame.sprite.Sprite):
   ACCEL = 100
   SPEED = 0
   JUMP_DURATION = 0
-  JUMP_COOLDOWN = 0
   WIDTH = 48
   HEIGHT = 48
   SIZE = (WIDTH, HEIGHT)
@@ -85,7 +84,6 @@ class Character(pygame.sprite.Sprite):
     self.movement = self.STARTING_MOVEMENT
     self.max_hp = self.STARTING_HP
     self.jump_duration = self.JUMP_DURATION
-    self.jump_cooldown = 0
     self.hp = self.STARTING_HP
     self.invulnerable = 0
     self.solid = True
@@ -153,8 +151,6 @@ class Character(pygame.sprite.Sprite):
 
   def Supported(self):
     """The character is standing on something solid."""
-    if self.vertical == FALL:
-      self.jump_cooldown = self.JUMP_COOLDOWN
     self.vertical = GROUNDED
     self.movement[1] = 0
     
@@ -215,8 +211,6 @@ class Character(pygame.sprite.Sprite):
     self.rect = new_rect
     if self.env.IsRectSupported(self.Hitbox()):
       self.Supported()
-      # TODO: Put this somewhere else to enable double jumps
-      self.jump_cooldown -= 1
     else:
       print "Falling...", old_info, self.rect
       # If the character actually is falling, set them in jump status.
