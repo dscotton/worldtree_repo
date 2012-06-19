@@ -59,11 +59,11 @@ transitions = {
   },
   'Map5' : {
     LEFT : (Transition(LEFT, 27, 34, 'Map1', -17),
-            Transition(LEFT, 3, 11, 'Map6', -3)),
+            Transition(LEFT, 0, 11, 'Map6', 3)),
     DOWN : (Transition(DOWN, 0, 34, 'Map11', 0),),
   },
   'Map6' : {
-    RIGHT : (Transition(RIGHT, 0, 19, 'Map5', 3),),
+    RIGHT : (Transition(RIGHT, 3, 19, 'Map5', -3),),
   },
   'Map7' : {
     RIGHT : (Transition(RIGHT, 0, 19, 'Map8', 13),),
