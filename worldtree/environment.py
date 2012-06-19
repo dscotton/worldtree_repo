@@ -82,17 +82,18 @@ class Environment(object):
           self.grid.append([])
         if map_info['layout'][row][col] == 0:
           self.grid[col].append(EMPTY_TILE)
-          continue
-        
-        image_name = '%s-%s.png' % (map_info['tileset'], map_info['layout'][row][col])
-        if image_name not in image_cache:
-          image_path = os.path.join(TILE_DIR, image_name)
-          image = pygame.transform.scale(pygame.image.load(image_path), TILE_SIZE).convert_alpha()
-          image_cache[image_name] = image
-        self.grid[col].append(tile.Tile(image=image_cache[image_name],
-                                        bound_byte=map_info['bounds'][row][col]))
+        else:
+          image_name = '%s-%s.png' % (map_info['tileset'], map_info['layout'][row][col])
+          if image_name not in image_cache:
+            image_path = os.path.join(TILE_DIR, image_name)
+            image = pygame.transform.scale(pygame.image.load(image_path), TILE_SIZE).convert_alpha()
+            image_cache[image_name] = image
+          self.grid[col].append(tile.Tile(image=image_cache[image_name],
+                                          bound_byte=map_info['bounds'][row][col]))
+
         mapcode = map_info['mapcodes'][row][col]
         if mapcode != 0:
+          print mapcode
           if mapcode in ENEMIES:
             self.enemy_group.add(ENEMIES[mapcode](self, (col, row)))
           elif mapcode in ITEMS:
