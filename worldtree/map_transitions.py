@@ -66,12 +66,12 @@ transitions = {
     RIGHT : (Transition(RIGHT, 0, 19, 'Map5', 3),),
   },
   'Map7' : {
-    RIGHT : (Transition(RIGHT, 0, 19, 'Map8', 12),),
+    RIGHT : (Transition(RIGHT, 0, 19, 'Map8', 13),),
     LEFT : (Transition(LEFT, 0, 10, 'Map10', 79),),
   },
   'Map8' : {
     RIGHT : (Transition(RIGHT, 0, 5, 'Map9', 94),),
-    LEFT : (Transition(LEFT, 13, 32, 'Map7', -12),),
+    LEFT : (Transition(LEFT, 13, 32, 'Map7', -13),),
   },
   'Map9' : {
     RIGHT : (Transition(RIGHT, 0, 5, 'Map3', 34),),
@@ -89,13 +89,13 @@ transitions = {
     DOWN : (Transition(DOWN, 0, 29, 'Map3', 35),),
   },
   'Map12' : {
-    LEFT : (Transition(LEFT, 0, 10, 'Map13', -19),
-            Transition(LEFT, 60, 69, 'Map10', 60),),
+    LEFT : (Transition(LEFT, 0, 10, 'Map13', 19),
+            Transition(LEFT, 60, 69, 'Map10', -60),),
     RIGHT : (Transition(RIGHT, 0, 69, 'Map14', 0),),
   },
   'Map13' : {
-    RIGHT : (Transition(RIGHT, 0, 13, 'Map16', 19),
-             Transition(RIGHT, 19, 29, 'Map12', 19),),
+    RIGHT : (Transition(RIGHT, 0, 13, 'Map16', 6),
+             Transition(RIGHT, 19, 29, 'Map12', -19),),
   },
   'Map14' : {
     LEFT : (Transition(LEFT, 0, 69, 'Map12', 0),),
@@ -103,7 +103,7 @@ transitions = {
   },
   'Map16' : {
     RIGHT : (Transition(RIGHT, 0, 11, 'Map2', 8),),
-    LEFT : (Transition(LEFT, 0, 19, 'Map13', 0),),
+    LEFT : (Transition(LEFT, 0, 19, 'Map13', -6),),
   },
   'Map17' : {
     LEFT : (Transition(LEFT, 0, 19, 'Map18', 50),),
