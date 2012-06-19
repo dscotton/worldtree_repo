@@ -30,7 +30,8 @@ ENEMIES = {
 # Map of map codes to items.  These share the same number space as the enemies, so there must
 # not be any overlap.  
 ITEMS = {
-  129: powerup.HealthBoost
+  129: powerup.HealthBoost,
+  130: powerup.DoubleJump,
 }
 
 class Environment(object):

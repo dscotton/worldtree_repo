@@ -33,6 +33,10 @@ class Hero(character.Character):
       are right and down).
     state: (direction, action) tuple describing what the character is doing.
     last_state: (direction, action) tuple for the previous frame.
+    max_jumps: int for the maximum number of jumps the player can make before touching the
+      ground.
+    remaining_jumps: int for the number of jumps the player can make right now without needing
+      to land.
     ongoing_action: int number of frames the last action continues, disallowing new input.
       
   Constants:
@@ -82,6 +86,9 @@ class Hero(character.Character):
     self.image = self.WALK_RIGHT_ANIMATION.NextFrame()
     self.last_state = (self.direction, self.action)
     self.jump_ready = True
+    # This should start at 1 and be upgraded by an item.
+    self.max_jumps = 1
+    self.remaining_jumps = self.max_jumps
     self.ongoing_action = 0
 
   # TODO: customize the hitbox to better correspond with the part of the frame he actually takes up
@@ -149,14 +156,30 @@ class Hero(character.Character):
       self.jump_duration = 0
   
   def Jump(self):
-    if self.vertical == character.GROUNDED and self.jump_ready:
+    """Initiate a jump or continue jumping.
+    
+    The rules for jumping are:
+    - While holding down the jump button you will continue a current jump though its duration,
+      then fall.
+    - If you release the jump button, you become jump_ready again, but can only initiate 
+      a new jump if you have any remaining_jumps.
+    - Once you touch the ground, your remaining_jumps are restored.
+    """
+    if self.jump_ready and self.remaining_jumps > 0:
       self.vertical = character.JUMP
+      self.remaining_jumps -= 1
       self.jump_duration = self.JUMP_DURATION
       self.movement[1] = -self.JUMP_FORCE
     elif self.vertical == character.JUMP:
       self.jump_duration -= 1
       if self.jump_duration == 0:
         self.vertical = character.FALL
+    
+  def Supported(self):
+    """The character is standing on something solid."""
+    self.vertical = character.GROUNDED
+    self.remaining_jumps = self.max_jumps
+    self.movement[1] = 0
     
   def Attack(self):
     """Initiate an attack action."""

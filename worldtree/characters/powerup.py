@@ -28,6 +28,7 @@ class Powerup(pygame.sprite.Sprite):
   # If subclassed object is a different size, it needs to update its rect attribute.
   WIDTH = 48
   HEIGHT = 48
+  IMAGE = None
 
   def __init__(self, environment, position, cleanup=False, sound=None):
     """Constructor.
@@ -49,6 +50,9 @@ class Powerup(pygame.sprite.Sprite):
     map_rect = self.env.RectForTile(*position)
     self.rect = pygame.Rect(self.env.ScreenCoordinateForMapPoint(map_rect.left, map_rect.top),
                             (self.WIDTH, self.HEIGHT))
+    if self.IMAGE is None:
+      self.IMAGE = character.LoadImage('orb.png', scaled=True)
+    self.image = self.IMAGE
 
   def Use(self, character):
     raise NotImplementedError('Subclasses must define the effect of the powerup.')
@@ -78,11 +82,21 @@ class HealthBoost(Powerup):
   
   def __init__(self, environment, position):
     Powerup.__init__(self, environment, position, cleanup=True, sound=HealthBoost.SOUND)
-    if HealthBoost.IMAGE is None:
-      HealthBoost.IMAGE = character.LoadImage('orb.png', scaled=True)
-    self.image = HealthBoost.IMAGE
     
   def Use(self, character):
     character.max_hp += self.HEALTH_BONUS
     character.hp += self.HEALTH_BONUS
-    print "New HP is %s out of %s" % (character.hp, character.max_hp)
+    print 'New HP is %s out of %s' % (character.hp, character.max_hp)
+    
+    
+class DoubleJump(Powerup):
+  
+  SOUND = pygame.mixer.Sound(os.path.join(game_constants.MUSIC_DIR, 'jingle.ogg'))
+  IMAGE = None
+  
+  def __init__(self, environment, position):
+    Powerup.__init__(self, environment, position, cleanup=True, sound=DoubleJump.SOUND)
+
+  def Use(self, character):
+    character.max_jumps = 2
+    print 'Now you can double jump!'
