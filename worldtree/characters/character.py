@@ -109,6 +109,13 @@ class Character(pygame.sprite.Sprite):
     # TODO: Make these offsets constants so they can be configured per-class?
     return pygame.Rect(x + 1, y + 1, self.rect.width - 2, self.rect.height - 2)
 
+  def SenseAndReturnHitbox(self, player):
+    """Allows the character to be aware of the player's position, and then returns hitbox.
+    
+    Must override if you want the enemy to actually do anything with that knowledge.
+    """
+    return self.Hitbox()
+
   def SetCurrentImage(self):
     """Set self.image to the appropriate value.  Should be overriden for classes with animation."""
     self.image = self.IMAGE
@@ -253,4 +260,12 @@ def LoadImages(fileglob, scaled=False, colorkey=None):
       images.append(image.convert())
     else:
       images.append(image.convert_alpha())
-  return images  
+  return images
+
+def CollideCharacters(player, enemy):
+  """Return True if two characters collide, otherwise false.
+  
+  This may produce side effects - it's the easiest way to let enemies know where the player
+  is, since it's called once per frame.
+  """
+  return player.Hitbox().colliderect(enemy.SenseAndReturnHitbox(player))

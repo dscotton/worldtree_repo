@@ -104,12 +104,14 @@ class BombBug(character.Character):
   TRIGGER_RADIUS = 96
   EXPLODING_DAMAGE = 3
   EXPLODING_PUSHBACK = 48
+  EXPLODING_DELAY = 60
   EXPLODING_FRAMES = 10
   IMAGE_FILE = 'badger.png'
 
   def __init__(self, environment, position):
-    character.Character.__init__(self, environment, position)
+    self.triggered = 0
     self.exploding = 0
+    character.Character.__init__(self, environment, position)
 
   def InitImage(self):
     # Walking animation
@@ -125,18 +127,39 @@ class BombBug(character.Character):
       self.image = self.WALK_LEFT_ANIMATION.NextFrame()
     else:
       self.image = self.WALK_RIGHT_ANIMATION.NextFrame()
+    
+    if (self.triggered / 4) % 2:
+      self.image.set_alpha(128)
+    else:
+      self.image.set_alpha(255)
+    # TODO: Add exploding animation
+
+  def SenseAndReturnHitbox(self, player):
+    """Trigger an explosion if the player is close to the bug."""
+    # TODO: See if this is too slow.
+    if (not (self.exploding or self.triggered)
+        and ((self.rect.centerx - player.rect.centerx) ** 2 
+             + (self.rect.centery - player.rect.centerx) ** 2) ** 0.5 < self.TRIGGER_RADIUS):
+      self.Trigger()
+    return self.Hitbox()
 
   def GetMove(self):
     return self.WalkBackAndForth()
 
+  def Trigger(self):
+    self.triggered = self.EXPLODING_DELAY
+
   def Explode(self):
-    if self.exploding == 0:
-      # TODO: Increase the effective size to the explosion radius.
-      self.exploding = self.EXPLODING_FRAMES
-      self.DAMAGE = self.EXPLODING_DAMAGE
-      self.PUSHBACK = self.EXPLODING_PUSHBACK
+    # TODO: Increase the effective size to the explosion radius.
+    self.exploding = self.EXPLODING_FRAMES
+    self.DAMAGE = self.EXPLODING_DAMAGE
+    self.PUSHBACK = self.EXPLODING_PUSHBACK
 
   def update(self):
+    if self.triggered > 0:
+      self.triggered -= 1
+      if self.triggered == 0:
+        self.Explode()
     if self.exploding > 0:
       self.exploding -= 1
       if self.exploding == 0:

@@ -14,6 +14,7 @@ import pygame
 pygame.init()
 
 from characters import hero
+from characters import character
 import environment
 from game_constants import *
 import map_data
@@ -57,7 +58,8 @@ def RunGame():
     item_group.update()
     enemy_group.update()
     # TODO: Write a custom collided method, to use hitboxes if nothing else
-    collisions = pygame.sprite.spritecollide(player, enemy_group, False, collided=None)
+    collisions = pygame.sprite.spritecollide(player, enemy_group, False, 
+                                             collided=character.CollideCharacters)
     for enemy in collisions:
       player.CollideWith(enemy)
     # TODO: Powerup hitbox is too big
