@@ -44,14 +44,15 @@ transitions = {
              Transition(RIGHT, 18, 39, 'Map11', -18),)
   },
   'Map2' : {
-    LEFT : (Transition(LEFT, 0, 19, 'Map16', 0),),
+    LEFT : (Transition(LEFT, 0, 19, 'Map31', 0),),
     RIGHT : (Transition(RIGHT, 0, 19, 'Map1', 20),),
     UP : (Transition(UP, 0, 79, 'Map4', 0),),
   },
   'Map3' : {
     UP : (Transition(UP, 0, 34, 'Map1', 15),
           Transition(UP, 35, 64, 'Map11', -35),),
-    LEFT : (Transition(LEFT, 34, 39, 'Map9', -34),)
+    LEFT : (Transition(LEFT, 34, 39, 'Map9', -34),),
+    RIGHT : (Transition(RIGHT, 0, 39, 'Map30', 22),),
   },
   'Map4' : {
     RIGHT : (Transition(RIGHT, 0, 19, 'Map1', 0),),
@@ -67,7 +68,7 @@ transitions = {
   },
   'Map7' : {
     RIGHT : (Transition(RIGHT, 0, 19, 'Map8', 13),),
-    LEFT : (Transition(LEFT, 0, 10, 'Map10', 79),),
+    LEFT : (Transition(LEFT, 0, 39, 'Map24', 0),),
   },
   'Map8' : {
     RIGHT : (Transition(RIGHT, 0, 5, 'Map9', 94),),
@@ -79,12 +80,14 @@ transitions = {
             Transition(LEFT, 94, 99, 'Map8', -94),),
   },
   'Map10' : {
+    LEFT : (Transition(LEFT, 0, 89, 'Map26', 0),),
     RIGHT : (Transition(RIGHT, 0, 9, 'Map12', 60),
              Transition(RIGHT, 56, 70, 'Map21', -56),
-             Transition(RIGHT, 79, 89, 'Map7', -79),),
+             Transition(RIGHT, 75, 89, 'Map25', -75),),
   },
   'Map11' : {
     LEFT : (Transition(LEFT, 0, 21, 'Map1', 18),),
+    RIGHT : (Transition(RIGHT, 0, 21, 'Map30', 1),),
     UP : (Transition(UP, 0, 34, 'Map5', 0),),
     DOWN : (Transition(DOWN, 0, 29, 'Map3', 35),),
   },
@@ -102,18 +105,18 @@ transitions = {
     RIGHT : (Transition(RIGHT, 0, 69, 'Map18', 0),),
   },
   'Map16' : {
-    RIGHT : (Transition(RIGHT, 0, 11, 'Map2', 8),),
+    RIGHT : (Transition(RIGHT, 0, 19, 'Map2', 0),),
     LEFT : (Transition(LEFT, 0, 19, 'Map13', -6),),
   },
   'Map17' : {
-    LEFT : (Transition(LEFT, 0, 19, 'Map18', 50),),
+    LEFT : (Transition(LEFT, 0, 19, 'Map23', 0),),
     RIGHT : (Transition(RIGHT, 0, 19, 'Map9', 16),),
     UP : (Transition(UP, 0, 39, 'Map20', 0),),
   },
   'Map18' : {
     LEFT : (Transition(LEFT, 0, 69, 'Map14', 0),),
     RIGHT : (Transition(RIGHT, 0, 14, 'Map19', 0),
-             Transition(RIGHT, 50, 69, 'Map17', -50),),
+             Transition(RIGHT, 50, 69, 'Map23', -50),),
   },
   'Map19' : {
     LEFT : (Transition(LEFT, 0, 14, 'Map18', 0),),
@@ -127,5 +130,41 @@ transitions = {
   },
   'Map22' : {
     DOWN : (Transition(DOWN, 0, 36, 'Map21', 18),),
+  },
+  'Map23' : {
+    LEFT : (Transition(LEFT, 0, 19, 'Map18', 50),),
+    RIGHT : (Transition(RIGHT, 0, 19, 'Map17', 0),),
+  },
+  'Map24' : {
+    LEFT : (Transition(LEFT, 0, 11, 'Map25', 4),
+            Transition(LEFT, 41, 59, 'Map25', -41),),
+    RIGHT : (Transition(RIGHT, 0, 39, 'Map7', 0),),
+  },
+  'Map25' : {
+    LEFT : (Transition(LEFT, 0, 15, 'Map10', 75),),
+    RIGHT : (Transition(RIGHT, 4, 15, 'Map24', -4),),
+  },
+  'Map26' : {
+    LEFT : (Transition(LEFT, 60, 74, 'Map29', -60),),
+    RIGHT : (Transition(RIGHT, 0, 89, 'Map10', 0),
+             Transition(RIGHT, 120, 139, 'Map27', -120),),
+  },
+  'Map27' : {
+    LEFT : (Transition(LEFT, 0, 19, 'Map26', 120),),
+    RIGHT : (Transition(RIGHT, 0, 19, 'Map28', 0),),
+  },
+  'Map28' : {
+    LEFT : (Transition(LEFT, 0, 19, 'Map27', 0),),
+    RIGHT : (Transition(RIGHT, 0, 18, 'Map24', 41),),
+  },
+  'Map29' : {
+    RIGHT : (Transition(RIGHT, 0, 14, 'Map26', 60),),
+  },
+  'Map30' : {
+    LEFT : (Transition(LEFT, 0, 21, 'Map11', 0),
+            Transition(LEFT, 22, 61, 'Map3', -22),),
+  },
+  'Map31' : {
+    LEFT : (Transition(LEFT, 0, 19, 'Map16', 0),),
   },
 }
