@@ -37,7 +37,7 @@ class Hero(character.Character):
       ground.
     remaining_jumps: int for the number of jumps the player can make right now without needing
       to land.
-    ongoing_action: int number of frames the last action continues, disallowing new input.
+    attacking: int number of frames to continue attacking.
       
   Constants:
     SIZE: default (x, y) size of the character. Overridden by the actual size of the current image.
@@ -93,7 +93,7 @@ class Hero(character.Character):
     # This should start at 1 and be upgraded by an item.
     self.max_jumps = 1
     self.remaining_jumps = self.max_jumps
-    self.ongoing_action = 0
+    self.attacking = 0
 
   # TODO: customize the hitbox to better correspond with the part of the frame he actually takes up
 
@@ -126,21 +126,19 @@ class Hero(character.Character):
 
   def HandleInput(self):
     """Handles user input to move the character and change his action."""
-    if self.ongoing_action:
-      # TODO: Make attack take a little longer, and not loop.
+    if self.attacking:
       self.StopMoving()
-      self.ongoing_action -= 1
-      if self.ongoing_action == 0:
+      self.attacking -= 1
+      if self.attacking == 0:
         self.ResetAnimations()
-      return
 
     actions = controller.GetInput()
     if ((LEFT in actions and RIGHT in actions) or
         (LEFT not in actions and RIGHT not in actions)):
       self.StopMoving()
-    elif LEFT in actions:
+    elif LEFT in actions and (self.vertical != character.GROUNDED or self.attacking == 0):
       self.Walk(LEFT)
-    elif RIGHT in actions:
+    elif RIGHT in actions and (self.vertical != character.GROUNDED or self.attacking == 0):
       self.Walk(RIGHT)
     if controller.JUMP in actions:
       self.Jump()
@@ -148,7 +146,7 @@ class Hero(character.Character):
     else:
       self.StopUpwardMovement()
       self.jump_ready = True
-    if ATTACK in actions:
+    if ATTACK in actions and self.attacking <= 0:
       self.Attack()
   
   def StopMoving(self):
@@ -157,7 +155,7 @@ class Hero(character.Character):
     elif self.movement[0] < 0:
       self.movement[0] = min(self.movement[0] + self.GRAVITY, 0)
 
-    if self.action != character.JUMP and self.ongoing_action == 0 and self.movement[0] == 0:
+    if self.vertical != character.JUMP and self.attacking == 0 and self.movement[0] == 0:
       self.action = character.STAND
     
   def StopUpwardMovement(self):
@@ -194,8 +192,7 @@ class Hero(character.Character):
   def Attack(self):
     """Initiate an attack action."""
     print 'attack!'
-    self.ongoing_action = self.ATTACK_DURATION
-    self.action = ATTACK
+    self.attacking = self.ATTACK_DURATION
     
   def SetCurrentImage(self):
     """Sets the image to the appropriate one for the current action, if it exists.
@@ -212,7 +209,7 @@ class Hero(character.Character):
     # possibly end up inside the wall afterward?  Investigate whether it's a problem.
     right = self.rect.right
     if LEFT == self.direction:
-      if ATTACK == self.action:
+      if self.attacking > 0:
         self.image = self.ATTACK_LEFT_ANIMATION.NextFrame()
       elif character.JUMP == self.vertical:
         self.image = self.JUMP_LEFT_IMAGE
@@ -224,7 +221,7 @@ class Hero(character.Character):
         self.image = self.STAND_LEFT_IMAGE
       self.rect.right = right
     elif RIGHT == self.direction:
-      if ATTACK == self.action:
+      if self.attacking > 0:
         self.image = self.ATTACK_RIGHT_ANIMATION.NextFrame()
       elif character.JUMP == self.vertical:
         self.image = self.JUMP_RIGHT_IMAGE
@@ -246,7 +243,7 @@ class Hero(character.Character):
 
   def CollideWith(self, enemy):
     """Handle what happens when the player collides with an enemy."""
-    if self.action == ATTACK:
+    if self.attacking > 0:
       if not enemy.invulnerable:
         enemy.TakeHit(self.DAMAGE)
         enemy.CollisionPushback(self)

@@ -24,7 +24,9 @@ EMPTY_TILE = tile.Tile()
 
 # Map of map codes to enemy class.
 ENEMIES = {
-  1: enemies.Badger
+  1: enemies.Badger,
+  2: enemies.Dragonfly,
+  3: enemies.BombBug,
 }
 
 # Map of map codes to items.  These share the same number space as the enemies, so there must

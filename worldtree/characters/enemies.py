@@ -6,8 +6,11 @@ Created on Jun 11, 2012
 @author: dscotton@gmail.com (David Scotton)
 """
 
+import random
+
 import pygame
 
+import animation
 import character
 import game_constants
 
@@ -32,15 +35,63 @@ class Dragonfly(character.Character):
   """Class for the dragonfly enemy."""
   
   STARTING_HP = 2
-  SPEED = 8
+  SPEED = 16
   GRAVITY = 0
   STARTING_MOVEMENT = [0, 0]
   DAMAGE = 1
+  REST_TIME = 40
+  VARIABLE_REST = 20  # Random amount in this interval
+  HORIZONTAL_MOVE_TIME = 15
+  VERTICAL_MOVE_TIME = 9
   
+  def __init__(self, environment, position):
+    self.vector = [-1, 0]
+    character.Character.__init__(self, environment, position)
+    self.move_frames = self.HORIZONTAL_MOVE_TIME
+    self.rest_frames = 0
+    # direction has a different meaning than for other characters.
+    self.movement = [-self.SPEED, 0]
+
+  def InitImage(self):
+    fly_images = character.LoadImages('dragonfly*.png', scaled=True,
+                                      colorkey=game_constants.SPRITE_COLORKEY)
+    self.FLY_LEFT_ANIMATION = animation.Animation(fly_images)
+    self.FLY_RIGHT_ANIMATION = animation.Animation(
+        [pygame.transform.flip(i, 1, 0) for i in fly_images])
+    self.SetCurrentImage()
+
+  def SetCurrentImage(self):
+    if self.vector[0] + self.vector[1] < 0:
+      self.image = self.FLY_LEFT_ANIMATION.NextFrame()
+    else:
+      self.image = self.FLY_RIGHT_ANIMATION.NextFrame()
+
   def GetMove(self):
     """Dart around.  Alternatingly hover and move."""
-    raise NotImplementedError('Still need to write this!')
-  
+    if self.move_frames > 0:
+      self.movement = [i * self.SPEED for i in self.vector]
+      self.move_frames -= 1
+      if self.move_frames == 0:
+        self.rest_frames = self.REST_TIME + random.randint(0, self.VARIABLE_REST)
+    else:
+      self.movement = [0, 0]
+      self.rest_frames -= 1
+      if self.rest_frames == 0:
+        self.vector = [-self.vector[1], self.vector[0]]
+        if self.vector[0] != 0:
+          self.move_frames = self.HORIZONTAL_MOVE_TIME
+        else:
+          self.move_frames = self.VERTICAL_MOVE_TIME
+
+    return self.movement
+
+  def update(self):
+    """Fliers have simpler update routines because we don't worry about gravity."""
+    new_rect = self.env.AttemptMove(self, self.GetMove())
+    self.rect = new_rect
+    self.SetCurrentImage()
+    if self.invulnerable > 0:
+      self.invulnerable -= 1
   
 class BombBug(character.Character):
   
@@ -56,8 +107,24 @@ class BombBug(character.Character):
   EXPLODING_FRAMES = 10
   IMAGE_FILE = 'badger.png'
 
-  def __init__(self):
+  def __init__(self, environment, position):
+    character.Character.__init__(self, environment, position)
     self.exploding = 0
+
+  def InitImage(self):
+    # Walking animation
+    walk_images = character.LoadImages('bombug*.png', scaled=True,
+                                       colorkey=game_constants.SPRITE_COLORKEY)
+    self.WALK_LEFT_ANIMATION = animation.Animation(walk_images)
+    self.WALK_RIGHT_ANIMATION = animation.Animation(
+        [pygame.transform.flip(i, 1, 0) for i in walk_images])
+    self.SetCurrentImage()
+
+  def SetCurrentImage(self):
+    if self.direction == character.LEFT:
+      self.image = self.WALK_LEFT_ANIMATION.NextFrame()
+    else:
+      self.image = self.WALK_RIGHT_ANIMATION.NextFrame()
 
   def GetMove(self):
     return self.WalkBackAndForth()
@@ -75,15 +142,16 @@ class BombBug(character.Character):
       if self.exploding == 0:
         self.env.dirty = True
         self.kill()
-      
-    new_rect = self.env.AttemptMove(self, self.GetMove())
-    self.rect = new_rect
-    if self.env.IsRectSupported(self.Hitbox()):
-      self.Supported()
     else:
-      self.Gravity()
-    self.SetCurrentImage()
-    if self.invulnerable > 0:
-      self.invulnerable -= 1
-    self.last_state = self.state
+      new_rect = self.env.AttemptMove(self, self.GetMove())
+      self.rect = new_rect
+      if self.env.IsRectSupported(self.Hitbox()):
+        self.Supported()
+      else:
+        self.Gravity()
+      self.SetCurrentImage()
+      if self.invulnerable > 0:
+        self.invulnerable -= 1
+      self.last_state = self.state
+      # TODO: Detect if the player is near and explode if so.
   
