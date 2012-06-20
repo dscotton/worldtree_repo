@@ -19,6 +19,7 @@ import environment
 from game_constants import *
 import map_data
 import map_transitions
+import statusbar
 
 def RunGame():
   pygame.display.set_caption(GAME_NAME)
@@ -28,14 +29,6 @@ def RunGame():
 
   current_room = 'Map1'
   env = environment.Environment(current_room)
-  font = pygame.font.Font(os.path.join('media', 'font', 'PressStart2P.ttf'), 24)
-  # TODO: Make the status bar a class
-  text = font.render("Level 1", False, WHITE)
-  text_box = text.get_rect()
-  text_box.top = 10
-  text_box.left = 10
-  screen.blit(text, text_box)
-
   screen.blit(env.GetImage(), MAP_POSITION)
   player = hero.Hero(env, position=(1, 2))
   player_group = pygame.sprite.RenderUpdates(player)
@@ -44,6 +37,9 @@ def RunGame():
   item_group.draw(screen)
   player_group.draw(screen)
   enemy_group.draw(screen)
+  
+  status = statusbar.Statusbar(player)
+  screen.blit(status.GetImage(), (0, 0))
   
   pygame.display.flip()
   pygame.mixer.music.load(os.path.join('media', 'music', 'photosynthesis_wip.ogg'))
@@ -72,7 +68,7 @@ def RunGame():
     dirty_rects = player_group.draw(screen)
     dirty_rects.extend(enemy_group.draw(screen))
     if refresh_map:
-      pygame.display.update(pygame.Rect(MAP_POSITION[0], MAP_POSITION[1], MAP_WIDTH, MAP_HEIGHT))
+      dirty_rects = [pygame.Rect(MAP_POSITION[0], MAP_POSITION[1], MAP_WIDTH, MAP_HEIGHT)]
     else:
       for rect in dirty_rects:
         # For some reason the returned dirty_rects doesn't draw the entire sprite for the
@@ -81,7 +77,11 @@ def RunGame():
         rect.left -= 3
         rect.width += 6
         rect.height += 6
-      pygame.display.update(dirty_rects)
+    screen.blit(status.GetImage(), (0, 0))
+    if status.dirty:
+      dirty_rects.append(pygame.Rect(0, 0, SCREEN_WIDTH, MAP_Y))
+      status.dirty = False
+    pygame.display.update(dirty_rects)
       
     # Check if character is leaving the area and make the transition.
     if env.IsOutsideMap(player.Hitbox()):
