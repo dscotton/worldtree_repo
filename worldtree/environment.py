@@ -190,6 +190,46 @@ class Environment(object):
 
     new_position = sprite.rect.move(new_vector)
     return new_position
+
+  def IsMoveLegal(self, sprite, vector):
+    """Return True if a move is legal, False if it isn't.
+    
+    This is a simplified version of AttemptMove().
+    """
+    hitbox = sprite.Hitbox()
+    dest = hitbox.move(vector)
+    # Figure out which tiles contain the old and new position.
+    old_tiles = self.TilesForRect(hitbox)
+    new_tiles = [t for t in self.TilesForRect(dest) if t not in old_tiles]
+    # For each new tile the sprite would occupy, check whether it blocks movement in the
+    # desired direction.
+    for col, row in new_tiles:
+      tile_rect = self.RectForTile(col, row)
+      # Stop non-player sprites from moving outside the room.  Allow players to move this way,
+      # And check for transitions in the main loop.
+      if col < 0 or col >= self.width or row < 0 or row >= self.height:
+        if sprite.IS_PLAYER:
+          square = tile.Tile(solid=(False, False, False, False))
+        else:
+          square = tile.Tile(solid=(True, True, True, True))
+      else:
+        square = self.grid[col][row]
+
+      # Handle motion in each cardinal direction separately.  Need to check that the sprite
+      # was previously on a particular side of the tile, and that entry from that
+      # side is forbidden.
+      if hitbox.bottom < tile_rect.top and square.solid_top and dest.bottom >= tile_rect.top:
+        return False
+      elif (hitbox.top > tile_rect.bottom and square.solid_bottom
+            and dest.top <= tile_rect.bottom):
+        return False
+      if hitbox.right < tile_rect.left and square.solid_left and dest.right >= tile_rect.left:
+        return False
+      elif (hitbox.left > tile_rect.right and square.solid_right
+            and dest.left <= tile_rect.right):
+        return False
+      
+    return True
     
   def TilesForRect(self, rect):
     """Returns a set of tiles that a rect falls in.
