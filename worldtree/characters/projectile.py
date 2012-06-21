@@ -28,12 +28,24 @@ class Projectile(pygame.sprite.Sprite):
       direction: (x, y) direction vector.  Magnitude is irrelevant, it will be rescaled.
       position: (x, y) initial screen position in pixels.
     """
+    pygame.sprite.Sprite.__init__(self)
     self.env = env
     self.damage = damage
     self.speed = speed
     self.direction = direction
     multiplier = speed / float((direction[0]**2 + direction[1]**2) ** 0.5)
     self.movement = [int(multiplier * direction[0]), int(multiplier * direction[1])]
+    self.InitImage()
+    self.rect = pygame.Rect(position, self.image.get_size())
+
+  def Hitbox(self):
+    """Gets the Map hitbox for the sprite, which is relative to the map rather than the screen.
+    
+    The Hitbox needs to be smaller than the sprite, partly because of weird PyGame behavior
+    where a rect of width X and height y actually touches (x+1) * (y+1) pixels.
+    """
+    x, y = self.env.MapCoordinateForScreenPoint(self.rect.left, self.rect.top)
+    return pygame.Rect(x, y, self.rect.width, self.rect.height)
 
   def InitImage(self):
     """Initialize the image or animation for this projectile.
@@ -48,6 +60,14 @@ class Projectile(pygame.sprite.Sprite):
   def SetCurrentImage(self):
     """Sets the current image for the projectile.  Only needed if it has animation."""
     pass
+
+  def CollideWith(self, sprite):
+    """Handle what happens when the projectile hits another sprite.
+    
+    Override this if you want to do more than just damage (e.g. apply pushback)
+    """
+    if not sprite.invulnerable:
+      sprite.TakeHit(self.damage)
     
   def update(self):
     self.SetCurrentImage()
@@ -60,7 +80,7 @@ class Projectile(pygame.sprite.Sprite):
 class SeedBullet(Projectile):
   
   DAMAGE = 2
-  SPEED = 16
+  SPEED = 12
   IMAGES = None
   
   def __init__(self, env, direction, position):
@@ -70,8 +90,7 @@ class SeedBullet(Projectile):
     if SeedBullet.IMAGES is None:
       SeedBullet.IMAGES = character.LoadImages('seedprojectile*.png', scaled=True,
                                     colorkey=game_constants.SPRITE_COLORKEY)
-      self.animation = animation.Animation(SeedBullet.IMAGES)
-
+    self.animation = animation.Animation(SeedBullet.IMAGES, framedelay=5)
     self.image = self.animation.NextFrame()
     
   def SetCurrentImage(self):

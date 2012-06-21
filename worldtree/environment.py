@@ -51,6 +51,11 @@ class Environment(object):
       changing the map tiles.
     enemy_group: RendererUpdates object containing all enemy sprites.  Should be manipulated
       by the main engine and not by this class.
+    item_group: RendererUpdates object containing all special items.
+    hero_projectile_group: RendererUpdates object containing shots fired by the player.  These
+      can only hit enemies, not the character.
+    enemy_projectile_group: RendererUpdates object containing enemy bullets.  These only
+      hit the player.
   """
   
   def __init__(self, map_name, offset=None):
@@ -76,6 +81,8 @@ class Environment(object):
     self.dirty = True  # Whether the surface needs to be refreshed.
     self.enemy_group = pygame.sprite.RenderUpdates()
     self.item_group = pygame.sprite.RenderUpdates()
+    self.hero_projectile_group = pygame.sprite.RenderUpdates()
+    self.enemy_projectile_group = pygame.sprite.RenderUpdates()
     image_cache = {}  # Only create one Surface for each image.
     for row in range(self.height):
       for col in range(self.width):
@@ -194,7 +201,8 @@ class Environment(object):
   def IsMoveLegal(self, sprite, vector):
     """Return True if a move is legal, False if it isn't.
     
-    This is a simplified version of AttemptMove().
+    This is a simplified version of AttemptMove() for projectiles, and moving off the screen
+    is illegal.  This shouldn't be used for the player.
     """
     hitbox = sprite.Hitbox()
     dest = hitbox.move(vector)
@@ -208,10 +216,7 @@ class Environment(object):
       # Stop non-player sprites from moving outside the room.  Allow players to move this way,
       # And check for transitions in the main loop.
       if col < 0 or col >= self.width or row < 0 or row >= self.height:
-        if sprite.IS_PLAYER:
-          square = tile.Tile(solid=(False, False, False, False))
-        else:
-          square = tile.Tile(solid=(True, True, True, True))
+        square = tile.Tile(solid=(True, True, True, True))
       else:
         square = self.grid[col][row]
 
@@ -336,4 +341,8 @@ class Environment(object):
       enemy.rect = enemy.rect.move(scroll_vector)
     for item in self.item_group:
       item.rect = item.rect.move(scroll_vector)
+    for bullet in self.hero_projectile_group:
+      bullet.rect = bullet.rect.move(scroll_vector)
+    for bullet in self.enemy_projectile_group:
+      bullet.rect = bullet.rect.move(scroll_vector)
     return scroll_vector

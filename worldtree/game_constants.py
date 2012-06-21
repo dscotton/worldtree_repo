@@ -43,3 +43,4 @@ RIGHT = 4
 JUMP = 5
 ATTACK = 6
 START = 7
+SHOOT = 8

@@ -16,9 +16,10 @@ from game_constants import LEFT
 from game_constants import RIGHT
 from game_constants import JUMP
 from game_constants import ATTACK
+from game_constants import SHOOT
 from game_constants import START
 
-ALL_ACTIONS = (UP, DOWN, LEFT, RIGHT, JUMP, ATTACK, START)
+ALL_ACTIONS = (UP, DOWN, LEFT, RIGHT, JUMP, ATTACK, SHOOT, START)
 
 # This maps keys to actions.  Multiple keys can map to a single actions, and
 # the default scheme is designed to allow directions to be done with arrows
@@ -32,6 +33,7 @@ KEY_MAP = {
   pygame.K_RIGHT : RIGHT,
   pygame.K_SPACE : JUMP,
   pygame.K_m : ATTACK,
+  pygame.K_n : SHOOT,
   pygame.K_RETURN : START,
   pygame.K_w : UP,
   pygame.K_a : LEFT,
@@ -43,4 +45,3 @@ def GetInput():
   """Returns a list of the currently active active_keys signals."""
   active_keys = pygame.key.get_pressed()
   return [action for (key, action) in KEY_MAP.iteritems() if active_keys[key]]
-  

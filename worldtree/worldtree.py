@@ -53,6 +53,7 @@ def RunGame():
     player_group.update()
     item_group.update()
     enemy_group.update()
+    env.hero_projectile_group.update()
     # TODO: Write a custom collided method, to use hitboxes if nothing else
     collisions = pygame.sprite.spritecollide(player, enemy_group, False, 
                                              collided=character.CollideCharacters)
@@ -62,11 +63,22 @@ def RunGame():
     item_pickups = pygame.sprite.spritecollide(player, item_group, False, collided=None)
     for item in item_pickups:
       item.PickUp(player)
+    for bullet in env.hero_projectile_group:
+      hit_enemies = pygame.sprite.spritecollide(bullet, enemy_group, False)
+      for enemy in hit_enemies:
+        bullet.CollideWith(enemy)
+        bullet.kill()
+    bullets = pygame.sprite.spritecollide(player, env.enemy_projectile_group, False, 
+                                          collided=character.CollideCharacters)
+    for bullet in bullets:
+      bullet.CollideWith(player)
+      bullet.kill()
     refresh_map = env.dirty
     screen.blit(env.GetImage(), MAP_POSITION)
     dirty_rects.extend(item_group.draw(screen))  # Not necessary to draw every frame unless animated
     dirty_rects = player_group.draw(screen)
     dirty_rects.extend(enemy_group.draw(screen))
+    dirty_rects.extend(env.hero_projectile_group.draw(screen))
     if refresh_map:
       dirty_rects = [pygame.Rect(MAP_POSITION[0], MAP_POSITION[1], MAP_WIDTH, MAP_HEIGHT)]
     else:
@@ -78,7 +90,8 @@ def RunGame():
         rect.width += 6
         rect.height += 6
     screen.blit(status.GetImage(), (0, 0))
-    if status.dirty:
+#    if status.dirty:
+    if True:
       dirty_rects.append(pygame.Rect(0, 0, SCREEN_WIDTH, MAP_Y))
       status.dirty = False
     pygame.display.update(dirty_rects)

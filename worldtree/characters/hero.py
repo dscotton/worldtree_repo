@@ -17,7 +17,9 @@ import controller
 from game_constants import LEFT
 from game_constants import RIGHT
 from game_constants import ATTACK
+from game_constants import SHOOT
 import game_constants
+import projectile
 
 
 class Hero(character.Character):
@@ -65,6 +67,7 @@ class Hero(character.Character):
   TERMINAL_VELOCITY = 10
   INVULNERABILITY_FRAMES = 120
   ATTACK_DURATION = 30
+  SHOOTING_COOLDOWN = 30
   IS_PLAYER = True
 
   # Store surfaces in class variables so they're only loaded once.
@@ -94,6 +97,7 @@ class Hero(character.Character):
     self.max_jumps = 1
     self.remaining_jumps = self.max_jumps
     self.attacking = 0
+    self.shooting_cooldown = 0
 
   def Hitbox(self):
     """Gets the Map hitbox for the sprite, which is relative to the map rather than the screen.
@@ -160,6 +164,8 @@ class Hero(character.Character):
       self.jump_ready = True
     if ATTACK in actions and self.attacking <= 0:
       self.Attack()
+    elif SHOOT in actions and self.attacking <= 0 and self.shooting_cooldown <= 0:
+      self.Shoot()
   
   def StopMoving(self):
     if self.movement[0] > 0:
@@ -205,6 +211,19 @@ class Hero(character.Character):
     """Initiate an attack action."""
     print 'attack!'
     self.attacking = self.ATTACK_DURATION
+    
+  def Shoot(self):
+    """Fire a projectile."""
+    self.shooting_cooldown = self.SHOOTING_COOLDOWN
+    if self.direction == LEFT:
+      direction = [-1, 0]
+      position = (self.rect.left - 8, self.rect.centery - 32)
+    else:
+      direction = [1, 0]
+      position = (self.rect.right, self.rect.centery - 32)
+      
+    bullet = projectile.SeedBullet(self.env, direction, position)
+    self.env.hero_projectile_group.add(bullet)
     
   def SetCurrentImage(self):
     """Sets the image to the appropriate one for the current action, if it exists.
@@ -282,4 +301,7 @@ class Hero(character.Character):
       self.Gravity()
     if self.invulnerable > 0:
       self.invulnerable -= 1
+    # TODO: Consider checking a clock and storing the last value so this doesn't have to be
+    # ticked down every frame.
+    self.shooting_cooldown -= 1
     self.last_state = self.state
