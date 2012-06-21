@@ -43,7 +43,7 @@ def RunGame():
   
   pygame.display.flip()
   pygame.mixer.music.load(os.path.join('media', 'music', 'photosynthesis_wip.ogg'))
-  pygame.mixer.music.play(-1)
+#  pygame.mixer.music.play(-1)
   while pygame.QUIT not in (event.type for event in pygame.event.get()):
     clock.tick(60)
     screen.fill(BLACK)

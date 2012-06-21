@@ -95,7 +95,19 @@ class Hero(character.Character):
     self.remaining_jumps = self.max_jumps
     self.attacking = 0
 
-  # TODO: customize the hitbox to better correspond with the part of the frame he actually takes up
+  def Hitbox(self):
+    """Gets the Map hitbox for the sprite, which is relative to the map rather than the screen.
+    
+    The Hitbox needs to be smaller than the sprite, partly because of weird PyGame behavior
+    where a rect of width X and height y actually touches (x+1) * (y+1) pixels.
+    """
+    x, y = self.env.MapCoordinateForScreenPoint(self.rect.left, self.rect.top)
+    if self.attacking:
+      return pygame.Rect(x + 1, y + 1, self.rect.width - 2, self.rect.height - 2)
+    elif self.direction == LEFT:
+      return pygame.Rect(x + 5, y + 1, 47, self.rect.height - 2)
+    else:
+      return pygame.Rect(x + 19, y + 1, 47, self.rect.height - 2)
 
   def InitImage(self):
     # Walking animation
@@ -113,7 +125,7 @@ class Hero(character.Character):
     self.FALL_RIGHT_IMAGE = character.LoadImage('treeguyfall0000.png', scaled=True,
                                                 colorkey=game_constants.SPRITE_COLORKEY)
     self.FALL_LEFT_IMAGE = pygame.transform.flip(self.FALL_RIGHT_IMAGE, 1, 0)
-    attack_images = character.LoadImages('treeguystrike1*.png', scaled=True,
+    attack_images = character.LoadImages('treeguystrikefollow*.png', scaled=True,
                                          colorkey=game_constants.SPRITE_COLORKEY)
     self.ATTACK_RIGHT_ANIMATION = animation.Animation(attack_images, looping=False)
     self.ATTACK_LEFT_ANIMATION = animation.Animation(
