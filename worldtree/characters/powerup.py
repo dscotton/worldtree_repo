@@ -54,11 +54,11 @@ class Powerup(pygame.sprite.Sprite):
       self.IMAGE = character.LoadImage('orb.png', scaled=True)
     self.image = self.IMAGE
 
-  def Use(self, character):
+  def Use(self, player):
     raise NotImplementedError('Subclasses must define the effect of the powerup.')
 
-  def PickUp(self, character):
-    """Handle the object being acquired by the character."""
+  def PickUp(self, player):
+    """Handle the object being acquired by the player."""
     if self.sound is not None:
       pygame.mixer.music.pause()
       channel = self.sound.play()
@@ -67,7 +67,7 @@ class Powerup(pygame.sprite.Sprite):
         # playing the jingle!
         time.sleep(0.1)
       pygame.mixer.music.unpause()
-    self.Use(character)
+    self.Use(player)
     if self.cleanup:
       map_data.map_data[self.env.name]['mapcodes'][self.row][self.col] = 0
     self.env.dirty = True  # Needed to make the image vanish right away.
@@ -83,10 +83,10 @@ class HealthBoost(Powerup):
   def __init__(self, environment, position):
     Powerup.__init__(self, environment, position, cleanup=True, sound=HealthBoost.SOUND)
     
-  def Use(self, character):
-    character.max_hp += self.HEALTH_BONUS
-    character.hp += self.HEALTH_BONUS
-    print 'New HP is %s out of %s' % (character.hp, character.max_hp)
+  def Use(self, player):
+    player.max_hp += self.HEALTH_BONUS
+    player.hp += self.HEALTH_BONUS
+    print 'New HP is %s out of %s' % (player.hp, player.max_hp)
     
     
 class DoubleJump(Powerup):
@@ -97,6 +97,20 @@ class DoubleJump(Powerup):
   def __init__(self, environment, position):
     Powerup.__init__(self, environment, position, cleanup=True, sound=DoubleJump.SOUND)
 
-  def Use(self, character):
-    character.max_jumps = 2
+  def Use(self, player):
+    player.max_jumps = 2
     print 'Now you can double jump!'
+    
+
+class MoreSeeds(Powerup):
+  """Powerup that increases the player's maximum ammo."""
+
+  SOUND = pygame.mixer.Sound(os.path.join(game_constants.MUSIC_DIR, 'jingle.ogg'))
+  IMAGE = None
+  
+  def __init__(self, environment, position):
+    Powerup.__init__(self, environment, position, cleanup=True, sound=MoreSeeds.SOUND)
+
+  def Use(self, player):
+    player.max_ammo += 5
+    player.ammo += 5

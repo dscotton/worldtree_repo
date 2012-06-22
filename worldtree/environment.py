@@ -34,6 +34,7 @@ ENEMIES = {
 ITEMS = {
   129: powerup.HealthBoost,
   130: powerup.DoubleJump,
+  131: powerup.MoreSeeds,
 }
 
 class Environment(object):

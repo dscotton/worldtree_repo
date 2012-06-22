@@ -98,6 +98,8 @@ class Hero(character.Character):
     self.remaining_jumps = self.max_jumps
     self.attacking = 0
     self.shooting_cooldown = 0
+    self.ammo = 0
+    self.max_ammo = 0
 
   def Hitbox(self):
     """Gets the Map hitbox for the sprite, which is relative to the map rather than the screen.
@@ -164,7 +166,7 @@ class Hero(character.Character):
       self.jump_ready = True
     if ATTACK in actions and self.attacking <= 0:
       self.Attack()
-    elif SHOOT in actions and self.attacking <= 0 and self.shooting_cooldown <= 0:
+    elif SHOOT in actions and self.attacking <= 0 and self.shooting_cooldown <= 0 and self.ammo > 0:
       self.Shoot()
   
   def StopMoving(self):
@@ -214,6 +216,7 @@ class Hero(character.Character):
     
   def Shoot(self):
     """Fire a projectile."""
+    self.ammo -= 1
     self.shooting_cooldown = self.SHOOTING_COOLDOWN
     if self.direction == LEFT:
       direction = [-1, 0]
