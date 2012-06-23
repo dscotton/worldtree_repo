@@ -39,13 +39,15 @@ class Statusbar(object):
     hp_text_box.left = 10
     self.image.blit(hp_text, hp_text_box)
 
-    if self.player.max_ammo > 0 and self.ammo != self.player.ammo:
+    if self.player.max_ammo > 0:
+      if self.ammo != self.player.ammo:
+        self.ammo = self.player.ammo
+        self.dirty = True
       ammo_text = self.font.render("Seeds: %s/%s" % (self.player.ammo, self.player.max_ammo),
                                    False, game_constants.WHITE)
       ammo_text_rect = ammo_text.get_rect()
       ammo_text_rect.top = 45
       ammo_text_rect.left = 10
-      self.dirty = True
       self.image.blit(ammo_text, ammo_text_rect)
 
     room_number = self.player.env.name[3:]
