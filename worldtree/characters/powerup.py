@@ -28,15 +28,17 @@ class Powerup(pygame.sprite.Sprite):
   # If subclassed object is a different size, it needs to update its rect attribute.
   WIDTH = 48
   HEIGHT = 48
+  IMAGE_FILE = 'orb.png'
   IMAGE = None
 
-  def __init__(self, environment, position, cleanup=False, sound=None):
+  def __init__(self, environment, position, one_time=True, cleanup=False, sound=None):
     """Constructor.
     
     Args:
       environment: Environment object this powerup appears in.
       position: Initial (x, y) tile position for this item.  The top left corner of the
         item will be aligned with this tile.
+      one_time: Boolean, if True this item will be removed from the screen after it's encountered.
       cleanup: Boolean, if True the object will be removed from map_data after it is picked up.
       sound: pygame.mixer.Sound object to play when the item is picked up.
     """
@@ -44,15 +46,20 @@ class Powerup(pygame.sprite.Sprite):
     self.env = environment
     self.col = position[0]
     self.row = position[1]
+    self.one_time = one_time
     self.cleanup = cleanup
     self.sound = sound
     self.dead = False
     map_rect = self.env.RectForTile(*position)
     self.rect = pygame.Rect(self.env.ScreenCoordinateForMapPoint(map_rect.left, map_rect.top),
                             (self.WIDTH, self.HEIGHT))
-    if self.IMAGE is None:
-      self.IMAGE = character.LoadImage('orb.png', scaled=True)
+    self.InitImage()
     self.image = self.IMAGE
+
+  @classmethod
+  def InitImage(cls):
+    if cls.IMAGE is None:
+      cls.IMAGE = character.LoadImage(cls.IMAGE_FILE, scaled=True)
 
   def Use(self, player):
     raise NotImplementedError('Subclasses must define the effect of the powerup.')
@@ -70,8 +77,9 @@ class Powerup(pygame.sprite.Sprite):
     self.Use(player)
     if self.cleanup:
       map_data.map_data[self.env.name]['mapcodes'][self.row][self.col] = 0
-    self.env.dirty = True  # Needed to make the image vanish right away.
-    self.kill()
+    if self.one_time:
+      self.env.dirty = True  # Needed to make the image vanish right away.
+      self.kill()
     
     
 class HealthBoost(Powerup):
@@ -114,3 +122,34 @@ class MoreSeeds(Powerup):
   def Use(self, player):
     player.max_ammo += 5
     player.ammo += 5
+
+
+class Lava(Powerup):
+  """An area that inflicts damage then the player stands in it.
+  
+  Although the name is confusing, this is a "Powerup" because it is a static object that
+  doesn't get updated each frame.  If I were starting over I'd probably rename the Powerup class.
+  
+  This class is also handled somewhat differently from other powerups in that the game will
+  try to join adjacent Lava tiles into a single object to reduce the number amount of collision
+  checks taking place each frame.
+  """
+  
+  IMAGE_FILE = 'transparent.png'
+  DAMAGE = 2
+
+  def __init__(self, environment, position, size):
+    """Constructor.
+    
+    Args:
+      environment: Environment object this Lava exists in.
+      position: (x, y) tile position of the Lava.
+      size: (width, height) of the lava in tiles.
+    """
+    Powerup.__init__(self, environment, position, one_time=False, cleanup=False)
+    self.rect.width = size[0] * game_constants.TILE_WIDTH
+    self.rect.height = size[1] * game_constants.TILE_HEIGHT
+    
+  def Use(self, player):
+    if player.invulnerable == 0:
+      player.TakeHit(self.DAMAGE)

@@ -51,10 +51,9 @@ def RunGame():
 
     player.HandleInput()
     player_group.update()
-    item_group.update()
     enemy_group.update()
+    # item_group doesn't need to update because they're static.
     env.hero_projectile_group.update()
-    # TODO: Write a custom collided method, to use hitboxes if nothing else
     collisions = pygame.sprite.spritecollide(player, enemy_group, False, 
                                              collided=character.CollideCharacters)
     for enemy in collisions:
@@ -90,8 +89,7 @@ def RunGame():
         rect.width += 6
         rect.height += 6
     screen.blit(status.GetImage(), (0, 0))
-#    if status.dirty:
-    if True:
+    if status.dirty:
       dirty_rects.append(pygame.Rect(0, 0, SCREEN_WIDTH, MAP_Y))
       status.dirty = False
     pygame.display.update(dirty_rects)

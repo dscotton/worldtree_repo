@@ -37,6 +37,12 @@ ITEMS = {
   131: powerup.MoreSeeds,
 }
 
+# These are mapcodes that will be merged with any adjacent tiles of the same code to form a
+# single object.
+AREAS = {
+  255: powerup.Lava,
+}
+
 class Environment(object):
   """A game environment.
   
@@ -85,6 +91,7 @@ class Environment(object):
     self.hero_projectile_group = pygame.sprite.RenderUpdates()
     self.enemy_projectile_group = pygame.sprite.RenderUpdates()
     image_cache = {}  # Only create one Surface for each image.
+    areas = {}  # Store codes that get merged into areas for the end.
     for row in range(self.height):
       for col in range(self.width):
         if row == 0:
@@ -108,9 +115,34 @@ class Environment(object):
             self.enemy_group.add(ENEMIES[mapcode](self, (col, row)))
           elif mapcode in ITEMS:
             self.item_group.add(ITEMS[mapcode](self, (col, row)))
+          elif mapcode in AREAS:
+            areas.setdefault(mapcode, []).append((col, row))
           else:
             raise Exception("Unknown mapcode: %s" % mapcode)
     # TODO: Prevent enemies from walking into items.
+    self.CreateAreas(areas)
+    
+  def CreateAreas(self, area_dict):
+    """Create objects for special map "areas", merging adjacent tiles into a single object.
+    
+    Args:
+      area_dict: map of mapcode string to list of (row, col) tile coordinates.
+    """
+    for mapcode, coordinates in area_dict.iteritems():
+      print coordinates
+      i = 0
+      while (i < len(coordinates)):
+        start = coordinates[i]
+        width = 1
+        while (i + width < len(coordinates)
+               and coordinates[i+width][1] == start[1]
+               and coordinates[i+width][0] == start[0] + width):
+          width += 1
+        # TODO: Consider calculating lava areas more than one row deep.
+        area = AREAS[mapcode](self, start, (width, 0))
+        print 'Area created! Coordinates: %s Size: %s' % (start, width)
+        self.item_group.add(area)
+        i += width
 
   def VisibleTiles(self):
     """Returns the indexes of the currently visible tiles.

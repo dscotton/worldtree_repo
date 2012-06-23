@@ -22,6 +22,7 @@ class Statusbar(object):
     self.font = pygame.font.Font(os.path.join('media', 'font', 'PressStart2P.ttf'), 24)
     self.hp = 0
     self.max_hp = 0
+    self.ammo = 0
     self.room = 0
     self.dirty = False
     
@@ -38,12 +39,13 @@ class Statusbar(object):
     hp_text_box.left = 10
     self.image.blit(hp_text, hp_text_box)
 
-    if self.player.max_ammo > 0:
+    if self.player.max_ammo > 0 and self.ammo != self.player.ammo:
       ammo_text = self.font.render("Seeds: %s/%s" % (self.player.ammo, self.player.max_ammo),
                                    False, game_constants.WHITE)
       ammo_text_rect = ammo_text.get_rect()
       ammo_text_rect.top = 45
       ammo_text_rect.left = 10
+      self.dirty = True
       self.image.blit(ammo_text, ammo_text_rect)
 
     room_number = self.player.env.name[3:]
