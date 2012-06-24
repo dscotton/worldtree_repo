@@ -15,6 +15,7 @@ import time
 
 import pygame
 
+import animation
 import character
 import game_constants
 import map_data
@@ -29,7 +30,9 @@ class Powerup(pygame.sprite.Sprite):
   WIDTH = 48
   HEIGHT = 48
   IMAGE_FILE = 'orb.png'
+  IMAGE_FILES = None  # A file pattern used to glob images.
   IMAGE = None
+  IMAGES = None
 
   def __init__(self, environment, position, one_time=True, cleanup=False, sound=None):
     """Constructor.
@@ -54,12 +57,23 @@ class Powerup(pygame.sprite.Sprite):
     self.rect = pygame.Rect(self.env.ScreenCoordinateForMapPoint(map_rect.left, map_rect.top),
                             (self.WIDTH, self.HEIGHT))
     self.InitImage()
-    self.image = self.IMAGE
+    if self.IMAGE is not None:
+      self.image = self.IMAGE
+    elif self.IMAGES is not None:
+      self.animation = animation.Animation(self.IMAGES, framedelay=1)
+      self.image = self.animation.NextFrame()
 
   @classmethod
   def InitImage(cls):
-    if cls.IMAGE is None:
+    if cls.IMAGE is None and cls.IMAGE_FILE is not None:
       cls.IMAGE = character.LoadImage(cls.IMAGE_FILE, scaled=True)
+    elif cls.IMAGES is None and cls.IMAGE_FILES is not None:
+      cls.IMAGES = character.LoadImages(cls.IMAGE_FILES, scaled=True,
+                                        colorkey=game_constants.SPRITE_COLORKEY)
+
+  def update(self):
+    if self.IMAGES is not None:
+      self.image = self.animation.NextFrame()
 
   def Use(self, player):
     raise NotImplementedError('Subclasses must define the effect of the powerup.')
@@ -86,7 +100,8 @@ class HealthBoost(Powerup):
   
   HEALTH_BONUS = 10
   SOUND = pygame.mixer.Sound(os.path.join(game_constants.MUSIC_DIR, 'jingle.ogg'))
-  IMAGE = None
+  IMAGE_FILE = None
+  IMAGE_FILES = 'lifeup*.png'
   
   def __init__(self, environment, position):
     Powerup.__init__(self, environment, position, cleanup=True, sound=HealthBoost.SOUND)
@@ -114,7 +129,8 @@ class MoreSeeds(Powerup):
   """Powerup that increases the player's maximum ammo."""
 
   SOUND = pygame.mixer.Sound(os.path.join(game_constants.MUSIC_DIR, 'jingle.ogg'))
-  IMAGE = None
+  IMAGE_FILE = None
+  IMAGE_FILES = 'ammoup*.png'
   
   def __init__(self, environment, position):
     Powerup.__init__(self, environment, position, cleanup=True, sound=MoreSeeds.SOUND)
