@@ -39,9 +39,10 @@ transitions = {
   'Map1' : {
     LEFT : (Transition(LEFT, 0, 19, 'Map4', 0), 
             Transition(LEFT, 20, 39, 'Map2', -20)),
-    DOWN : (Transition(DOWN, 15, 49, 'Map3', -15),),
     RIGHT : (Transition(RIGHT, 0, 17, 'Map5', 17),
-             Transition(RIGHT, 18, 39, 'Map11', -18),)
+             Transition(RIGHT, 18, 39, 'Map11', -18),),
+    UP : (Transition(UP, 30, 49, 'Map6', -30),),
+    DOWN : (Transition(DOWN, 15, 49, 'Map3', -15),),
   },
   'Map2' : {
     LEFT : (Transition(LEFT, 0, 19, 'Map31', 0),),
@@ -65,6 +66,7 @@ transitions = {
   },
   'Map6' : {
     RIGHT : (Transition(RIGHT, 3, 19, 'Map5', -3),),
+    DOWN : (Transition(DOWN, 0, 19, 'Map1', 30),),
   },
   'Map7' : {
     RIGHT : (Transition(RIGHT, 0, 19, 'Map8', 13),),
