@@ -13,8 +13,9 @@ import sys
 import pygame
 pygame.init()
 
-from characters import hero
 from characters import character
+from characters import hero
+from characters import powerup
 import environment
 from game_constants import *
 import map_data
@@ -49,18 +50,13 @@ def RunGame():
     screen.fill(BLACK)
     dirty_rects = []
 
-    player.HandleInput()
-    player_group.update()
-    enemy_group.update()
-    item_group.update()
-    env.hero_projectile_group.update()
-    env.enemy_projectile_group.update()
     collisions = pygame.sprite.spritecollide(player, enemy_group, False, 
                                              collided=character.CollideCharacters)
     for enemy in collisions:
       player.CollideWith(enemy)
     # TODO: Powerup hitbox is too big
-    item_pickups = pygame.sprite.spritecollide(player, item_group, False, collided=None)
+    item_pickups = pygame.sprite.spritecollide(player, item_group, False, 
+                                               collided=powerup.CollideSprites)
     for item in item_pickups:
       item.PickUp(player)
     for bullet in env.hero_projectile_group:
@@ -72,6 +68,12 @@ def RunGame():
     for bullet in bullets:
       bullet.CollideWith(player)
       bullet.kill()
+    player.HandleInput()
+    player_group.update()
+    enemy_group.update()
+    item_group.update()
+    env.hero_projectile_group.update()
+    env.enemy_projectile_group.update()
     refresh_map = env.dirty
     screen.blit(env.GetImage(), MAP_POSITION)
     dirty_rects = player_group.draw(screen)

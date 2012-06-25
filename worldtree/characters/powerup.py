@@ -71,6 +71,16 @@ class Powerup(pygame.sprite.Sprite):
       cls.IMAGES = character.LoadImages(cls.IMAGE_FILES, scaled=True,
                                         colorkey=game_constants.SPRITE_COLORKEY)
 
+  def Hitbox(self):
+    """Gets the Map hitbox for the sprite, which is relative to the map rather than the screen.
+    
+    The Hitbox needs to be smaller than the sprite, partly because of weird PyGame behavior
+    where a rect of width X and height y actually touches (x+1) * (y+1) pixels.
+    """
+    x, y = self.env.MapCoordinateForScreenPoint(self.rect.left, self.rect.top)
+    # TODO: Make these offsets constants so they can be configured per-class?
+    return pygame.Rect(x + 3, y + 3, self.rect.width - 6, self.rect.height - 6)
+
   def update(self):
     if self.IMAGES is not None:
       self.image = self.animation.NextFrame()
@@ -194,3 +204,12 @@ class Lava(Powerup):
   def Use(self, player):
     if player.invulnerable == 0:
       player.TakeHit(self.DAMAGE)
+
+
+def CollideSprites(player, other):
+  """Return True if two characters collide, otherwise false.
+  
+  This may produce side effects - it's the easiest way to let enemies know where the player
+  is, since it's called once per frame.
+  """
+  return player.Hitbox().colliderect(other.Hitbox())

@@ -106,7 +106,6 @@ class SporeCloud(Projectile):
   def __init__(self, env, direction, position):
     Projectile.__init__(self, env, self.DAMAGE, self.SPEED, direction, position)
     # Adjust position away from the center of the shooter.
-    print self.movement
     self.rect.left += (self.movement[0] * 5)
     self.rect.top += (self.movement[1] * 15)
     
