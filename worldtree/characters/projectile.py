@@ -89,9 +89,26 @@ class SeedBullet(Projectile):
   def InitImage(self):
     if SeedBullet.IMAGES is None:
       SeedBullet.IMAGES = character.LoadImages('seedprojectile*.png', scaled=True,
-                                    colorkey=game_constants.SPRITE_COLORKEY)
+                                               colorkey=game_constants.SPRITE_COLORKEY)
     self.animation = animation.Animation(SeedBullet.IMAGES, framedelay=5)
     self.image = self.animation.NextFrame()
     
   def SetCurrentImage(self):
     self.image = self.animation.NextFrame()
+
+
+class SporeCloud(Projectile):
+  
+  DAMAGE = 2
+  SPEED = 3
+  IMAGE = None
+
+  def __init__(self, env, direction, position):
+    Projectile.__init__(self, env, self.DAMAGE, self.SPEED, direction, position)
+    
+  def InitImage(self):
+    if SporeCloud.IMAGE is None:
+      SporeCloud.IMAGE = character.LoadImage('spore0000.png', scaled=True,
+                                             colorkey=game_constants.SPRITE_COLORKEY)
+    self.image = self.IMAGE
+    

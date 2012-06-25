@@ -14,6 +14,7 @@ import animation
 import character
 import game_constants
 import powerup
+import projectile
 
 class Badger(character.Character):
   """Class for the notorious primary foe, the badger."""
@@ -97,7 +98,7 @@ class Dragonfly(character.Character):
     self.SetCurrentImage()
     if self.invulnerable > 0:
       self.invulnerable -= 1
-  
+
 class BombBug(character.Character):
   
   STARTING_HP = 4
@@ -111,7 +112,6 @@ class BombBug(character.Character):
   EXPLODING_PUSHBACK = 48
   EXPLODING_DELAY = 60
   EXPLODING_FRAMES = 10
-  IMAGE_FILE = 'badger.png'
 
   def __init__(self, environment, position):
     self.triggered = 0
@@ -181,5 +181,60 @@ class BombBug(character.Character):
       if self.invulnerable > 0:
         self.invulnerable -= 1
       self.last_state = self.state
-      # TODO: Detect if the player is near and explode if so.
+
+
+class Shooter(character.Character):
+  
+  STARTING_HP = 5
+  SPEED = 0
+  GRAVITY = 2
+  TERMINAL_VELOCITY = 2
+  MOVEMENT = [0, 0]
+  DAMAGE = 1
+  SENSE_RADIUS = 240
+  SHOOTING_COOLDOWN = 90
+
+  def __init__(self, environment, position):
+    character.Character.__init__(self, environment, position)
+    self.aim = [0, -1]
+    self.movement = self.MOVEMENT
+    self.shooting_cooldown = 0
+
+  def InitImage(self):
+    # Need a shooting animation?
+    # TODO: this
+    walk_images = character.LoadImages('bombug*.png', scaled=True,
+                                       colorkey=game_constants.SPRITE_COLORKEY)
+    self.WALK_LEFT_ANIMATION = animation.Animation(walk_images)
+    self.SetCurrentImage()
+
+  def SetCurrentImage(self):
+    pass
+
+  def SenseAndReturnHitbox(self, player):
+    """Trigger an explosion if the player is close to the bug."""
+    if ((self.rect.centerx - player.rect.centerx) ** 2 
+        + (self.rect.centery - player.rect.centerx) ** 2) ** 0.5 < self.SENSE_RADIUS:
+      self.aim = [player.rect.centerx - self.rect.centerx, player.rect.centery - self.rect.centery]
+    else:
+      self.aim = [0, -1]
+    return self.Hitbox()
+
+  def GetMove(self):
+    return self.movement
+
+  def Shoot(self):
+    self.shooting_cooldown = self.SHOOTING_COOLDOWN
+    bullet = projectile.SporeCloud(self.env, self.aim, (self.rect.left, self.rect.centery))
+    self.env.hero_projectile_group.add(bullet)
+
+  def update(self):
+    if self.shooting_cooldown > 0:
+      self.shooting_cooldown -= 1
+    else:
+      self.Shoot()
+    self.SetCurrentImage()
+    if self.invulnerable > 0:
+      self.invulnerable -= 1
+    self.last_state = self.state
   
