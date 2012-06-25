@@ -27,10 +27,10 @@ def RunGame():
   screen.fill(BLACK)
   clock = pygame.time.Clock()
 
-  current_room = 'Map1'
+  current_room = 'Map3'
   env = environment.Environment(current_room)
   screen.blit(env.GetImage(), MAP_POSITION)
-  player = hero.Hero(env, position=(1, 2))
+  player = hero.Hero(env, position=(62, 3))
   player_group = pygame.sprite.RenderUpdates(player)
   enemy_group = env.enemy_group
   item_group = env.item_group

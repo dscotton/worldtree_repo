@@ -126,13 +126,6 @@ class Character(pygame.sprite.Sprite):
       self.image.set_alpha(128)
     else:
       self.image.set_alpha(255)
-
-  def ChangeRooms(self, env, position):
-    """Move this sprite to a new environment.  Probably only should be used for the player."""
-    self.env = env
-    map_rect = self.env.RectForTile(*position)
-    self.rect = pygame.Rect(self.env.ScreenCoordinateForMapPoint(map_rect.left, map_rect.top),
-                            (self.WIDTH, self.HEIGHT))
     
   def Walk(self, direction):
     if self.action != JUMP:

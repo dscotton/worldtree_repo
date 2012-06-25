@@ -69,6 +69,8 @@ class Hero(character.Character):
   ATTACK_DURATION = 30
   SHOOTING_COOLDOWN = 30
   IS_PLAYER = True
+  HITBOX_LEFT_OFFSET = 5
+  HITBOX_RIGHT_OFFSET = 19
 
   # Store surfaces in class variables so they're only loaded once.
   WALK_RIGHT_ANIMATION = None
@@ -111,9 +113,9 @@ class Hero(character.Character):
     if self.attacking:
       return pygame.Rect(x + 1, y + 1, self.rect.width - 2, self.rect.height - 2)
     elif self.direction == LEFT:
-      return pygame.Rect(x + 5, y + 1, 47, self.rect.height - 2)
+      return pygame.Rect(x + self.HITBOX_LEFT_OFFSET, y + 1, 47, self.rect.height - 2)
     else:
-      return pygame.Rect(x + 19, y + 1, 47, self.rect.height - 2)
+      return pygame.Rect(x + self.HITBOX_RIGHT_OFFSET, y + 1, 47, self.rect.height - 2)
 
   def InitImage(self):
     # Walking animation
@@ -253,7 +255,6 @@ class Hero(character.Character):
         self.image = self.WALK_LEFT_ANIMATION.NextFrame()
       else:
         self.image = self.STAND_LEFT_IMAGE
-      self.rect.right = right
     elif RIGHT == self.direction:
       if self.attacking > 0:
         self.image = self.ATTACK_RIGHT_ANIMATION.NextFrame()
@@ -265,15 +266,20 @@ class Hero(character.Character):
         self.image = self.WALK_RIGHT_ANIMATION.NextFrame()
       else:
         self.image = self.STAND_RIGHT_IMAGE
-      self.rect.right = right
     if self.invulnerable > 0 and self.invulnerable % 4 > 0:
       self.image.set_alpha(128)
     else:
       self.image.set_alpha(255)
     
+    # Account for position changes due to different size sprites / different hitbox alignment.
     self.rect.width = self.image.get_width()
     if self.direction == LEFT:
       self.rect.right = right
+    if self.direction != self.last_state[1]:
+      if self.direction == LEFT:
+        self.rect.left += (self.HITBOX_RIGHT_OFFSET - self.HITBOX_LEFT_OFFSET)
+      else:
+        self.rect.left -= (self.HITBOX_RIGHT_OFFSET - self.HITBOX_LEFT_OFFSET)
 
   def CollideWith(self, enemy):
     """Handle what happens when the player collides with an enemy."""
@@ -288,6 +294,18 @@ class Hero(character.Character):
       print 'Player health: %s' % self.hp
       # TODO: Calculate pushback vector here and modify movement.  This also will mean making
       # lateral movement behave with inertia.
+
+  def ChangeRooms(self, env, position):
+    """Move this sprite to a new environment."""
+    self.env = env
+    map_rect = self.env.RectForTile(*position)
+    left, top = self.env.ScreenCoordinateForMapPoint(map_rect.left, map_rect.top)
+    if self.direction == LEFT:
+      left -= self.HITBOX_LEFT_OFFSET
+    else:
+      left -= self.HITBOX_RIGHT_OFFSET
+    self.rect = pygame.Rect((left, top),
+                            (self.WIDTH, self.HEIGHT))
 
   def update(self):
     self.SetCurrentImage()
