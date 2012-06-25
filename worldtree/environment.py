@@ -28,6 +28,7 @@ ENEMIES = {
   2: enemies.Dragonfly,
   3: enemies.BombBug,
   4: enemies.Shooter,
+  5: enemies.PipeBug,
 }
 
 # Map of map codes to items.  These share the same number space as the enemies, so there must

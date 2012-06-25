@@ -47,8 +47,7 @@ class Dragonfly(character.Character):
   VARIABLE_REST = 20  # Random amount in this interval
   HORIZONTAL_MOVE_TIME = 15
   VERTICAL_MOVE_TIME = 9
-  ITEM_DROPS = [powerup.HealthRestore, powerup.AmmoRestore]
-  DROP_PROBABILITY = 20
+  FLY_LEFT_IMAGES = None
   
   def __init__(self, environment, position):
     self.vector = [-1, 0]
@@ -59,18 +58,19 @@ class Dragonfly(character.Character):
     self.movement = [-self.SPEED, 0]
 
   def InitImage(self):
-    fly_images = character.LoadImages('dragonfly*.png', scaled=True,
-                                      colorkey=game_constants.SPRITE_COLORKEY)
-    self.FLY_LEFT_ANIMATION = animation.Animation(fly_images)
-    self.FLY_RIGHT_ANIMATION = animation.Animation(
-        [pygame.transform.flip(i, 1, 0) for i in fly_images])
+    if Dragonfly.FLY_LEFT_IMAGES is None:
+      Dragonfly.FLY_LEFT_IMAGES = character.LoadImages('dragonfly*.png', scaled=True,
+                                                       colorkey=game_constants.SPRITE_COLORKEY)
+    self.fly_left_animation = animation.Animation(Dragonfly.FLY_LEFT_IMAGES)
+    self.fly_right_animation = animation.Animation(
+        [pygame.transform.flip(i, 1, 0) for i in Dragonfly.FLY_LEFT_IMAGES])
     self.SetCurrentImage()
 
   def SetCurrentImage(self):
     if self.vector[0] + self.vector[1] < 0:
-      self.image = self.FLY_LEFT_ANIMATION.NextFrame()
+      self.image = self.fly_left_animation.NextFrame()
     else:
-      self.image = self.FLY_RIGHT_ANIMATION.NextFrame()
+      self.image = self.fly_right_animation.NextFrame()
 
   def GetMove(self):
     """Dart around.  Alternatingly hover and move."""
@@ -243,4 +243,43 @@ class Shooter(character.Character):
     if self.invulnerable > 0:
       self.invulnerable -= 1
     self.last_state = self.state
+
+
+class PipeBug(character.Character):
   
+  WIDTH = 48
+  HEIGHT = 48
+  STARTING_HP = 2
+  SPEED = 8
+  GRAVITY = 0
+  DAMAGE = 1
+  IMAGES = None
+
+  def __init__(self, environment, position):
+    character.Character.__init__(self, environment, position)
+    self.movement = [0, -self.SPEED]
+    self.turned = False
+
+  def InitImage(self):
+    if PipeBug.IMAGES is None:
+      PipeBug.IMAGES = character.LoadImages('pipebug*.png', scaled=True,
+                                            colorkey=game_constants.SPRITE_COLORKEY)
+    self.animation = animation.Animation(PipeBug.IMAGES)
+    self.SetCurrentImage()
+
+  def SetCurrentImage(self):
+    self.image = self.animation.NextFrame()
+
+  def SenseAndReturnHitbox(self, player):
+    """Trigger an explosion if the player is close to the bug."""
+    if not self.turned and self.rect.centery < (player.rect.centery - 16):
+      self.turned = True
+      if self.rect.centerx < player.rect.centerx:
+        self.movement = [self.SPEED, 0]
+      else:
+        self.movement = [-self.SPEED, 0]
+
+    return self.Hitbox()
+
+  def GetMove(self):
+    return self.movement

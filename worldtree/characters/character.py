@@ -13,6 +13,7 @@ import random
 import pygame
 
 import game_constants
+import powerup
 
 # Enum of possible character action states.
 STAND = 1
@@ -66,8 +67,8 @@ class Character(pygame.sprite.Sprite):
   PUSHBACK = 16
   DAMAGE = 0
   IS_PLAYER = False
-  ITEM_DROPS = []
-  DROP_PROBABILITY = 0
+  ITEM_DROPS = [powerup.HealthRestore, powerup.AmmoRestore]
+  DROP_PROBABILITY = 10
 
   def __init__(self, environment, position=(0, 0)):
     """Constructor.
@@ -237,7 +238,8 @@ class Character(pygame.sprite.Sprite):
     if self.invulnerable > 0:
       self.invulnerable -= 1
     self.last_state = self.state
-
+    if self.env.IsOutsideMap(self.Hitbox()):
+      self.kill()
     
   def __repr__(self):
     str(type(self))
