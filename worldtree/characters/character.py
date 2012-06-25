@@ -80,8 +80,11 @@ class Character(pygame.sprite.Sprite):
     pygame.sprite.Sprite.__init__(self)
     self.env = environment
     map_rect = self.env.RectForTile(*position)
-    self.rect = pygame.Rect(self.env.ScreenCoordinateForMapPoint(map_rect.left, map_rect.top),
-                            (self.WIDTH, self.HEIGHT))
+    screen_coordinates = self.env.ScreenCoordinateForMapPoint(map_rect.left, map_rect.bottom)
+    self.rect = pygame.Rect((screen_coordinates[0], 0), (self.WIDTH, self.HEIGHT))
+    # Align the bottoms of the sprite and tile - this allows easier placement for things that
+    # are more than one tile tall.
+    self.rect.bottom = screen_coordinates[1]
     self.action, self.direction = self.DEFAULT_STATE
     self.vertical = FALL
     self.movement = self.STARTING_MOVEMENT
@@ -175,6 +178,7 @@ class Character(pygame.sprite.Sprite):
       
   def Die(self):
     """This character dies."""
+    print 'dying %s' % type(self)
     if len(self.ITEM_DROPS) > 0:
       if random.randint(0, 100) < self.DROP_PROBABILITY:
         position = self.env.TileIndexForPoint(

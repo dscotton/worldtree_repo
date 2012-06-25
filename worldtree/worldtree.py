@@ -27,20 +27,20 @@ def RunGame():
   screen.fill(BLACK)
   clock = pygame.time.Clock()
 
-  current_room = 'Map3'
+  current_room = 'Map1'
   env = environment.Environment(current_room)
   screen.blit(env.GetImage(), MAP_POSITION)
-  player = hero.Hero(env, position=(62, 3))
+  player = hero.Hero(env, position=(1, 5))
   player_group = pygame.sprite.RenderUpdates(player)
   enemy_group = env.enemy_group
   item_group = env.item_group
   item_group.draw(screen)
   player_group.draw(screen)
   enemy_group.draw(screen)
-  
+
   status = statusbar.Statusbar(player)
   screen.blit(status.GetImage(), (0, 0))
-  
+
   pygame.display.flip()
   pygame.mixer.music.load(os.path.join('media', 'music', 'photosynthesis_wip.ogg'))
   pygame.mixer.music.play(-1)
@@ -53,8 +53,8 @@ def RunGame():
     player_group.update()
     enemy_group.update()
     item_group.update()
-    # item_group doesn't need to update because they're static.
     env.hero_projectile_group.update()
+    env.enemy_projectile_group.update()
     collisions = pygame.sprite.spritecollide(player, enemy_group, False, 
                                              collided=character.CollideCharacters)
     for enemy in collisions:
@@ -68,8 +68,7 @@ def RunGame():
       for enemy in hit_enemies:
         bullet.CollideWith(enemy)
         bullet.kill()
-    bullets = pygame.sprite.spritecollide(player, env.enemy_projectile_group, False, 
-                                          collided=character.CollideCharacters)
+    bullets = pygame.sprite.spritecollide(player, env.enemy_projectile_group, False)
     for bullet in bullets:
       bullet.CollideWith(player)
       bullet.kill()
@@ -79,6 +78,7 @@ def RunGame():
     dirty_rects.extend(item_group.draw(screen))
     dirty_rects.extend(enemy_group.draw(screen))
     dirty_rects.extend(env.hero_projectile_group.draw(screen))
+    dirty_rects.extend(env.enemy_projectile_group.draw(screen))
     if refresh_map:
       dirty_rects = [pygame.Rect(MAP_POSITION[0], MAP_POSITION[1], MAP_WIDTH, MAP_HEIGHT)]
     else:

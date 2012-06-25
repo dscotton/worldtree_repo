@@ -27,6 +27,7 @@ ENEMIES = {
   1: enemies.Badger,
   2: enemies.Dragonfly,
   3: enemies.BombBug,
+  4: enemies.Shooter,
 }
 
 # Map of map codes to items.  These share the same number space as the enemies, so there must

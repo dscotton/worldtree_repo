@@ -185,6 +185,8 @@ class BombBug(character.Character):
 
 class Shooter(character.Character):
   
+  WIDTH = 48
+  HEIGHT = 96
   STARTING_HP = 5
   SPEED = 0
   GRAVITY = 2
@@ -193,23 +195,26 @@ class Shooter(character.Character):
   DAMAGE = 1
   SENSE_RADIUS = 240
   SHOOTING_COOLDOWN = 90
+  IMAGES = None
 
   def __init__(self, environment, position):
+    self.shooting_cooldown = 0
     character.Character.__init__(self, environment, position)
     self.aim = [0, -1]
     self.movement = self.MOVEMENT
-    self.shooting_cooldown = 0
 
   def InitImage(self):
-    # Need a shooting animation?
-    # TODO: this
-    walk_images = character.LoadImages('bombug*.png', scaled=True,
-                                       colorkey=game_constants.SPRITE_COLORKEY)
-    self.WALK_LEFT_ANIMATION = animation.Animation(walk_images)
+    if Shooter.IMAGES is None:
+      Shooter.IMAGES = character.LoadImages('mush*.png', scaled=True,
+                                            colorkey=game_constants.SPRITE_COLORKEY)
+    self.shoot_animation = animation.Animation(Shooter.IMAGES)
     self.SetCurrentImage()
 
   def SetCurrentImage(self):
-    pass
+    if self.shooting_cooldown > 12:
+      self.image = self.IMAGES[0]
+    else:
+      self.image = self.shoot_animation.NextFrame()
 
   def SenseAndReturnHitbox(self, player):
     """Trigger an explosion if the player is close to the bug."""
@@ -226,13 +231,14 @@ class Shooter(character.Character):
   def Shoot(self):
     self.shooting_cooldown = self.SHOOTING_COOLDOWN
     bullet = projectile.SporeCloud(self.env, self.aim, (self.rect.left, self.rect.centery))
-    self.env.hero_projectile_group.add(bullet)
+    self.env.enemy_projectile_group.add(bullet)
 
   def update(self):
     if self.shooting_cooldown > 0:
       self.shooting_cooldown -= 1
     else:
       self.Shoot()
+      self.shoot_animation.Reset()
     self.SetCurrentImage()
     if self.invulnerable > 0:
       self.invulnerable -= 1
