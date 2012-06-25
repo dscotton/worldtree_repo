@@ -94,7 +94,7 @@ class Powerup(pygame.sprite.Sprite):
     if self.one_time:
       self.env.dirty = True  # Needed to make the image vanish right away.
       self.kill()
-    
+
     
 class HealthBoost(Powerup):
   
@@ -107,11 +107,23 @@ class HealthBoost(Powerup):
     Powerup.__init__(self, environment, position, cleanup=True, sound=HealthBoost.SOUND)
     
   def Use(self, player):
-    player.max_hp += self.HEALTH_BONUS
-    player.hp += self.HEALTH_BONUS
-    print 'New HP is %s out of %s' % (player.hp, player.max_hp)
+    player.RaiseMaxHp(self.HEALTH_BONUS)
+
+
+class HealthRestore(Powerup):
+  
+  HEALTH_BONUS = 10
+  IMAGE_FILE = None
+  IMAGE_FILES = 'healthrestore*.png'
+
+  def __init__(self, environment, position):
+    Powerup.__init__(self, environment, position)
+    print 'creating powerup at %s' % (position,)
     
-    
+  def Use(self, player):
+    player.RecoverHealth(self.HEALTH_BONUS)
+
+
 class DoubleJump(Powerup):
   
   SOUND = pygame.mixer.Sound(os.path.join(game_constants.MUSIC_DIR, 'jingle.ogg'))
@@ -137,7 +149,20 @@ class MoreSeeds(Powerup):
 
   def Use(self, player):
     player.max_ammo += 5
-    player.ammo += 5
+    player.ammo = min(player.max_ammo, player.ammo + 5)
+
+
+class AmmoRestore(Powerup):
+  """Powerup that refills some of the player's ammo."""
+
+  IMAGE_FILE = None
+  IMAGE_FILES = 'seedammo*.png'
+
+  def __init__(self, environment, position):
+    Powerup.__init__(self, environment, position)
+
+  def Use(self, player):
+    player.ammo = min(player.max_ammo, player.ammo + 5)
 
 
 class Lava(Powerup):

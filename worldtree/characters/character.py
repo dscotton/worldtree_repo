@@ -8,6 +8,7 @@ Created on Jun 11, 2012
 
 import glob
 import os
+import random
 
 import pygame
 
@@ -65,6 +66,8 @@ class Character(pygame.sprite.Sprite):
   PUSHBACK = 16
   DAMAGE = 0
   IS_PLAYER = False
+  ITEM_DROPS = []
+  DROP_PROBABILITY = 0
 
   def __init__(self, environment, position=(0, 0)):
     """Constructor.
@@ -179,7 +182,12 @@ class Character(pygame.sprite.Sprite):
       
   def Die(self):
     """This character dies."""
-    # TODO: Add death animations and multi-frame events (ongoing_action?)
+    if len(self.ITEM_DROPS) > 0:
+      if random.randint(0, 100) < self.DROP_PROBABILITY:
+        position = self.env.TileIndexForPoint(
+            *self.env.MapCoordinateForScreenPoint(self.rect.centerx, self.rect.centery))
+        drop = random.choice(self.ITEM_DROPS)(self.env, position)
+        self.env.item_group.add(drop)
     self.kill()
   
   def CollisionPushback(self, other):
@@ -190,6 +198,15 @@ class Character(pygame.sprite.Sprite):
     self.movement[0] += int(pushback_x * pushback_scalar)
     self.movement[1] += int(pushback_y * pushback_scalar)
     print '%s is getting knocked back! %s' % (type(self), self.movement)
+
+  def RaiseMaxHp(self, amount):
+    """Raises the character's max HP and also recovers their current HP by the same amount."""
+    self.max_hp += amount
+    self.RecoverHealth(amount)
+
+  def RecoverHealth(self, amount):
+    """Heals a specific amount of HP."""
+    self.hp = min(self.max_hp, self.hp + amount)
 
   def WalkBackAndForth(self):
     """Get movement for walking back and forth on the current platform occupied."""

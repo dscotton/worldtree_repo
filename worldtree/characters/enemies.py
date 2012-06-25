@@ -13,6 +13,7 @@ import pygame
 import animation
 import character
 import game_constants
+import powerup
 
 class Badger(character.Character):
   """Class for the notorious primary foe, the badger."""
@@ -25,6 +26,8 @@ class Badger(character.Character):
   DAMAGE = 1
   IMAGE_FILE = 'badger.png'
   # TODO: assign self.image to something
+  ITEM_DROPS = [powerup.HealthRestore, powerup.AmmoRestore]
+  DROP_PROBABILITY = 20
 
   def GetMove(self):
     """Get the movement vector for the badger."""
@@ -43,6 +46,8 @@ class Dragonfly(character.Character):
   VARIABLE_REST = 20  # Random amount in this interval
   HORIZONTAL_MOVE_TIME = 15
   VERTICAL_MOVE_TIME = 9
+  ITEM_DROPS = [powerup.HealthRestore, powerup.AmmoRestore]
+  DROP_PROBABILITY = 20
   
   def __init__(self, environment, position):
     self.vector = [-1, 0]
