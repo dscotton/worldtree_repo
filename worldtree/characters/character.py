@@ -78,6 +78,7 @@ class Character(pygame.sprite.Sprite):
       position: Initial (x, y) tile position for this character.  The top left corner of the
         character will be aligned with this tile.
     """
+    print position
     pygame.sprite.Sprite.__init__(self)
     self.env = environment
     map_rect = self.env.RectForTile(*position)

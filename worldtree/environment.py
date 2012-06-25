@@ -29,6 +29,7 @@ ENEMIES = {
   3: enemies.BombBug,
   4: enemies.Shooter,
   5: enemies.PipeBug,
+  6: enemies.BugPipe,
 }
 
 # Map of map codes to items.  These share the same number space as the enemies, so there must
@@ -303,6 +304,14 @@ class Environment(object):
   def MapCoordinateForScreenPoint(self, x, y):
     """Convert screen-relative (x, y) point into a map-relative coordinate."""
     return (x - MAP_X + self.screen_offset[0], y - MAP_Y + self.screen_offset[1])
+
+  def IsScreenCoordinateVisible(self, x, y):
+    """Returns true if a coordinate is currently on screen, otherwise false."""
+    if x < 0 or x > SCREEN_WIDTH:
+      return False
+    if y < (SCREEN_HEIGHT - MAP_HEIGHT) or y > SCREEN_HEIGHT:
+      return False
+    return True
 
   def IsOutsideMap(self, rect):
     """True if the center of rect has moved outside the map."""

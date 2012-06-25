@@ -100,6 +100,7 @@ class Dragonfly(character.Character):
       self.invulnerable -= 1
 
 class BombBug(character.Character):
+  """Enemy that explodes when the player comes near enough."""
   
   STARTING_HP = 4
   SPEED = 1
@@ -184,6 +185,7 @@ class BombBug(character.Character):
 
 
 class Shooter(character.Character):
+  """Enemy that shoots projectiles and targets the player if he is nearby."""
   
   WIDTH = 48
   HEIGHT = 96
@@ -193,7 +195,7 @@ class Shooter(character.Character):
   TERMINAL_VELOCITY = 2
   MOVEMENT = [0, 0]
   DAMAGE = 1
-  SENSE_RADIUS = 240
+  SENSE_RADIUS = 336
   SHOOTING_COOLDOWN = 90
   IMAGES = None
 
@@ -246,6 +248,7 @@ class Shooter(character.Character):
 
 
 class PipeBug(character.Character):
+  """Enemy that flies up until level with the player, then left or right."""
   
   WIDTH = 48
   HEIGHT = 48
@@ -262,17 +265,22 @@ class PipeBug(character.Character):
 
   def InitImage(self):
     if PipeBug.IMAGES is None:
-      PipeBug.IMAGES = character.LoadImages('pipebug*.png', scaled=True,
+      PipeBug.IMAGES = character.LoadImages('pipebee*.png', scaled=True,
                                             colorkey=game_constants.SPRITE_COLORKEY)
-    self.animation = animation.Animation(PipeBug.IMAGES)
+    self.left_animation = animation.Animation(PipeBug.IMAGES)
+    self.right_animation = animation.Animation(
+        [pygame.transform.flip(i, 1, 0) for i in PipeBug.IMAGES])
     self.SetCurrentImage()
 
   def SetCurrentImage(self):
-    self.image = self.animation.NextFrame()
+    if self.movement[0] > 0:
+      self.image = self.right_animation.NextFrame()
+    else:
+      self.image = self.left_animation.NextFrame()
 
   def SenseAndReturnHitbox(self, player):
     """Trigger an explosion if the player is close to the bug."""
-    if not self.turned and self.rect.centery < (player.rect.centery - 16):
+    if not self.turned and self.rect.top < player.rect.top:
       self.turned = True
       if self.rect.centerx < player.rect.centerx:
         self.movement = [self.SPEED, 0]
@@ -283,3 +291,60 @@ class PipeBug(character.Character):
 
   def GetMove(self):
     return self.movement
+
+  def update(self):
+    if not self.env.IsMoveLegal(self, self.GetMove()):
+      self.kill()
+    else:
+      self.rect = self.rect.move(self.GetMove())
+      self.SetCurrentImage()
+      if self.invulnerable > 0:
+        self.invulnerable -= 1
+
+class BugPipe(character.Character):
+  """Enemy that spawns a stream of PipeBugs."""
+  
+  WIDTH = 48
+  HEIGHT = 48
+  STARTING_HP = 1
+  SPEED = 0
+  GRAVITY = 0
+  DAMAGE = 0
+  IMAGE = None
+  IMAGE_FILE = 'transparent.png'
+  SPAWNING_COOLDOWN = 120
+  
+  def __init__(self, environment, position):
+    character.Character.__init__(self, environment, position)
+    self.spawning_cooldown = self.SPAWNING_COOLDOWN
+    self.movement = [0, 0]
+    self.invulnerable = 2**31
+
+  def InitImage(self):
+    if BugPipe.IMAGE is None:
+      BugPipe.IMAGE = character.LoadImage(self.IMAGE_FILE, scaled=True, 
+                                          colorkey=game_constants.SPRITE_COLORKEY)
+    self.image = self.IMAGE
+
+  def Hitbox(self):
+    """Can't be hit."""
+    return pygame.Rect(0, 0, 0, 0)
+  
+  def GetMove(self):
+    return self.movement
+
+  def SpawnBug(self):
+    print 'spawning a bug!'
+    self.spawning_cooldown = self.SPAWNING_COOLDOWN
+    map_coordinate = self.env.MapCoordinateForScreenPoint(self.rect.centerx, self.rect.top-1)
+    new_bug = PipeBug(self.env, self.env.TileIndexForPoint(*map_coordinate))
+    self.env.enemy_group.add(new_bug)
+
+  def update(self):
+    if not self.env.IsScreenCoordinateVisible(*self.rect.midtop):
+      return
+    if self.spawning_cooldown > 0:
+      self.spawning_cooldown -= 1
+    else:
+      self.SpawnBug()
+  
