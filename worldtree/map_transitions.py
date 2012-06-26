@@ -22,151 +22,156 @@ class Transition(object):
     direction: constant from controller, one of UP, DOWN, LEFT, RIGHT, the player is moving.
     first: int, tile index where this edge is first connected to another map.
     last: int, tile index where the edge is last connected to another map (inclusive).
+    region: int, the destination region that the dest room appears in.
     dest: str, the name of the destination room (one of the keys to map_data).
     offset: int, number of tiles offset the destination map is.  The player will appear at the
       tile given by current_position + offset.
   """
 
-  def __init__(self, direction, first, last, destination, offset):
-    self.direction = direction
+  def __init__(self, first, last, region, destination, offset):
     self.first = first
     self.last = last
+    self.region = region
     self.dest = destination
     self.offset = offset
 
 
 transitions = {
-  'Map1' : {
-    LEFT : (Transition(LEFT, 0, 19, 'Map4', 0), 
-            Transition(LEFT, 20, 39, 'Map2', -20)),
-    RIGHT : (Transition(RIGHT, 0, 17, 'Map5', 17),
-             Transition(RIGHT, 18, 39, 'Map11', -18),),
-    UP : (Transition(UP, 30, 49, 'Map6', -30),),
-    DOWN : (Transition(DOWN, 15, 49, 'Map3', -15),),
+  1 : {
+    'Map1' : {
+      LEFT : (Transition(0, 19, 1, 'Map4', 0), 
+              Transition(20, 39, 1, 'Map2', -20)),
+      RIGHT : (Transition(0, 17, 1, 'Map5', 17),
+               Transition(18, 39, 1, 'Map11', -18),),
+      UP : (Transition(30, 49, 1, 'Map6', -30),),
+      DOWN : (Transition(15, 49, 1, 'Map3', -15),),
+    },
+    'Map2' : {
+      LEFT : (Transition(0, 19, 1, 'Map31', 0),),
+      RIGHT : (Transition(0, 19, 1, 'Map1', 20),),
+      UP : (Transition(0, 79, 1, 'Map4', 0),),
+    },
+    'Map3' : {
+      UP : (Transition(0, 34, 1, 'Map1', 15),
+            Transition(35, 64, 1, 'Map11', -35),),
+      LEFT : (Transition(34, 39, 1, 'Map9', -34),),
+      RIGHT : (Transition(0, 39, 1, 'Map30', 22),),
+    },
+    'Map4' : {
+      RIGHT : (Transition(0, 19, 1, 'Map1', 0),),
+      DOWN : (Transition(0, 79, 1, 'Map2', 0),),
+    },
+    'Map5' : {
+      LEFT : (Transition(27, 34, 1, 'Map1', -17),
+              Transition(0, 11, 1, 'Map6', 3)),
+      DOWN : (Transition(0, 34, 1, 'Map11', 0),),
+    },
+    'Map6' : {
+      RIGHT : (Transition(3, 19, 1, 'Map5', -3),),
+      DOWN : (Transition(0, 19, 1, 'Map1', 30),),
+    },
+    'Map7' : {
+      RIGHT : (Transition(0, 19, 1, 'Map8', 13),),
+      LEFT : (Transition(0, 39, 1, 'Map24', 0),),
+    },
+    'Map8' : {
+      RIGHT : (Transition(0, 5, 1, 'Map9', 94),),
+      LEFT : (Transition(13, 32, 1, 'Map7', -13),),
+    },
+    'Map9' : {
+      RIGHT : (Transition(0, 5, 1, 'Map3', 34),),
+      LEFT : (Transition(16, 35, 1, 'Map17', -16),
+              Transition(94, 99, 1, 'Map8', -94),),
+    },
+    'Map10' : {
+      LEFT : (Transition(0, 89, 1, 'Map26', 0),),
+      RIGHT : (Transition(0, 9, 1, 'Map12', 60),
+               Transition(56, 70, 1, 'Map21', -56),
+               Transition(75, 89, 1, 'Map25', -75),),
+    },
+    'Map11' : {
+      LEFT : (Transition(0, 21, 1, 'Map1', 18),),
+      RIGHT : (Transition(0, 21, 1, 'Map30', 1),),
+      UP : (Transition(0, 34, 1, 'Map5', 0),),
+      DOWN : (Transition(0, 29, 1, 'Map3', 35),),
+    },
+    'Map12' : {
+      LEFT : (Transition(0, 10, 1, 'Map13', 19),
+              Transition(60, 69, 1, 'Map10', -60),),
+      RIGHT : (Transition(0, 69, 1, 'Map14', 0),),
+    },
+    'Map13' : {
+      RIGHT : (Transition(0, 13, 1, 'Map16', 6),
+               Transition(19, 29, 1, 'Map12', -19),),
+    },
+    'Map14' : {
+      LEFT : (Transition(0, 69, 1, 'Map12', 0),),
+      RIGHT : (Transition(0, 69, 1, 'Map18', 0),),
+    },
+    'Map16' : {
+      RIGHT : (Transition(0, 19, 1, 'Map2', 0),),
+      LEFT : (Transition(0, 19, 1, 'Map13', -6),),
+    },
+    'Map17' : {
+      LEFT : (Transition(0, 19, 1, 'Map23', 0),),
+      RIGHT : (Transition(0, 19, 1, 'Map9', 16),),
+      UP : (Transition(0, 39, 1, 'Map20', 0),),
+    },
+    'Map18' : {
+      LEFT : (Transition(0, 69, 1, 'Map14', 0),),
+      RIGHT : (Transition(0, 14, 1, 'Map19', 0),
+               Transition(50, 69, 1, 'Map23', -50),),
+    },
+    'Map19' : {
+      LEFT : (Transition(0, 14, 1, 'Map18', 0),),
+    },
+    'Map20' : {
+      DOWN : (Transition(0, 39, 1, 'Map17', 0),),
+    },
+    'Map21' : {
+      LEFT : (Transition(0, 14, 1, 'Map10', 56),),
+      UP : (Transition(18, 54, 1, 'Map22', -18),),
+    },
+    'Map22' : {
+      DOWN : (Transition(0, 36, 1, 'Map21', 18),),
+    },
+    'Map23' : {
+      LEFT : (Transition(0, 19, 1, 'Map18', 50),),
+      RIGHT : (Transition(0, 19, 1, 'Map17', 0),),
+    },
+    'Map24' : {
+      LEFT : (Transition(0, 11, 1, 'Map25', 4),
+              Transition(41, 60, 1, 'Map28', -41),),
+      RIGHT : (Transition(0, 39, 1, 'Map7', 0),),
+    },
+    'Map25' : {
+      LEFT : (Transition(0, 15, 1, 'Map10', 75),),
+      RIGHT : (Transition(4, 15, 1, 'Map24', -4),),
+    },
+    'Map26' : {
+      LEFT : (Transition(60, 74, 1, 'Map29', -60),),
+      RIGHT : (Transition(0, 89, 1, 'Map10', 0),
+               Transition(120, 139, 1, 'Map27', -120),),
+    },
+    'Map27' : {
+      LEFT : (Transition(0, 19, 1, 'Map26', 120),),
+      RIGHT : (Transition(0, 19, 1, 'Map28', 0),),
+    },
+    'Map28' : {
+      LEFT : (Transition(0, 19, 1, 'Map27', 0),),
+      RIGHT : (Transition(0, 19, 1, 'Map24', 41),),
+    },
+    'Map29' : {
+      RIGHT : (Transition(0, 14, 1, 'Map26', 60),),
+    },
+    'Map30' : {
+      LEFT : (Transition(0, 21, 1, 'Map11', 0),
+              Transition(22, 61, 1, 'Map3', -22),),
+    },
+    'Map31' : {
+      LEFT : (Transition(0, 19, 1, 'Map16', 0),),
+    },
   },
-  'Map2' : {
-    LEFT : (Transition(LEFT, 0, 19, 'Map31', 0),),
-    RIGHT : (Transition(RIGHT, 0, 19, 'Map1', 20),),
-    UP : (Transition(UP, 0, 79, 'Map4', 0),),
-  },
-  'Map3' : {
-    UP : (Transition(UP, 0, 34, 'Map1', 15),
-          Transition(UP, 35, 64, 'Map11', -35),),
-    LEFT : (Transition(LEFT, 34, 39, 'Map9', -34),),
-    RIGHT : (Transition(RIGHT, 0, 39, 'Map30', 22),),
-  },
-  'Map4' : {
-    RIGHT : (Transition(RIGHT, 0, 19, 'Map1', 0),),
-    DOWN : (Transition(DOWN, 0, 79, 'Map2', 0),),
-  },
-  'Map5' : {
-    LEFT : (Transition(LEFT, 27, 34, 'Map1', -17),
-            Transition(LEFT, 0, 11, 'Map6', 3)),
-    DOWN : (Transition(DOWN, 0, 34, 'Map11', 0),),
-  },
-  'Map6' : {
-    RIGHT : (Transition(RIGHT, 3, 19, 'Map5', -3),),
-    DOWN : (Transition(DOWN, 0, 19, 'Map1', 30),),
-  },
-  'Map7' : {
-    RIGHT : (Transition(RIGHT, 0, 19, 'Map8', 13),),
-    LEFT : (Transition(LEFT, 0, 39, 'Map24', 0),),
-  },
-  'Map8' : {
-    RIGHT : (Transition(RIGHT, 0, 5, 'Map9', 94),),
-    LEFT : (Transition(LEFT, 13, 32, 'Map7', -13),),
-  },
-  'Map9' : {
-    RIGHT : (Transition(RIGHT, 0, 5, 'Map3', 34),),
-    LEFT : (Transition(LEFT, 16, 35, 'Map17', -16),
-            Transition(LEFT, 94, 99, 'Map8', -94),),
-  },
-  'Map10' : {
-    LEFT : (Transition(LEFT, 0, 89, 'Map26', 0),),
-    RIGHT : (Transition(RIGHT, 0, 9, 'Map12', 60),
-             Transition(RIGHT, 56, 70, 'Map21', -56),
-             Transition(RIGHT, 75, 89, 'Map25', -75),),
-  },
-  'Map11' : {
-    LEFT : (Transition(LEFT, 0, 21, 'Map1', 18),),
-    RIGHT : (Transition(RIGHT, 0, 21, 'Map30', 1),),
-    UP : (Transition(UP, 0, 34, 'Map5', 0),),
-    DOWN : (Transition(DOWN, 0, 29, 'Map3', 35),),
-  },
-  'Map12' : {
-    LEFT : (Transition(LEFT, 0, 10, 'Map13', 19),
-            Transition(LEFT, 60, 69, 'Map10', -60),),
-    RIGHT : (Transition(RIGHT, 0, 69, 'Map14', 0),),
-  },
-  'Map13' : {
-    RIGHT : (Transition(RIGHT, 0, 13, 'Map16', 6),
-             Transition(RIGHT, 19, 29, 'Map12', -19),),
-  },
-  'Map14' : {
-    LEFT : (Transition(LEFT, 0, 69, 'Map12', 0),),
-    RIGHT : (Transition(RIGHT, 0, 69, 'Map18', 0),),
-  },
-  'Map16' : {
-    RIGHT : (Transition(RIGHT, 0, 19, 'Map2', 0),),
-    LEFT : (Transition(LEFT, 0, 19, 'Map13', -6),),
-  },
-  'Map17' : {
-    LEFT : (Transition(LEFT, 0, 19, 'Map23', 0),),
-    RIGHT : (Transition(RIGHT, 0, 19, 'Map9', 16),),
-    UP : (Transition(UP, 0, 39, 'Map20', 0),),
-  },
-  'Map18' : {
-    LEFT : (Transition(LEFT, 0, 69, 'Map14', 0),),
-    RIGHT : (Transition(RIGHT, 0, 14, 'Map19', 0),
-             Transition(RIGHT, 50, 69, 'Map23', -50),),
-  },
-  'Map19' : {
-    LEFT : (Transition(LEFT, 0, 14, 'Map18', 0),),
-  },
-  'Map20' : {
-    DOWN : (Transition(DOWN, 0, 39, 'Map17', 0),),
-  },
-  'Map21' : {
-    LEFT : (Transition(LEFT, 0, 14, 'Map10', 56),),
-    UP : (Transition(UP, 18, 54, 'Map22', -18),),
-  },
-  'Map22' : {
-    DOWN : (Transition(DOWN, 0, 36, 'Map21', 18),),
-  },
-  'Map23' : {
-    LEFT : (Transition(LEFT, 0, 19, 'Map18', 50),),
-    RIGHT : (Transition(RIGHT, 0, 19, 'Map17', 0),),
-  },
-  'Map24' : {
-    LEFT : (Transition(LEFT, 0, 11, 'Map25', 4),
-            Transition(LEFT, 41, 60, 'Map28', -41),),
-    RIGHT : (Transition(RIGHT, 0, 39, 'Map7', 0),),
-  },
-  'Map25' : {
-    LEFT : (Transition(LEFT, 0, 15, 'Map10', 75),),
-    RIGHT : (Transition(RIGHT, 4, 15, 'Map24', -4),),
-  },
-  'Map26' : {
-    LEFT : (Transition(LEFT, 60, 74, 'Map29', -60),),
-    RIGHT : (Transition(RIGHT, 0, 89, 'Map10', 0),
-             Transition(RIGHT, 120, 139, 'Map27', -120),),
-  },
-  'Map27' : {
-    LEFT : (Transition(LEFT, 0, 19, 'Map26', 120),),
-    RIGHT : (Transition(RIGHT, 0, 19, 'Map28', 0),),
-  },
-  'Map28' : {
-    LEFT : (Transition(LEFT, 0, 19, 'Map27', 0),),
-    RIGHT : (Transition(RIGHT, 0, 19, 'Map24', 41),),
-  },
-  'Map29' : {
-    RIGHT : (Transition(RIGHT, 0, 14, 'Map26', 60),),
-  },
-  'Map30' : {
-    LEFT : (Transition(LEFT, 0, 21, 'Map11', 0),
-            Transition(LEFT, 22, 61, 'Map3', -22),),
-  },
-  'Map31' : {
-    LEFT : (Transition(LEFT, 0, 19, 'Map16', 0),),
+  2 : {
   },
 }

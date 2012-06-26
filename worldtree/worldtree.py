@@ -29,7 +29,8 @@ def RunGame():
   clock = pygame.time.Clock()
 
   current_room = 'Map1'
-  env = environment.Environment(current_room)
+  current_region = 1
+  env = environment.Environment(current_room, current_region)
   screen.blit(env.GetImage(), MAP_POSITION)
   player = hero.Hero(env, position=(1, 5))
   player_group = pygame.sprite.RenderUpdates(player)
@@ -104,41 +105,46 @@ def RunGame():
       tile_x, tile_y = env.TileIndexForPoint(player.Hitbox().centerx, player.Hitbox().centery)
       ul_x, ul_y = env.TileIndexForPoint(player.Hitbox().left, player.Hitbox().top)
       new_room = None
+      new_region = None
       if tile_x < 0:
-        for trans in map_transitions.transitions[current_room].get(LEFT, []):
+        for trans in map_transitions.transitions[current_region][current_room].get(LEFT, []):
           if ul_y >= trans.first and ul_y <= trans.last:
             new_room = trans.dest
-            new_map = map_data.map_data[new_room]
+            new_region = trans.region
+            new_map = environment.REGIONS[new_region][new_room]
             x_pos = new_map['width'] - 1
             y_pos = ul_y + trans.offset
             screen_offset_x = new_map['width'] * TILE_WIDTH - MAP_WIDTH
             screen_offset_y = min(new_map['height'] * TILE_HEIGHT - MAP_HEIGHT,
                                   max(env.screen_offset[1] + trans.offset * TILE_HEIGHT, 0))
       elif tile_x >= env.width:
-        for trans in map_transitions.transitions[current_room].get(RIGHT, []):
+        for trans in map_transitions.transitions[current_region][current_room].get(RIGHT, []):
           if ul_y >= trans.first and ul_y <= trans.last:
             new_room = trans.dest
-            new_map = map_data.map_data[new_room]
+            new_region = trans.region
+            new_map = environment.REGIONS[new_region][new_room]
             x_pos = 0
             y_pos = ul_y + trans.offset
             screen_offset_x = 0
             screen_offset_y = min(new_map['height'] * TILE_HEIGHT - MAP_HEIGHT,
                                   max(env.screen_offset[1] + trans.offset * TILE_HEIGHT, 0))
       elif tile_y < 0:
-        for trans in map_transitions.transitions[current_room].get(UP, []):
+        for trans in map_transitions.transitions[current_region][current_room].get(UP, []):
           if ul_x >= trans.first and ul_x <= trans.last:
             new_room = trans.dest
-            new_map = map_data.map_data[new_room]
+            new_region = trans.region
+            new_map = environment.REGIONS[new_region][new_room]
             x_pos = ul_x + trans.offset
             y_pos = new_map['height'] - 1
             screen_offset_x = min(new_map['width'] * TILE_WIDTH - MAP_WIDTH,
                                   max(env.screen_offset[0] + trans.offset * TILE_WIDTH, 0))
             screen_offset_y = new_map['height'] * TILE_HEIGHT - MAP_HEIGHT
       elif tile_y >= env.height:
-        for trans in map_transitions.transitions[current_room].get(DOWN, []):
+        for trans in map_transitions.transitions[current_region][current_room].get(DOWN, []):
           if ul_x >= trans.first and ul_x <= trans.last:
             new_room = trans.dest
-            new_map = map_data.map_data[new_room]
+            new_region = trans.region
+            new_map = environment.REGIONS[new_region][new_room]
             x_pos = ul_x + trans.offset
             y_pos = 0
             screen_offset_x = min(new_map['width'] * TILE_WIDTH - MAP_WIDTH,
@@ -146,8 +152,10 @@ def RunGame():
             screen_offset_y = 0
             
       if new_room is not None:
+        current_region = new_region
         current_room = new_room  
-        env = environment.Environment(current_room, offset=(screen_offset_x, screen_offset_y))
+        env = environment.Environment(current_room, current_region,
+                                      offset=(screen_offset_x, screen_offset_y))
         player.ChangeRooms(env, (x_pos, y_pos))
         enemy_group = env.enemy_group
         item_group = env.item_group
