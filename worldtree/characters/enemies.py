@@ -113,6 +113,7 @@ class BombBug(character.Character):
   EXPLODING_PUSHBACK = 48
   EXPLODING_DELAY = 60
   EXPLODING_FRAMES = 10
+  WALKING_LEFT_IMAGES = None
 
   def __init__(self, environment, position):
     self.triggered = 0
@@ -120,19 +121,19 @@ class BombBug(character.Character):
     character.Character.__init__(self, environment, position)
 
   def InitImage(self):
-    # Walking animation
-    walk_images = character.LoadImages('bombug*.png', scaled=True,
-                                       colorkey=game_constants.SPRITE_COLORKEY)
-    self.WALK_LEFT_ANIMATION = animation.Animation(walk_images)
-    self.WALK_RIGHT_ANIMATION = animation.Animation(
-        [pygame.transform.flip(i, 1, 0) for i in walk_images])
+    if BombBug.WALKING_LEFT_IMAGES is None:
+      BombBug.WALKING_LEFT_IMAGES = character.LoadImages('bombug*.png', scaled=True,
+                                                         colorkey=game_constants.SPRITE_COLORKEY)
+    self.walk_left_animation = animation.Animation(BombBug.WALKING_LEFT_IMAGES)
+    self.walk_right_animation = animation.Animation(
+        [pygame.transform.flip(i, 1, 0) for i in BombBug.WALKING_LEFT_IMAGES])
     self.SetCurrentImage()
 
   def SetCurrentImage(self):
     if self.direction == character.LEFT:
-      self.image = self.WALK_LEFT_ANIMATION.NextFrame()
+      self.image = self.walk_left_animation.NextFrame()
     else:
-      self.image = self.WALK_RIGHT_ANIMATION.NextFrame()
+      self.image = self.walk_right_animation.NextFrame()
     
     if (self.triggered / 4) % 2:
       self.image.set_alpha(128)
