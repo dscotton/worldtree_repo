@@ -29,7 +29,7 @@ def RunGame():
   clock = pygame.time.Clock()
 
   current_room = 'Map1'
-  current_region = 2
+  current_region = 1
   env = environment.Environment(current_room, current_region)
   screen.blit(env.GetImage(), MAP_POSITION)
   player = hero.Hero(env, position=(1, 5))
