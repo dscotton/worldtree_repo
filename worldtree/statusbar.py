@@ -12,6 +12,11 @@ import pygame
 
 import game_constants
 
+REGION_NAMES = {
+  1: 'High Branches',
+  2: 'Inside the Trunk'
+}
+
 class Statusbar(object):
   """This class generates an image to display at the top of the screen."""
   
@@ -23,6 +28,7 @@ class Statusbar(object):
     self.hp = 0
     self.max_hp = 0
     self.ammo = 0
+    self.region = 0
     self.room = 0
     self.dirty = False
     
@@ -50,13 +56,22 @@ class Statusbar(object):
       ammo_text_rect.left = 10
       self.image.blit(ammo_text, ammo_text_rect)
 
+    if self.region != self.player.env.region:
+      self.region = self.player.env.region
+      self.dirty = True
+    region_text = self.font.render(REGION_NAMES[self.region], False, game_constants.WHITE)
+    region_text_box = region_text.get_rect()
+    region_text_box.top = 10
+    region_text_box.right = game_constants.SCREEN_WIDTH - 10
+    self.image.blit(region_text, region_text_box)
+
     room_number = self.player.env.name[3:]
     if room_number != self.room:
       self.room = room_number
       self.dirty = True
     room_text = self.font.render("Room %s" % room_number, False, game_constants.WHITE)
     room_text_box = room_text.get_rect()
-    room_text_box.top = 10
+    room_text_box.top = 45
     room_text_box.right = game_constants.SCREEN_WIDTH - 10
     self.image.blit(room_text, room_text_box)
     
