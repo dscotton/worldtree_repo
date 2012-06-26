@@ -24,7 +24,7 @@ class Statusbar(object):
     self.player = player
     self.image = pygame.surface.Surface((game_constants.SCREEN_WIDTH,
                                          game_constants.SCREEN_HEIGHT - game_constants.MAP_HEIGHT))
-    self.font = pygame.font.Font(os.path.join('media', 'font', 'PressStart2P.ttf'), 24)
+    self.font = pygame.font.Font(os.path.join('media', 'font', game_constants.FONT), 24)
     self.hp = 0
     self.max_hp = 0
     self.ammo = 0
@@ -39,7 +39,7 @@ class Statusbar(object):
       self.max_hp = self.player.max_hp
       self.dirty = True
     hp_text = self.font.render("Health: %s/%s" % (self.player.hp, self.player.max_hp),
-                                   False, game_constants.WHITE)
+                               False, game_constants.WHITE)
     hp_text_box = hp_text.get_rect()
     hp_text_box.top = 10
     hp_text_box.left = 10

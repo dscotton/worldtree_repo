@@ -12,6 +12,7 @@ import os
 
 # These are mostly graphics setup constants.
 GAME_NAME = 'World Tree'
+FONT = 'PressStart2P.ttf'
 SCREEN_WIDTH = 960
 SCREEN_HEIGHT = 720
 MAP_WIDTH = 960

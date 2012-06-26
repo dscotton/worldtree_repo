@@ -21,11 +21,14 @@ from game_constants import *
 import map_data
 import map_transitions
 import statusbar
+import titlescreen
 
 def RunGame():
   pygame.display.set_caption(GAME_NAME)
   screen = pygame.display.set_mode(SCREEN_SIZE)
   screen.fill(BLACK)
+  titlescreen.ShowTitle(screen)
+  
   clock = pygame.time.Clock()
 
   current_room = 'Map1'
