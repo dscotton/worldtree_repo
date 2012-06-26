@@ -291,9 +291,6 @@ class Hero(character.Character):
       self.TakeHit(enemy.DAMAGE)
       # Calculate pushback
       self.CollisionPushback(enemy)
-      print 'Player health: %s' % self.hp
-      # TODO: Calculate pushback vector here and modify movement.  This also will mean making
-      # lateral movement behave with inertia.
 
   def ChangeRooms(self, env, position):
     """Move this sprite to a new environment."""

@@ -43,6 +43,7 @@ ITEMS = {
 # These are mapcodes that will be merged with any adjacent tiles of the same code to form a
 # single object.
 AREAS = {
+  254: powerup.Spike,
   255: powerup.Lava,
 }
 

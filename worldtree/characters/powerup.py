@@ -176,7 +176,7 @@ class AmmoRestore(Powerup):
 
 
 class Lava(Powerup):
-  """An area that inflicts damage then the player stands in it.
+  """An area that inflicts damage when the player stands in it.
   
   Although the name is confusing, this is a "Powerup" because it is a static object that
   doesn't get updated each frame.  If I were starting over I'd probably rename the Powerup class.
@@ -203,6 +203,35 @@ class Lava(Powerup):
     
   def Use(self, player):
     if player.invulnerable == 0:
+      player.TakeHit(self.DAMAGE)
+
+
+class Spike(Powerup):
+  """An area that inflicts damage and pushes the player back when the player touches it.
+  
+  As with Lava, the game will try to join adjacent Spike tiles into a single object to reduce
+  the number amount of collision checks taking place each frame.
+  """
+  
+  IMAGE_FILE = 'transparent.png'
+  DAMAGE = 2
+  PUSHBACK = 32
+
+  def __init__(self, environment, position, size):
+    """Constructor.
+    
+    Args:
+      environment: Environment object this Spike exists in.
+      position: (x, y) tile position of the Spike.
+      size: (width, height) of the Spike in tiles.
+    """
+    Powerup.__init__(self, environment, position, one_time=False, cleanup=False)
+    self.rect.width = size[0] * game_constants.TILE_WIDTH
+    self.rect.height = size[1] * game_constants.TILE_HEIGHT
+    
+  def Use(self, player):
+    if player.invulnerable == 0:
+      player.CollisionPushback(self)
       player.TakeHit(self.DAMAGE)
 
 
