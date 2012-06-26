@@ -112,8 +112,10 @@ class BombBug(character.Character):
   EXPLODING_DAMAGE = 3
   EXPLODING_PUSHBACK = 48
   EXPLODING_DELAY = 60
-  EXPLODING_FRAMES = 10
+  EXPLODING_FRAMES = 24
   WALKING_LEFT_IMAGES = None
+  TRIGGERED_IMAGES = None
+  EXPLODING_IMAGES = None
 
   def __init__(self, environment, position):
     self.triggered = 0
@@ -127,20 +129,35 @@ class BombBug(character.Character):
     self.walk_left_animation = animation.Animation(BombBug.WALKING_LEFT_IMAGES)
     self.walk_right_animation = animation.Animation(
         [pygame.transform.flip(i, 1, 0) for i in BombBug.WALKING_LEFT_IMAGES])
+    if BombBug.TRIGGERED_IMAGES is None:
+      BombBug.TRIGGERED_IMAGES = character.LoadImages('bombexplosionleadup*.png', scaled=True,
+                                                      colorkey=game_constants.SPRITE_COLORKEY)
+    self.triggered_left_animation = animation.Animation(
+        BombBug.TRIGGERED_IMAGES, framedelay=6, looping=False)
+    self.triggered_right_animation = animation.Animation(
+        [pygame.transform.flip(i, 1, 0) for i in BombBug.TRIGGERED_IMAGES],
+        framedelay=6, looping=False)
+    if BombBug.EXPLODING_IMAGES is None:
+      BombBug.EXPLODING_IMAGES = character.LoadImages('bombexplode*.png', scaled=True,
+                                                      colorkey=game_constants.SPRITE_COLORKEY)
+    self.exploding_animation = animation.Animation(BombBug.EXPLODING_IMAGES, looping=False)
+    
     self.SetCurrentImage()
 
   def SetCurrentImage(self):
-    if self.direction == character.LEFT:
-      self.image = self.walk_left_animation.NextFrame()
+    if self.exploding > 0:
+      self.image = self.exploding_animation.NextFrame()
+    elif self.direction == character.LEFT:
+      if self.triggered > 0:
+        self.image = self.triggered_left_animation.NextFrame()
+      else:
+        self.image = self.walk_left_animation.NextFrame()
     else:
-      self.image = self.walk_right_animation.NextFrame()
+      if self.triggered > 0:
+        self.image = self.triggered_right_animation.NextFrame()
+      else:
+        self.image = self.walk_right_animation.NextFrame()
     
-    if (self.triggered / 4) % 2:
-      self.image.set_alpha(128)
-    else:
-      self.image.set_alpha(255)
-    # TODO: Add exploding animation
-
   def SenseAndReturnHitbox(self, player):
     """Trigger an explosion if the player is close to the bug."""
     # TODO: See if this is too slow.

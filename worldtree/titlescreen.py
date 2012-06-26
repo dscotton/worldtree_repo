@@ -91,7 +91,7 @@ def ShowTitle(screen):
 
   pygame.mixer.music.stop()
   fade_frame = 0
-  fade_rate = 3
+  fade_rate = 2
   while background.get_alpha() > 4:
     fade_frame +=1
     clock.tick(60)
