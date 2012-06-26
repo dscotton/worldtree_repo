@@ -309,9 +309,19 @@ class Environment(object):
     """Convert map-relative (x, y) pixel coordinates into screen-relative coordinates."""
     return (x + MAP_X - self.screen_offset[0], y + MAP_Y - self.screen_offset[1])
   
+  def ScreenRectForMapRect(self, rect):
+    return pygame.Rect((rect.left + MAP_X - self.screen_offset[0],
+                        rect.top + MAP_Y - self.screen_offset[1]),
+                       (rect.width, rect.height))
+  
   def MapCoordinateForScreenPoint(self, x, y):
     """Convert screen-relative (x, y) point into a map-relative coordinate."""
     return (x - MAP_X + self.screen_offset[0], y - MAP_Y + self.screen_offset[1])
+
+  def MapRectForScreenRect(self, rect):
+    return pygame.Rect((rect.left - MAP_X + self.screen_offset[0],
+                        rect.top - MAP_Y + self.screen_offset[1]),
+                       (rect.width, rect.height))
 
   def IsScreenCoordinateVisible(self, x, y):
     """Returns true if a coordinate is currently on screen, otherwise false."""

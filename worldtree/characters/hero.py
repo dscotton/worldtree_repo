@@ -307,7 +307,8 @@ class Hero(character.Character):
   def update(self):
     self.SetCurrentImage()
     new_rect = self.env.AttemptMove(self, self.movement)
-    scroll_vector = self.env.Scroll(self.rect)
+    scroll_rect = self.env.ScreenRectForMapRect(self.Hitbox())
+    scroll_vector = self.env.Scroll(scroll_rect)
     new_rect = new_rect.move(scroll_vector)
     self.rect = new_rect
     if (self.env.IsRectSupported(self.Hitbox())
