@@ -57,7 +57,7 @@ def ShowTitle(screen):
   frame = -240  # Controls how long before the text scroll begins
   text_top = 360
   text_bottom = 600
-  move_rate = 1
+  move_rate = 5
   font_height = 16
   line_height = 20
   text_area_rect = pygame.Rect((240, text_top), (480, text_bottom - text_top))

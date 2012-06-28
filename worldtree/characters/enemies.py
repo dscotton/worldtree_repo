@@ -16,24 +16,40 @@ import game_constants
 import powerup
 import projectile
 
-class Badger(character.Character):
-  """Class for the notorious primary foe, the badger."""
+class Beaver(character.Character):
+  """Class for the notorious primary foe, the Beaver."""
   
-  STARTING_HP = 4
+  STARTING_HP = 10
   SPEED = 1
   GRAVITY = 2
   TERMINAL_VELOCITY = 2
   STARTING_MOVEMENT = [-SPEED, 0]
   DAMAGE = 1
-  IMAGE_FILE = 'badger.png'
-  # TODO: assign self.image to something
+  IMAGES = None
   ITEM_DROPS = [powerup.HealthRestore, powerup.AmmoRestore]
   DROP_PROBABILITY = 20
+  WIDTH = 96
+  HEIGHT = 60
 
   def GetMove(self):
-    """Get the movement vector for the badger."""
+    """Get the movement vector for the Beaver."""
     return self.WalkBackAndForth()
   
+  def InitImage(self):
+    if Beaver.IMAGES is None:
+      Beaver.IMAGES = character.LoadImages('beaver1*.png', scaled=True,
+                                           colorkey=game_constants.SPRITE_COLORKEY)
+    self.walk_left_animation = animation.Animation(Beaver.IMAGES)
+    self.walk_right_animation = animation.Animation(
+        [pygame.transform.flip(i, 1, 0) for i in Beaver.IMAGES])
+    self.SetCurrentImage()
+
+  def SetCurrentImage(self):
+    if self.movement[0] <= 0:
+      self.image = self.walk_left_animation.NextFrame()
+    else:
+      self.image = self.walk_right_animation.NextFrame()
+
 
 class Dragonfly(character.Character):
   """Class for the dragonfly enemy."""

@@ -52,7 +52,7 @@ class Hero(character.Character):
   """
 
   STARTING_HP = 99
-  DAMAGE = 10
+  DAMAGE = 2
   # Actual size will be determined by the current image surface, but this is a 
   # default and guideline.
   WIDTH = 72
