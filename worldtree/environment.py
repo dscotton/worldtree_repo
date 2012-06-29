@@ -54,6 +54,28 @@ REGIONS = {
   2: map_data2.map_data,
 }
 
+# Music config.  {region: {song: [rooms that play that song]}}
+SONGS = {
+  1: {
+    'photosynthesis.ogg': ['Map1', 'Map2', 'Map3', 'Map4', 'Map5', 'Map6', 'Map8', 'Map9',
+                           'Map11', 'Map13', 'Map16', 'Map30', 'Map31', 'Map32',],
+    'foreboding_cave.ogg': ['Map7', 'Map10', 'Map12', 'Map14', 'Map15', 'Map17', 'Map18',
+                            'Map19', 'Map20', 'Map21', 'Map22', 'Map23', 'Map24', 'Map25',
+                            'Map26', 'Map27', 'Map28', 'Map29',]
+  },
+  2: {
+  },
+}
+
+# {region: {room: song}}
+SONGS_BY_ROOM = {}
+for region, song_dict in SONGS.iteritems():
+  SONGS_BY_ROOM[region] = {}
+  for song, room_list in song_dict.iteritems():
+    for room in room_list:
+      SONGS_BY_ROOM[region][room] = song
+
+
 class Environment(object):
   """A game environment.
   
@@ -195,7 +217,7 @@ class Environment(object):
     return self.surface
 
   def AttemptMove(self, sprite, vector):
-    """Checks whether a sprite's attempted movement is legal.
+    """Checks whether a sprite's attempted movement is legal and modifies it if not.
 
     Args:
       sprite: pygame.sprite.Sprite that's trying to move.

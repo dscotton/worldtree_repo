@@ -382,6 +382,7 @@ class BugPipe(character.Character):
     else:
       self.SpawnBug()
 
+
 class Batzor(character.Character):
   """Class for the Batzor enemy."""
   
@@ -410,6 +411,10 @@ class Batzor(character.Character):
     self.animation = animation.Animation(Batzor.IMAGES)
     self.SetCurrentImage()
 
+  def Hitbox(self):
+    x, y = self.env.MapCoordinateForScreenPoint(self.rect.left, self.rect.top)
+    return pygame.Rect(x + 1, y + 1, self.rect.width - 2, self.rect.height - 24)
+
   def SetCurrentImage(self):
     self.image = self.animation.NextFrame()
 
@@ -436,4 +441,59 @@ class Batzor(character.Character):
     self.SetCurrentImage()
     if self.invulnerable > 0:
       self.invulnerable -= 1
+
+
+class Slug(character.Character):
+  """Class for the notorious primary foe, the Slug."""
+  
+  STARTING_HP = 6
+  SPEED = 1
+  GRAVITY = 0
+  TERMINAL_VELOCITY = 0
+  STARTING_MOVEMENT = [-SPEED, 0]
+  DAMAGE = 3
+  IMAGES = None
+  ITEM_DROPS = [powerup.HealthRestore, powerup.AmmoRestore]
+  DROP_PROBABILITY = 30
+  WIDTH = 96
+  HEIGHT = 48
+  REST_TIME = 20
+  MOVE_TIME = 40
+  
+  def InitImage(self):
+    if Slug.MOVE_LEFT_IMAGES is None:
+      Slug.IDLE_LEFT_IMAGES = character.LoadImages('slug000*.png', scaled=True,
+                                                   colorkey=game_constants.SPRITE_COLORKEY)
+      Slug.MOVE_LEFT_IMAGES = character.LoadImages('slug001*.png', scaled=True,
+                                                   colorkey=game_constants.SPRITE_COLORKEY)
+      Slug.MOVE_LEFT_IMAGES.extend(character.LoadImages('slug002*.png', scaled=True,
+                                                        colorkey=game_constants.SPRITE_COLORKEY))
+      Slug.IDLE_RIGHT_IMAGES = [pygame.transform.flip(i, 1, 0) for i in Slug.IDLE_LEFT_IMAGES]
+      Slug.MOVE_RIGHT_IMAGES = [pygame.transform.flip(i, 1, 0) for i in Slug.MOVE_LEFT_IMAGES]
+      # TODO: Cache rotated images here if rotating on the fly proves to be too slow.
+    self.walk_left_animation = animation.Animation(Slug.MOVE_LEFT_IMAGES, framedelay=3)
+    self.idle_left_animation = animation.Animation(Slug.IDLE_LEFT_IMAGES, framedelay=3)
+    self.walk_right_animation = animation.Animation(Slug.MOVE_RIGHT_IMAGES, framedelay=3)
+    self.idle_right_animation = animation.Animation(Slug.IDLE_RIGHT_IMAGES, framedelay=3)
+    self.SetCurrentImage()
+
+  def SetCurrentImage(self):
+    if self.movement[0] <= 0:
+      self.image = self.walk_left_animation.NextFrame()
+    else:
+      self.image = self.walk_right_animation.NextFrame()
+
+  def GetMove(self):
+    """Inch along the wall."""
+    if self.move_frames > 0:
+      self.movement = [i * self.SPEED for i in self.vector]
+      self.move_frames -= 1
+      if self.move_frames == 0:
+        self.rest_frames = self.REST_TIME + random.randint(0, self.VARIABLE_REST)
+    else:
+      self.movement = [0, 0]
+      self.rest_frames -= 1
+      if self.rest_frames == 0:
+        self.vector = [-self.vector[1], self.vector[0]]
+        self.move_frames = self.MOVE_TIME
   

@@ -219,7 +219,7 @@ class Character(pygame.sprite.Sprite):
           self.Hitbox().right + self.movement[0], self.Hitbox().bottom)
       
     # Check boundaries using existing AttemptMove method.  Kinda ugly.
-    new_rect = self.env.AttemptMove(self, self.movement)
+    new_rect = self.env.IsMoveLegal(self, self.movement)
 
     if new_rect == self.rect or not self.env.IsTileSupported(*dest_tile):
       if self.direction == LEFT:

@@ -45,9 +45,10 @@ def RunGame():
 
   status = statusbar.Statusbar(player)
   screen.blit(status.GetImage(), (0, 0))
-
   pygame.display.flip()
-  pygame.mixer.music.load(os.path.join('media', 'music', 'photosynthesis_wip.ogg'))
+
+  current_song = environment.SONGS_BY_ROOM[current_region][current_room]
+  pygame.mixer.music.load(os.path.join('media', 'music', current_song))
   pygame.mixer.music.play(-1)
   while pygame.QUIT not in (event.type for event in pygame.event.get()):
     clock.tick(60)
@@ -160,6 +161,12 @@ def RunGame():
         env = environment.Environment(current_room, current_region,
                                       offset=(screen_offset_x, screen_offset_y))
         player.ChangeRooms(env, (x_pos, y_pos))
+        new_song = environment.SONGS_BY_ROOM[current_region][current_room]
+        if new_song != current_song:
+          current_song = new_song
+          pygame.mixer.music.fadeout(300)
+          pygame.mixer.music.load(os.path.join('media', 'music', current_song))
+          pygame.mixer.music.play(-1)
         enemy_group = env.enemy_group
         item_group = env.item_group
     
