@@ -32,10 +32,10 @@ def RunGame():
   clock = pygame.time.Clock()
 
   current_room = 'Map1'
-  current_region = 1
+  current_region = 2
   env = environment.Environment(current_room, current_region)
   screen.blit(env.GetImage(), MAP_POSITION)
-  player = hero.Hero(env, position=(1, 5))
+  player = hero.Hero(env, position=(2, 5))
   player_group = pygame.sprite.RenderUpdates(player)
   enemy_group = env.enemy_group
   item_group = env.item_group
@@ -47,9 +47,11 @@ def RunGame():
   screen.blit(status.GetImage(), (0, 0))
   pygame.display.flip()
 
-  current_song = environment.SONGS_BY_ROOM[current_region][current_room]
-  pygame.mixer.music.load(os.path.join('media', 'music', current_song))
-  pygame.mixer.music.play(-1)
+  current_song = None
+  if current_room in environment.SONGS_BY_ROOM[current_region]:
+    current_song = environment.SONGS_BY_ROOM[current_region][current_room]
+    pygame.mixer.music.load(os.path.join('media', 'music', current_song))
+    pygame.mixer.music.play(-1)
   while pygame.QUIT not in (event.type for event in pygame.event.get()):
     clock.tick(60)
     screen.fill(BLACK)
@@ -161,12 +163,15 @@ def RunGame():
         env = environment.Environment(current_room, current_region,
                                       offset=(screen_offset_x, screen_offset_y))
         player.ChangeRooms(env, (x_pos, y_pos))
-        new_song = environment.SONGS_BY_ROOM[current_region][current_room]
-        if new_song != current_song:
-          current_song = new_song
-          pygame.mixer.music.fadeout(300)
-          pygame.mixer.music.load(os.path.join('media', 'music', current_song))
-          pygame.mixer.music.play(-1)
+        if current_room in environment.SONGS_BY_ROOM[current_region]:
+          new_song = environment.SONGS_BY_ROOM[current_region][current_room]
+          if new_song != current_song:
+            current_song = new_song
+            pygame.mixer.music.fadeout(300)
+            pygame.mixer.music.load(os.path.join('media', 'music', current_song))
+            pygame.mixer.music.play(-1)
+        else:
+          pygame.mixer.music.stop()
         enemy_group = env.enemy_group
         item_group = env.item_group
     

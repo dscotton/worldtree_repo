@@ -64,6 +64,7 @@ SONGS = {
                             'Map26', 'Map27', 'Map28', 'Map29',]
   },
   2: {
+    'nighttime.ogg': ['Map%i' % i for i in range(26)]
   },
 }
 
