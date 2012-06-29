@@ -39,9 +39,9 @@ class Beaver(character.Character):
     if Beaver.IMAGES is None:
       Beaver.IMAGES = character.LoadImages('beaver1*.png', scaled=True,
                                            colorkey=game_constants.SPRITE_COLORKEY)
-    self.walk_left_animation = animation.Animation(Beaver.IMAGES)
+    self.walk_left_animation = animation.Animation(Beaver.IMAGES, framedelay=3)
     self.walk_right_animation = animation.Animation(
-        [pygame.transform.flip(i, 1, 0) for i in Beaver.IMAGES])
+        [pygame.transform.flip(i, 1, 0) for i in Beaver.IMAGES], framedelay=3)
     self.SetCurrentImage()
 
   def SetCurrentImage(self):
@@ -115,7 +115,7 @@ class Dragonfly(character.Character):
     if self.invulnerable > 0:
       self.invulnerable -= 1
 
-class BombBug(character.Character):
+class BoomBug(character.Character):
   """Enemy that explodes when the player comes near enough."""
   
   STARTING_HP = 4
@@ -139,24 +139,24 @@ class BombBug(character.Character):
     character.Character.__init__(self, environment, position)
 
   def InitImage(self):
-    if BombBug.WALKING_LEFT_IMAGES is None:
-      BombBug.WALKING_LEFT_IMAGES = character.LoadImages('bombug*.png', scaled=True,
+    if BoomBug.WALKING_LEFT_IMAGES is None:
+      BoomBug.WALKING_LEFT_IMAGES = character.LoadImages('bombug*.png', scaled=True,
                                                          colorkey=game_constants.SPRITE_COLORKEY)
-    self.walk_left_animation = animation.Animation(BombBug.WALKING_LEFT_IMAGES)
+    self.walk_left_animation = animation.Animation(BoomBug.WALKING_LEFT_IMAGES)
     self.walk_right_animation = animation.Animation(
-        [pygame.transform.flip(i, 1, 0) for i in BombBug.WALKING_LEFT_IMAGES])
-    if BombBug.TRIGGERED_IMAGES is None:
-      BombBug.TRIGGERED_IMAGES = character.LoadImages('bombexplosionleadup*.png', scaled=True,
+        [pygame.transform.flip(i, 1, 0) for i in BoomBug.WALKING_LEFT_IMAGES])
+    if BoomBug.TRIGGERED_IMAGES is None:
+      BoomBug.TRIGGERED_IMAGES = character.LoadImages('bombexplosionleadup*.png', scaled=True,
                                                       colorkey=game_constants.SPRITE_COLORKEY)
     self.triggered_left_animation = animation.Animation(
-        BombBug.TRIGGERED_IMAGES, framedelay=6, looping=False)
+        BoomBug.TRIGGERED_IMAGES, framedelay=6, looping=False)
     self.triggered_right_animation = animation.Animation(
-        [pygame.transform.flip(i, 1, 0) for i in BombBug.TRIGGERED_IMAGES],
+        [pygame.transform.flip(i, 1, 0) for i in BoomBug.TRIGGERED_IMAGES],
         framedelay=6, looping=False)
-    if BombBug.EXPLODING_IMAGES is None:
-      BombBug.EXPLODING_IMAGES = character.LoadImages('bombexplode*.png', scaled=True,
+    if BoomBug.EXPLODING_IMAGES is None:
+      BoomBug.EXPLODING_IMAGES = character.LoadImages('bombexplode*.png', scaled=True,
                                                       colorkey=game_constants.SPRITE_COLORKEY)
-    self.exploding_animation = animation.Animation(BombBug.EXPLODING_IMAGES, looping=False)
+    self.exploding_animation = animation.Animation(BoomBug.EXPLODING_IMAGES, looping=False)
     
     self.SetCurrentImage()
 
@@ -243,7 +243,7 @@ class Shooter(character.Character):
     if Shooter.IMAGES is None:
       Shooter.IMAGES = character.LoadImages('mush*.png', scaled=True,
                                             colorkey=game_constants.SPRITE_COLORKEY)
-    self.shoot_animation = animation.Animation(Shooter.IMAGES)
+    self.shoot_animation = animation.Animation(Shooter.IMAGES, framedelay=4)
     self.SetCurrentImage()
 
   def SetCurrentImage(self):
