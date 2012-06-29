@@ -202,11 +202,10 @@ transitions = {
     'Map5' : {
       LEFT : (Transition(0, 59, 2, 'Map4', 10),),
       RIGHT : (Transition(0, 14, 2, 'Map6', 0),
-               Transition(45, 59, 2, 'Map21', 0),),
+               Transition(45, 59, 2, 'Map21', -45),),
     },
     'Map6' : {
       LEFT : (Transition(0, 14, 2, 'Map5', 0),),
-      RIGHT : (Transition(0, 14, 2, 'Map22', 0),),
     },
     'Map7' : {
       LEFT : (Transition(5, 19, 2, 'Map8', -5),
@@ -217,7 +216,7 @@ transitions = {
     },
     'Map8' : {
       LEFT : (Transition(0, 14, 2, 'Map10', 35),),
-      RIGHT : (Transition(0, 14, 2, 'Map7', 7),),
+      RIGHT : (Transition(0, 14, 2, 'Map7', 5),),
     },
     'Map9' : {
       LEFT : (Transition(0, 29, 2, 'Map7', 0),),
@@ -227,7 +226,8 @@ transitions = {
     'Map10' : {
       LEFT : (Transition(17, 31, 2, 'Map12', -17),
               Transition(37, 51, 2, 'Map11', -37),),
-      RIGHT : (Transition(35, 49, 2, 'Map8', -35),),
+      RIGHT : (Transition(0, 14, 2, 'Map22', 0),
+               Transition(35, 49, 2, 'Map8', -35),),
     },
     'Map11' : {
       LEFT : (Transition(0, 14, 2, 'Map13', 47),),
@@ -267,10 +267,10 @@ transitions = {
     },
     'Map19' : {
       LEFT : (Transition(0, 14, 2, 'Map9', 6),),
-      RIGHT : (Transition(2, 14, 2, 'Map20', -2),),
+      RIGHT : (Transition(2, 14, 2, 'Map20', -3),),
     },
     'Map20' : {
-      LEFT : (Transition(0, 12, 2, 'Map19', 2),
+      LEFT : (Transition(0, 12, 2, 'Map19', 3),
               Transition(27, 41, 2, 'Map17', -27),),
     },
     'Map21' : {
@@ -278,7 +278,7 @@ transitions = {
       RIGHT : (Transition(0, 14, 2, 'Map15', 65),),
     },
     'Map22' : {
-      LEFT : (Transition(0, 14, 2, 'Map6', 0),),
+      LEFT : (Transition(0, 14, 2, 'Map10', 0),),
     },
     'Map23' : {
       LEFT : (Transition(0, 14, 2, 'Map16', 35),),
@@ -289,12 +289,12 @@ transitions = {
       RIGHT : (Transition(0, 14, 2, 'Map25', 21),),
     },
     'Map25' : {
-      LEFT : (Transition(21, 35, 2, 'Map16', -21),),
-      RIGHT : (Transition(105, 119, 2, 'Map26', -105),),
+      LEFT : (Transition(21, 35, 2, 'Map24', -21),),
+      RIGHT : (Transition(105, 119, 2, 'Map26', -107),),
       UP : (Transition(0, 19, 2, 'Map23', 20),),
     },
     'Map26' : {
-      LEFT : (Transition(0, 14, 2, 'Map25', 105),),
+      LEFT : (Transition(0, 14, 2, 'Map25', 107),),
     },
   },
 }
