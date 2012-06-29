@@ -381,4 +381,59 @@ class BugPipe(character.Character):
       self.spawning_cooldown -= 1
     else:
       self.SpawnBug()
+
+class Batzor(character.Character):
+  """Class for the Batzor enemy."""
+  
+  STARTING_HP = 3
+  SPEED = 5  # Note: this speed applies along each axis.  Not Pythagorean!
+  GRAVITY = 0
+  STARTING_MOVEMENT = [0, 0]
+  DAMAGE = 1
+  REST_TIME = 20
+  VARIABLE_REST = 120  # Random amount in this interval
+  MOVE_TIME = 40
+  IMAGES = None
+  
+  def __init__(self, environment, position):
+    self.vector = [1, 1]
+    character.Character.__init__(self, environment, position)
+    self.move_frames = self.MOVE_TIME
+    self.rest_frames = 0
+    # direction has a different meaning than for other characters.
+    self.movement = [-self.SPEED, 0]
+
+  def InitImage(self):
+    if Batzor.IMAGES is None:
+      Batzor.IMAGES = character.LoadImages('batzor1*.png', scaled=True,
+                                           colorkey=game_constants.SPRITE_COLORKEY)
+    self.animation = animation.Animation(Batzor.IMAGES)
+    self.SetCurrentImage()
+
+  def SetCurrentImage(self):
+    self.image = self.animation.NextFrame()
+
+  def GetMove(self):
+    """Fly around diagonally."""
+    if self.move_frames > 0:
+      self.movement = [i * self.SPEED for i in self.vector]
+      self.move_frames -= 1
+      if self.move_frames == 0:
+        self.rest_frames = self.REST_TIME + random.randint(0, self.VARIABLE_REST)
+    else:
+      self.movement = [0, 0]
+      self.rest_frames -= 1
+      if self.rest_frames == 0:
+        self.vector = [-self.vector[1], self.vector[0]]
+        self.move_frames = self.MOVE_TIME
+
+    return self.movement
+
+  def update(self):
+    """Fliers have simpler update routines because we don't worry about gravity."""
+    new_rect = self.env.AttemptMove(self, self.GetMove())
+    self.rect = new_rect
+    self.SetCurrentImage()
+    if self.invulnerable > 0:
+      self.invulnerable -= 1
   

@@ -31,6 +31,7 @@ ENEMIES = {
   4: enemies.Shooter,
   5: enemies.PipeBug,
   6: enemies.BugPipe,
+  7: enemies.Batzor,
 }
 
 # Map of map codes to items.  These share the same number space as the enemies, so there must
