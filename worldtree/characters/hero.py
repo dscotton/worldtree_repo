@@ -9,6 +9,8 @@ Created on Jun 2, 2012
 @author: dscotton@gmail.com (David Scotton)
 """
 
+import os
+
 import pygame
 
 import animation
@@ -81,6 +83,9 @@ class Hero(character.Character):
   JUMP_LEFT_IMAGE = None
   FALL_RIGHT_IMAGE = None
   FALL_LEFT_IMAGE = None
+  
+  # Some sounds
+  ATTACK_SOUND = pygame.mixer.Sound(os.path.join('media', 'sfx', 'water.wav'))
     
   def __init__(self, environment, position=(0, 0)):
     character.Character.__init__(self, environment, position)
@@ -213,7 +218,7 @@ class Hero(character.Character):
     
   def Attack(self):
     """Initiate an attack action."""
-    print 'attack!'
+    self.ATTACK_SOUND.play()
     self.attacking = self.ATTACK_DURATION
     
   def Shoot(self):
@@ -266,10 +271,7 @@ class Hero(character.Character):
         self.image = self.WALK_RIGHT_ANIMATION.NextFrame()
       else:
         self.image = self.STAND_RIGHT_IMAGE
-    if self.invulnerable > 0 and self.invulnerable % 4 > 0:
-      self.image.set_alpha(128)
-    else:
-      self.image.set_alpha(255)
+    self.FlickerIfInvulnerable()
     
     # Account for position changes due to different size sprites / different hitbox alignment.
     self.rect.width = self.image.get_width()

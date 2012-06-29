@@ -112,6 +112,7 @@ class Dragonfly(character.Character):
     new_rect = self.env.AttemptMove(self, self.GetMove())
     self.rect = new_rect
     self.SetCurrentImage()
+    self.FlickerIfInvulnerable()
     if self.invulnerable > 0:
       self.invulnerable -= 1
 
@@ -439,6 +440,7 @@ class Batzor(character.Character):
     new_rect = self.env.AttemptMove(self, self.GetMove())
     self.rect = new_rect
     self.SetCurrentImage()
+    self.FlickerIfInvulnerable()
     if self.invulnerable > 0:
       self.invulnerable -= 1
 
