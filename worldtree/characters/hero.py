@@ -99,7 +99,6 @@ class Hero(character.Character):
     if Hero.WALK_RIGHT_ANIMATION is None:
       self.InitImage()
     self.image = self.WALK_RIGHT_ANIMATION.NextFrame()
-    self.last_state = (self.direction, self.action)
     self.jump_ready = True
     # This should start at 1 and be upgraded by an item.
     self.max_jumps = 2
@@ -108,6 +107,11 @@ class Hero(character.Character):
     self.shooting_cooldown = 0
     self.ammo = 0
     self.max_ammo = 0
+    self.last_state = self.state
+
+  @property
+  def state(self):
+    return (self.action, self.direction, self.attacking)
 
   def Hitbox(self):
     """Gets the Map hitbox for the sprite, which is relative to the map rather than the screen.
@@ -281,8 +285,14 @@ class Hero(character.Character):
     if self.direction != self.last_state[1]:
       if self.direction == LEFT:
         self.rect.left += (self.HITBOX_RIGHT_OFFSET - self.HITBOX_LEFT_OFFSET)
+        if self.last_state[2] and not self.state[2]:
+          # Was attacking last frame, now we aren't
+          self.rect.left -= 72
       else:
         self.rect.left -= (self.HITBOX_RIGHT_OFFSET - self.HITBOX_LEFT_OFFSET)
+        if self.last_state[2] and not self.state[2]:
+          # Was attacking last frame, now we aren't
+          self.rect.left += 72
 
   def CollideWith(self, enemy):
     """Handle what happens when the player collides with an enemy."""
