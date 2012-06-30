@@ -13,6 +13,8 @@ import pygame
 
 import animation
 import character
+from controller import LEFT
+from controller import RIGHT
 import game_constants
 import powerup
 import projectile
@@ -22,8 +24,6 @@ class Beaver(character.Character):
   
   STARTING_HP = 10
   SPEED = 1
-  GRAVITY = 2
-  TERMINAL_VELOCITY = 2
   STARTING_MOVEMENT = [-SPEED, 0]
   DAMAGE = 1
   IMAGES = None
@@ -122,8 +122,6 @@ class BoomBug(character.Character):
   
   STARTING_HP = 4
   SPEED = 1
-  GRAVITY = 2
-  TERMINAL_VELOCITY = 2
   STARTING_MOVEMENT = [-SPEED, 0]
   DAMAGE = 1
   TRIGGER_RADIUS = 160
@@ -243,8 +241,6 @@ class Shooter(character.Character):
   HEIGHT = 96
   STARTING_HP = 5
   SPEED = 0
-  GRAVITY = 2
-  TERMINAL_VELOCITY = 2
   MOVEMENT = [0, 0]
   DAMAGE = 1
   SENSE_RADIUS = 480
@@ -353,6 +349,7 @@ class PipeBug(character.Character):
       if self.invulnerable > 0:
         self.invulnerable -= 1
 
+
 class BugPipe(character.Character):
   """Enemy that spawns a stream of PipeBugs."""
   
@@ -399,6 +396,34 @@ class BugPipe(character.Character):
       self.spawning_cooldown -= 1
     else:
       self.SpawnBug()
+
+
+class Biter(PipeBug):
+  """Enemy that flies up until level with the player, then left or right."""
+  
+  STARTING_HP = 4
+  SPEED = 10
+  DAMAGE = 2
+  IMAGES = None
+
+  def InitImage(self):
+    if Biter.IMAGES is None:
+      Biter.IMAGES = character.LoadImages('biter1*.png', scaled=True,
+                                           colorkey=game_constants.SPRITE_COLORKEY)
+      Biter.IMAGES_RIGHT = [pygame.transform.flip(i, 1, 0) for i in Biter.IMAGES]
+    self.left_animation = animation.Animation(Biter.IMAGES)
+    self.right_animation = animation.Animation(Biter.IMAGES_RIGHT)
+    self.SetCurrentImage()
+
+
+class BiterPipe(BugPipe):
+  """Enemy that spawns a stream of Biters."""
+  
+  def SpawnBug(self):
+    self.spawning_cooldown = self.SPAWNING_COOLDOWN
+    map_coordinate = self.env.MapCoordinateForScreenPoint(self.rect.centerx, self.rect.top-1)
+    new_bug = Biter(self.env, self.env.TileIndexForPoint(*map_coordinate))
+    self.env.enemy_group.add(new_bug)
 
 
 class Batzor(character.Character):
@@ -467,17 +492,24 @@ class Slug(character.Character):
   
   STARTING_HP = 6
   SPEED = 1
-  GRAVITY = 0
-  TERMINAL_VELOCITY = 0
   STARTING_MOVEMENT = [-SPEED, 0]
   DAMAGE = 3
-  IMAGES = None
+  MOVE_LEFT_IMAGES = None
   ITEM_DROPS = [powerup.HealthRestore, powerup.AmmoRestore]
   DROP_PROBABILITY = 30
   WIDTH = 96
   HEIGHT = 48
   REST_TIME = 20
   MOVE_TIME = 40
+  GRAVITY = 0
+  
+  def __init__(self, environment, position):
+    self.surface_vector = None
+    character.Character.__init__(self, environment, position)
+    self.surface_vector = self.FindSurface()
+    self.SetCurrentImage()
+    self.move_frames = self.MOVE_TIME
+    self.rest_frames = 0
   
   def InitImage(self):
     if Slug.MOVE_LEFT_IMAGES is None:
@@ -490,28 +522,133 @@ class Slug(character.Character):
       Slug.IDLE_RIGHT_IMAGES = [pygame.transform.flip(i, 1, 0) for i in Slug.IDLE_LEFT_IMAGES]
       Slug.MOVE_RIGHT_IMAGES = [pygame.transform.flip(i, 1, 0) for i in Slug.MOVE_LEFT_IMAGES]
       # TODO: Cache rotated images here if rotating on the fly proves to be too slow.
-    self.walk_left_animation = animation.Animation(Slug.MOVE_LEFT_IMAGES, framedelay=3)
-    self.idle_left_animation = animation.Animation(Slug.IDLE_LEFT_IMAGES, framedelay=3)
-    self.walk_right_animation = animation.Animation(Slug.MOVE_RIGHT_IMAGES, framedelay=3)
-    self.idle_right_animation = animation.Animation(Slug.IDLE_RIGHT_IMAGES, framedelay=3)
+    self.walk_left_animation = animation.Animation(Slug.MOVE_LEFT_IMAGES, framedelay=4)
+    self.idle_left_animation = animation.Animation(Slug.IDLE_LEFT_IMAGES, framedelay=4)
+    self.walk_right_animation = animation.Animation(Slug.MOVE_RIGHT_IMAGES, framedelay=4)
+    self.idle_right_animation = animation.Animation(Slug.IDLE_RIGHT_IMAGES, framedelay=4)
     self.SetCurrentImage()
 
   def SetCurrentImage(self):
-    if self.movement[0] <= 0:
+    if self.direction == LEFT:
       self.image = self.walk_left_animation.NextFrame()
     else:
       self.image = self.walk_right_animation.NextFrame()
 
+    # TODO: Make sure rotate doesn't transform in place.
+    if self.surface_vector == (1, 0):
+      self.image = self.image.rotate(90)
+    elif self.surface_vector == (0, 1):
+      self.image = self.image.rotate(180)
+    elif self.surface_vector == (-1, 0):
+      self.image = self.image.rotate(270)
+
+  def FindSurface(self):
+    """If touching a surface, return a vector pointing to it, otherwise return None."""
+    for vector in ((0, 1), (-1, 0), (0, -1), (1, 0)):
+      if self.env.IsRectSupported(self.Hitbox(), vector=vector):
+        return vector
+    return None
+
   def GetMove(self):
     """Inch along the wall."""
+    if self.surface_vector is None:
+      self.FindSurface()
+      if self.surface_vector is None:
+        self.movement = [0, 8]
+        return self.movement
     if self.move_frames > 0:
-      self.movement = [i * self.SPEED for i in self.vector]
       self.move_frames -= 1
       if self.move_frames == 0:
         self.rest_frames = self.REST_TIME + random.randint(0, self.VARIABLE_REST)
+      return self.WalkBackAndForthAndAround()
     else:
+      # TODO: make gravity work if not supported
       self.movement = [0, 0]
       self.rest_frames -= 1
       if self.rest_frames == 0:
         self.vector = [-self.vector[1], self.vector[0]]
         self.move_frames = self.MOVE_TIME
+      return self.movement
+
+  def GetLeadingRect(self):
+    """Return one-tile large rect of the leading edge of the slug."""
+    if self.direction == LEFT:
+      if self.surface_vector in ((-1, 0), (0, -1)):
+        return pygame.Rect((self.rect.left, self.rect.top), (game_constants.TILE_SIZE))
+      elif self.surface_vector in ((1, 0), (0, 1)):
+        leading_rect = pygame.Rect((0, 0), (game_constants.TILE_SIZE))
+        leading_rect.right = self.rect.right
+        leading_rect.bottom = self.rect.bottom
+        return leading_rect
+
+  def TurnDownward(self):
+    """Changes the surface direction downward relative to the current frame of reference.
+    
+    This assumes we've already checked it's a valid direction to move.
+    """
+    if self.direction == LEFT:
+      self.surface_vector = [self.surface_vector[1], self.surface_vector[0]]
+      self.movement = [self.movement[1], self.movement[0]]
+    else:
+      self.surface_vector = [-self.surface_vector[1], self.surface_vector[0]]
+      self.movement = [-self.movement[1], self.movement[0]]
+
+  def TurnUpward(self):
+    """Change direction of the slug and surface up relative to current movement.
+    
+    This assumes we've already checked it's a valid direction to move.
+    """
+    if self.direction == LEFT:
+      self.surface_vector = [-self.surface_vector[1], self.surface_vector[0]]
+      self.movement = [-self.movement[1], self.movement[0]]
+    elif self.direction == RIGHT:
+      self.surface_vector = [self.surface_vector[1], self.surface_vector[0]]
+      self.movement = [self.movement[1], self.movement[0]]
+
+  def WalkBackAndForthAndAround(self):
+    """Get movement for walking back and forth on the current platform occupied."""
+    if self.direction == LEFT:
+      self.movement = [-self.SPEED * self.surface_vector[1],
+                       self.SPEED * self.surface_vector[0]]
+    elif self.direction == RIGHT:
+      self.movement = [self.SPEED * self.surface_vector[1],
+                       self.SPEED * self.surface_vector[0]]
+    movebox = self.env.MapRectForScreenRect(self.GetLeadingRect())
+    dest = movebox.move(self.movement)
+
+    if not self.env.IsRectSupported(dest, vector=self.surface_vector):
+      self.TurnDownward()
+
+    elif not self.env.IsMoveLegal(self, self.movement):
+      self.TurnUpward()
+      # Slug is up against a surface.
+
+    # TODO: Add logic for turning around if no legal moves.      
+    return self.movement
+
+
+class Baron(Beaver):
+  """The ultimate enemy, the evil Beaver Baron."""
+  
+  STARTING_HP = 100
+  SPEED = 6
+  STARTING_MOVEMENT = [-SPEED, 0]
+  DAMAGE = 1
+  IMAGES = None
+  ITEM_DROPS = [powerup.HealthRestore, powerup.AmmoRestore]
+  DROP_PROBABILITY = 20
+  WIDTH = 384
+  HEIGHT = 240
+
+  def GetMove(self):
+    """Get the movement vector for the Beaver."""
+    return self.WalkBackAndForth()
+  
+  def InitImage(self):
+    if Baron.IMAGES is None:
+      Baron.IMAGES = character.LoadImages('beaver1*.png', scaled=True,
+                                           colorkey=game_constants.SPRITE_COLORKEY)
+      Baron.IMAGES_RIGHT = [pygame.transform.flip(i, 1, 0) for i in Baron.IMAGES]
+    self.walk_left_animation = animation.Animation(Baron.IMAGES, framedelay=3)
+    self.walk_right_animation = animation.Animation(Baron.IMAGES_RIGHT, framedelay=3)
+    self.SetCurrentImage()

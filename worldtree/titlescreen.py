@@ -16,6 +16,37 @@ import game_constants
 
 INTRO_IMAGE = 'titlescreen.png'
 INTRO_TEXT = """
+The World Tree, source of all
+life...
+\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n
+
+Legend tells of a catastrophic
+battle in which the evil
+Beaver Baron and his legion of
+minions nearly succeeded in
+gnawing down the World Tree
+to make a dam.
+\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n
+
+Over 1000 years have passed
+since the evil Beaver Baron
+was defeated by the protectors
+of the World Tree.  Since that
+time, the World Tree has
+prospered under the care of
+its guardians.
+\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n
+
+But time flows like a river...
+And history repeats...
+\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n
+
+You are Seamus, one of the
+World Tree's guardian spirits.
+Are you a bad enough dude
+to save the World Tree?
+"""
+JOKE_INTRO_TEXT = """
 I first battled the beavers in
 northern Ontario. It was there
 that I foiled the plans of the
@@ -165,5 +196,5 @@ def ShowTitle(screen):
   title_background = pygame.image.load(os.path.join('media', INTRO_IMAGE)).convert()
   title = Title(image=title_background, music='june_breeze.ogg')
   title.ShowTitle(screen)
-  intro = Title(text=INTRO_TEXT, text_speed=1, fade_rate=12, frame_delay=60, music='intro.ogg')
+  intro = Title(text=INTRO_TEXT, text_speed=2, fade_rate=12, frame_delay=60, music='intro.ogg')
   intro.ShowTitle(screen)

@@ -183,7 +183,8 @@ transitions = {
               Transition(48, 109, 1, 'Map30', -48)),
       RIGHT : (Transition(0, 8, 2, 'Map2', 11),
                Transition(13, 27, 2, 'Map3', -13),
-               Transition(28, 97, 2, 'Map4', -28),),
+               Transition(28, 97, 2, 'Map4', -28),
+               Transition(99, 119, 2, 'Map30', -99),),
     },
     'Map2' : {
       LEFT : (Transition(11, 19, 2, 'Map1', -11),),
@@ -250,6 +251,7 @@ transitions = {
               Transition(65, 79, 2, 'Map21', -65),),
       RIGHT : (Transition(0, 7, 2, 'Map16', 42),
                Transition(45, 59, 2, 'Map24', -45),),
+      DOWN : (Transition(0, 19, 2, 'Map28', 60),),
     },
     'Map16' : {
       LEFT : (Transition(42, 49, 2, 'Map15', -42),),
@@ -289,12 +291,40 @@ transitions = {
       RIGHT : (Transition(0, 14, 2, 'Map25', 21),),
     },
     'Map25' : {
-      LEFT : (Transition(21, 35, 2, 'Map24', -21),),
+      LEFT : (Transition(21, 35, 2, 'Map24', -21),
+              Transition(100, 119, 2, 'Map27', -100),),
       RIGHT : (Transition(105, 119, 2, 'Map26', -107),),
       UP : (Transition(0, 19, 2, 'Map23', 20),),
     },
     'Map26' : {
       LEFT : (Transition(0, 14, 2, 'Map25', 107),),
+    },
+    'Map27' : {
+      RIGHT : (Transition(0, 19, 2, 'Map25', 100),),
+      DOWN : (Transition(0, 19, 2, 'Map31', 120),),
+    },
+    'Map28' : {
+      LEFT : (Transition(0, 39, 2, 'Map30', 0),),
+      UP : (Transition(60, 79, 2, 'Map15', -60),),
+      DOWN : (Transition(0, 79, 2, 'Map29', 0),),
+    },
+    'Map29' : {
+      LEFT : (Transition(0, 19, 2, 'Map30', 40),),
+      UP : (Transition(0, 79, 2, 'Map28', 0),),
+    },
+    'Map30' : {
+      LEFT : (Transition(0, 20, 2, 'Map1', 99),),
+      RIGHT : (Transition(0, 39, 2, 'Map28', 0),
+               Transition(40, 59, 2, 'Map29', -40),),
+      DOWN : (Transition(0, 39, 2, 'Map31', 0),),
+    },
+    'Map31' : {
+      UP : (Transition(0, 9, 2, 'Map30', 0),
+            Transition(120, 139, 2, 'Map27', -120),),
+      DOWN : (Transition(46, 65, 2, 'Map32', -46),),
+    },
+    'Map32' : {
+      UP : (Transition(0, 19, 2, 'Map31', 46),),
     },
   },
 }

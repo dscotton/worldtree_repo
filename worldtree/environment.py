@@ -32,6 +32,10 @@ ENEMIES = {
   5: enemies.PipeBug,
   6: enemies.BugPipe,
   7: enemies.Batzor,
+  8: enemies.BiterPipe,
+  9: enemies.Biter,
+  10: enemies.Slug,
+  11: enemies.Baron,
 }
 
 # Map of map codes to items.  These share the same number space as the enemies, so there must
@@ -64,7 +68,7 @@ SONGS = {
                             'Map26', 'Map27', 'Map28', 'Map29',]
   },
   2: {
-    'nighttime.ogg': ['Map%i' % i for i in range(26)]
+    'nighttime.ogg': ['Map%i' % i for i in range(31)]
   },
 }
 
@@ -84,7 +88,7 @@ BG_COLORS = {
                            'Map24', 'Map25', 'Map26', 'Map27', 'Map28', 'Map29',]
   },
   2: {
-    BLACK: ['Map%i' % i for i in range(26)]
+    BLACK: ['Map%i' % i for i in range(31)]
   },
 }
 
@@ -386,11 +390,13 @@ class Environment(object):
       return True
     return False
 
-  def IsRectSupported(self, rect):
+  def IsRectSupported(self, rect, vector=(0, 1)):
     """Returns true if there is a solid tile directly under a rectangle.
     
     Args:
       rect: A Rect object whose position is relative to the map origin (not the screen origin).
+      vector: (x, y) vector for the direction to check.  This can be used to check if the
+        movement would still be attached to a wall for enemies with weird move patterns.
     """
     dest = rect.move((0, 1))
     old_tiles = self.TilesForRect(rect)

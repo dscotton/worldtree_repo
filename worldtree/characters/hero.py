@@ -102,7 +102,7 @@ class Hero(character.Character):
     self.image = self.WALK_RIGHT_ANIMATION.NextFrame()
     self.jump_ready = True
     # This should start at 1 and be upgraded by an item.
-    self.max_jumps = 2
+    self.max_jumps = 1
     self.remaining_jumps = self.max_jumps
     self.attacking = 0
     self.shooting_cooldown = 0

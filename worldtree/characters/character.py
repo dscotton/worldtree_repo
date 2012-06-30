@@ -53,8 +53,8 @@ class Character(pygame.sprite.Sprite):
   SOLID = True
   INVULNERABLE = False
   INVULNERABILITY_FRAMES = 30
-  GRAVITY = 0
-  TERMINAL_VELOCITY = 0
+  GRAVITY = 2
+  TERMINAL_VELOCITY = 10
   ACCEL = 100
   SPEED = 0
   JUMP_DURATION = 0
@@ -228,10 +228,7 @@ class Character(pygame.sprite.Sprite):
       dest_tile = self.env.TileIndexForPoint(
           self.Hitbox().right + self.movement[0], self.Hitbox().bottom)
       
-    # Check boundaries using existing AttemptMove method.  Kinda ugly.
-    new_rect = self.env.IsMoveLegal(self, self.movement)
-
-    if new_rect == self.rect or not self.env.IsTileSupported(*dest_tile):
+    if not self.env.IsMoveLegal(self, self.movement) or not self.env.IsTileSupported(*dest_tile):
       if self.direction == LEFT:
         self.Walk(RIGHT)
       else:
