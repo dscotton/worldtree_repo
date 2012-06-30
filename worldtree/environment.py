@@ -76,6 +76,26 @@ for region, song_dict in SONGS.iteritems():
     for room in room_list:
       SONGS_BY_ROOM[region][room] = song
 
+BG_COLORS = {
+  1: {
+    BLUE: ['Map1', 'Map2', 'Map3', 'Map4', 'Map5', 'Map11', 'Map16', 'Map30', 'Map31', 'Map32',],
+    BLACK: ['Map6', 'Map7', 'Map8', 'Map9', 'Map10', 'Map12', 'Map13', 'Map14', 'Map15',
+                           'Map17', 'Map18', 'Map19', 'Map20', 'Map21', 'Map22', 'Map23',
+                           'Map24', 'Map25', 'Map26', 'Map27', 'Map28', 'Map29',]
+  },
+  2: {
+    BLACK: ['Map%i' % i for i in range(26)]
+  },
+}
+
+# {region: {room: song}}
+BG_COLORS_BY_ROOM = {}
+for region, bg_dict in BG_COLORS.iteritems():
+  BG_COLORS_BY_ROOM[region] = {}
+  for color, room_list in bg_dict.iteritems():
+    for room in room_list:
+      BG_COLORS_BY_ROOM[region][room] = color
+
 
 class Environment(object):
   """A game environment.
@@ -111,6 +131,7 @@ class Environment(object):
     self.name = map_name
     self.region = region
     map_info = REGIONS[region][map_name]
+    self.bg_color = BG_COLORS_BY_ROOM[region][map_name]
     # This is a little convoluted because in order to address tiles as [x][y] (rather than
     # [y][x]) we need to build a list of columns rather than a list of rows.
     self.grid = []
@@ -143,7 +164,8 @@ class Environment(object):
             image = pygame.transform.scale(pygame.image.load(image_path), TILE_SIZE).convert_alpha()
             image_cache[image_name] = image
           self.grid[col].append(tile.Tile(image=image_cache[image_name],
-                                          bound_byte=map_info['bounds'][row][col]))
+                                          bound_byte=map_info['bounds'][row][col],
+                                          bg_color=self.bg_color))
 
         mapcode = map_info['mapcodes'][row][col]
         if mapcode != 0:
@@ -194,7 +216,7 @@ class Environment(object):
   def GetImage(self):
     """Get the pygame.Surface for the portion of the environment currently in the game window."""
     if self.dirty:
-      self.surface.fill(BG_COLOR)
+      self.surface.fill(self.bg_color)
       # Figure out which tiles fit in the current window
       (first_x, last_x), (first_y, last_y) = self.VisibleTiles()
       x_pixel_start = self.screen_offset[0] % TILE_WIDTH
@@ -210,10 +232,11 @@ class Environment(object):
             break
           tile_x_pos = (col - first_x) * TILE_WIDTH - x_pixel_start
           tile_y_pos = (row - first_y) * TILE_HEIGHT - y_pixel_start
-          try:
-            self.surface.blit(self.grid[col][row].image, (tile_x_pos, tile_y_pos))
-          except TypeError:
-            print col, row, type(self.grid[col][row])
+          if self.grid[col][row] is not EMPTY_TILE:
+            try:
+              self.surface.blit(self.grid[col][row].image, (tile_x_pos, tile_y_pos))
+            except TypeError:
+              print col, row, type(self.grid[col][row])
 
       self.dirty = False
     return self.surface

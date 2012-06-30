@@ -29,7 +29,7 @@ class Tile(object):
       specified.
   """
   
-  def __init__(self, image=None, solid=None, bound_byte=None):
+  def __init__(self, image=None, solid=None, bound_byte=None, bg_color=game_constants.BLACK):
     """Constructor.
     
     Args:
@@ -37,6 +37,7 @@ class Tile(object):
       solid: Tuple of whether the tile is solid on the left, right, top, and bottom.
       bound_byte: Tilestudio formatted boundary information for this tile.  Overrides solid if
         specified.
+      bg_color: Tuple of two-byte RGB values for the background color to put the tile over.
     """
     if solid is None and bound_byte is None:
       solid = (False, False, False, False)
@@ -48,7 +49,7 @@ class Tile(object):
       image = pygame.Surface(TILE_SIZE)
       if not any(solid):
         # TODO(dscotton): If we use backgrounds, get rid of this - or make it transparent
-        image.fill(game_constants.BG_COLOR)
+        image.fill(bg_color)
       else:
         image.fill(game_constants.BLACK)
     self.image = image
