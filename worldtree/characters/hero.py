@@ -86,7 +86,8 @@ class Hero(character.Character):
   FALL_LEFT_IMAGE = None
   
   # Some sounds
-  ATTACK_SOUND = pygame.mixer.Sound(os.path.join('media', 'sfx', 'water.wav'))
+  ATTACK_SOUND = pygame.mixer.Sound(os.path.join('media', 'sfx', 'attack.wav'))
+  JUMP_SOUND = pygame.mixer.Sound(os.path.join('media', 'sfx', 'jump.wav'))
     
   def __init__(self, environment, position=(0, 0)):
     character.Character.__init__(self, environment, position)
@@ -206,6 +207,7 @@ class Hero(character.Character):
     - Once you touch the ground, your remaining_jumps are restored.
     """
     if self.jump_ready and self.remaining_jumps > 0:
+      self.JUMP_SOUND.play()
       self.vertical = character.JUMP
       self.remaining_jumps -= 1
       self.jump_duration = self.JUMP_DURATION
