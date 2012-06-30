@@ -221,7 +221,7 @@ class Hero(character.Character):
     """The character is standing on something solid."""
     self.vertical = character.GROUNDED
     self.remaining_jumps = self.max_jumps
-    self.movement[1] = 0
+    self.movement[1] = min(0, self.movement[1])
     
   def Attack(self):
     """Initiate an attack action."""
@@ -302,11 +302,12 @@ class Hero(character.Character):
       if not enemy.invulnerable:
         enemy.TakeHit(self.DAMAGE)
         enemy.CollisionPushback(self)
-    elif self.invulnerable == 0 and enemy.invulnerable == 0:
-      self.TakeHit(enemy.DAMAGE)
-      # Calculate pushback
-    elif self.invulnerable == 0 or (type(enemy) == enemies.BoomBug and enemy.exploding):
-      self.CollisionPushback(enemy)
+    else:
+      if self.invulnerable == 0 or (type(enemy) == enemies.BoomBug and enemy.exploding):
+        self.CollisionPushback(enemy)
+      if self.invulnerable == 0 and enemy.invulnerable == 0:
+        self.TakeHit(enemy.DAMAGE)
+        # Calculate pushback
 
   def ChangeRooms(self, env, position):
     """Move this sprite to a new environment."""
