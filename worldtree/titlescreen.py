@@ -55,8 +55,8 @@ def ShowTitle(screen):
   pygame.mixer.music.play(-1)
   
   frame = -240  # Controls how long before the text scroll begins
-  text_top = 360
-  text_bottom = 600
+  text_top = 144
+  text_bottom = 576
   move_rate = 5
   font_height = 16
   line_height = 20
@@ -91,7 +91,7 @@ def ShowTitle(screen):
 
   pygame.mixer.music.stop()
   fade_frame = 0
-  fade_rate = 2
+  fade_rate = 3
   while background.get_alpha() > 4:
     fade_frame +=1
     clock.tick(60)

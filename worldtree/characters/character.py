@@ -61,7 +61,6 @@ class Character(pygame.sprite.Sprite):
   HEIGHT = 48
   SIZE = (WIDTH, HEIGHT)
   DEFAULT_STATE = (STAND, LEFT)
-  STARTING_MOVEMENT = [0, 0]
   IMAGE = None
   IMAGE_FILE = 'nothing'
   PUSHBACK = 16
@@ -69,6 +68,8 @@ class Character(pygame.sprite.Sprite):
   IS_PLAYER = False
   ITEM_DROPS = [powerup.HealthRestore, powerup.AmmoRestore]
   DROP_PROBABILITY = 10
+
+  HIT_SOUND = pygame.mixer.Sound(os.path.join('media', 'sfx', 'hit.wav'))
 
   def __init__(self, environment, position=(0, 0)):
     """Constructor.
@@ -89,7 +90,7 @@ class Character(pygame.sprite.Sprite):
     self.rect.bottom = screen_coordinates[1]
     self.action, self.direction = self.DEFAULT_STATE
     self.vertical = FALL
-    self.movement = self.STARTING_MOVEMENT
+    self.movement = [0, 0]
     self.max_hp = self.STARTING_HP
     self.jump_duration = self.JUMP_DURATION
     self.hp = self.STARTING_HP
@@ -102,10 +103,7 @@ class Character(pygame.sprite.Sprite):
     return (self.action, self.direction)
 
   def InitImage(self):
-    if Character.IMAGE is None:
-      Character.IMAGE = LoadImage(self.IMAGE_FILE, scaled=True, 
-                                  colorkey=game_constants.SPRITE_COLORKEY)
-    self.image = self.IMAGE
+    raise NotImplementedError('Each subclass of Character must implement InitImage.')
 
   def Hitbox(self):
     """Gets the Map hitbox for the sprite, which is relative to the map rather than the screen.
@@ -172,8 +170,14 @@ class Character(pygame.sprite.Sprite):
     """
     raise NotImplementedError()
   
+  def GetDistance(self, other):
+    """Calculate the distance between this and another character."""
+    return ((self.Hitbox().centerx - other.Hitbox().centerx) ** 2
+            + (self.Hitbox().centery - other.Hitbox().centery) ** 2) ** 0.5
+  
   def TakeHit(self, damage):
     """Take a hit for a given amount of damage."""
+    self.HIT_SOUND.play()
     self.hp -= damage
     print self.hp
     if self.hp <= 0:

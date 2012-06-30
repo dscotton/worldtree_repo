@@ -125,11 +125,11 @@ class BoomBug(character.Character):
   TERMINAL_VELOCITY = 2
   STARTING_MOVEMENT = [-SPEED, 0]
   DAMAGE = 1
-  TRIGGER_RADIUS = 96
-  EXPLODING_DAMAGE = 3
+  TRIGGER_RADIUS = 160
+  EXPLODING_DAMAGE = 5
   EXPLODING_PUSHBACK = 48
-  EXPLODING_DELAY = 60
-  EXPLODING_FRAMES = 24
+  EXPLODING_DELAY = 90
+  EXPLODING_FRAMES = 40
   WALKING_LEFT_IMAGES = None
   TRIGGERED_IMAGES = None
   EXPLODING_IMAGES = None
@@ -157,7 +157,8 @@ class BoomBug(character.Character):
     if BoomBug.EXPLODING_IMAGES is None:
       BoomBug.EXPLODING_IMAGES = character.LoadImages('bombexplode*.png', scaled=True,
                                                       colorkey=game_constants.SPRITE_COLORKEY)
-    self.exploding_animation = animation.Animation(BoomBug.EXPLODING_IMAGES, looping=False)
+    self.exploding_animation = animation.Animation(BoomBug.EXPLODING_IMAGES, framedelay=4, 
+                                                   looping=False)
     
     self.SetCurrentImage()
 
@@ -174,14 +175,20 @@ class BoomBug(character.Character):
         self.image = self.triggered_right_animation.NextFrame()
       else:
         self.image = self.walk_right_animation.NextFrame()
-    
+
+#  def Hitbox(self):
+#    if self.exploding == 0:
+#      return character.Character.Hitbox(self)
+#    else:
+      
+
   def SenseAndReturnHitbox(self, player):
     """Trigger an explosion if the player is close to the bug."""
     # TODO: See if this is too slow.
-    if (not (self.exploding or self.triggered)
-        and ((self.rect.centerx - player.rect.centerx) ** 2 
-             + (self.rect.centery - player.rect.centerx) ** 2) ** 0.5 < self.TRIGGER_RADIUS):
-      self.Trigger()
+    if not (self.exploding or self.triggered):
+      distance = self.GetDistance(player)
+      if distance < self.TRIGGER_RADIUS:
+        self.Trigger()
     return self.Hitbox()
 
   def GetMove(self):
@@ -189,10 +196,15 @@ class BoomBug(character.Character):
 
   def Trigger(self):
     self.triggered = self.EXPLODING_DELAY
+    self.movement = [0, 0]
 
   def Explode(self):
     # TODO: Increase the effective size to the explosion radius.
+    midbottom = self.rect.midbottom
+    self.rect.width, self.rect.height = self.EXPLODING_IMAGES[0].get_size()
+    self.rect.midbottom = midbottom
     self.exploding = self.EXPLODING_FRAMES
+    self.exploding_animation.Reset()
     self.DAMAGE = self.EXPLODING_DAMAGE
     self.PUSHBACK = self.EXPLODING_PUSHBACK
 
@@ -201,11 +213,11 @@ class BoomBug(character.Character):
       self.triggered -= 1
       if self.triggered == 0:
         self.Explode()
-    if self.exploding > 0:
+    elif self.exploding > 0:
       self.exploding -= 1
       if self.exploding == 0:
         self.env.dirty = True
-        self.kill()
+        self.Die()
     else:
       new_rect = self.env.AttemptMove(self, self.GetMove())
       self.rect = new_rect
@@ -213,10 +225,10 @@ class BoomBug(character.Character):
         self.Supported()
       else:
         self.Gravity()
-      self.SetCurrentImage()
-      if self.invulnerable > 0:
-        self.invulnerable -= 1
-      self.last_state = self.state
+    self.SetCurrentImage()
+    if self.invulnerable > 0:
+      self.invulnerable -= 1
+    self.last_state = self.state
 
 
 class Shooter(character.Character):
@@ -230,7 +242,7 @@ class Shooter(character.Character):
   TERMINAL_VELOCITY = 2
   MOVEMENT = [0, 0]
   DAMAGE = 1
-  SENSE_RADIUS = 336
+  SENSE_RADIUS = 480
   SHOOTING_COOLDOWN = 90
   IMAGES = None
 

@@ -16,6 +16,7 @@ import pygame
 import animation
 import character
 import controller
+import enemies
 from game_constants import LEFT
 from game_constants import RIGHT
 from game_constants import ATTACK
@@ -53,7 +54,7 @@ class Hero(character.Character):
     TERMINAL_VELOCITY: Maximum rate at which you can fall.
   """
 
-  STARTING_HP = 99
+  STARTING_HP = 30
   DAMAGE = 2
   # Actual size will be determined by the current image surface, but this is a 
   # default and guideline.
@@ -289,9 +290,10 @@ class Hero(character.Character):
       if not enemy.invulnerable:
         enemy.TakeHit(self.DAMAGE)
         enemy.CollisionPushback(self)
-    elif self.invulnerable == 0:
+    elif self.invulnerable == 0 and enemy.invulnerable == 0:
       self.TakeHit(enemy.DAMAGE)
       # Calculate pushback
+    elif self.invulnerable == 0 or (type(enemy) == enemies.BoomBug and enemy.exploding):
       self.CollisionPushback(enemy)
 
   def ChangeRooms(self, env, position):
