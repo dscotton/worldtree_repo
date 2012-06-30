@@ -12,6 +12,7 @@ import random
 
 import pygame
 
+import animation
 import game_constants
 import powerup
 
@@ -70,6 +71,7 @@ class Character(pygame.sprite.Sprite):
   DROP_PROBABILITY = 10
 
   HIT_SOUND = pygame.mixer.Sound(os.path.join('media', 'sfx', 'hit.wav'))
+  DEATH_SOUND = pygame.mixer.Sound(os.path.join('media', 'sfx', 'death.wav'))
 
   def __init__(self, environment, position=(0, 0)):
     """Constructor.
@@ -187,13 +189,14 @@ class Character(pygame.sprite.Sprite):
       
   def Die(self):
     """This character dies."""
-    print 'dying %s' % type(self)
+    self.DEATH_SOUND.play()
     if len(self.ITEM_DROPS) > 0:
       if random.randint(0, 100) < self.DROP_PROBABILITY:
         position = self.env.TileIndexForPoint(
             *self.env.MapCoordinateForScreenPoint(self.rect.centerx, self.rect.centery))
         drop = random.choice(self.ITEM_DROPS)(self.env, position)
         self.env.item_group.add(drop)
+    self.env.dying_animation_group.add(Dying(self.rect))
     self.kill()
   
   def CollisionPushback(self, other):
@@ -294,3 +297,41 @@ def CollideCharacters(player, enemy):
   is, since it's called once per frame.
   """
   return player.Hitbox().colliderect(enemy.SenseAndReturnHitbox(player))
+
+
+class Dying(pygame.sprite.Sprite):
+  """Not actually a character, just a dying animation left behind by one."""
+
+  IMAGES = None
+  
+  def __init__(self, rect):
+    """Constructor.
+    
+    Args:
+      rect: The rect of the enemy that is dying.
+    """
+    pygame.sprite.Sprite.__init__(self)
+    self.InitImage()
+    self.rect = pygame.Rect((0, 0), self.image.get_size())
+    self.rect.centerx, self.rect.centery = rect.centerx, rect.centery
+    self.death_frames = 20
+  
+  def InitImage(self):
+    if Dying.IMAGES is None:
+      Dying.IMAGES = LoadImages('regularexplode1*.png', scaled=True,
+                                colorkey=game_constants.SPRITE_COLORKEY)
+    self.animation = animation.Animation(Dying.IMAGES, looping=False, framedelay=3)
+    self.SetCurrentImage()
+
+  def Hitbox(self):
+    return pygame.Rect((0, 0), (0, 0))
+
+  def SetCurrentImage(self):
+    self.image = self.animation.NextFrame()
+  
+  def update(self):
+    self.SetCurrentImage()
+    if self.death_frames == 0:
+      self.kill()
+    else:
+      self.death_frames -= 1

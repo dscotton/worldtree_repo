@@ -6,6 +6,7 @@ Created on Jun 11, 2012
 @author: dscotton@gmail.com (David Scotton)
 """
 
+import os
 import random
 
 import pygame
@@ -133,6 +134,9 @@ class BoomBug(character.Character):
   WALKING_LEFT_IMAGES = None
   TRIGGERED_IMAGES = None
   EXPLODING_IMAGES = None
+  
+  DEATH_SOUND = pygame.mixer.Sound(os.path.join('media', 'sfx', 'silence.wav'))
+  EXPLOSION_SOUND = pygame.mixer.Sound(os.path.join('media', 'sfx', 'explode.wav'))
 
   def __init__(self, environment, position):
     self.triggered = 0
@@ -200,6 +204,7 @@ class BoomBug(character.Character):
 
   def Explode(self):
     # TODO: Increase the effective size to the explosion radius.
+    self.EXPLOSION_SOUND.play()
     midbottom = self.rect.midbottom
     self.rect.width, self.rect.height = self.EXPLODING_IMAGES[0].get_size()
     self.rect.midbottom = midbottom
@@ -510,4 +515,3 @@ class Slug(character.Character):
       if self.rest_frames == 0:
         self.vector = [-self.vector[1], self.vector[0]]
         self.move_frames = self.MOVE_TIME
-  

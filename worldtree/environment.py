@@ -123,6 +123,7 @@ class Environment(object):
     self.surface = pygame.Surface(MAP_SIZE)
     self.dirty = True  # Whether the surface needs to be refreshed.
     self.enemy_group = pygame.sprite.RenderUpdates()
+    self.dying_animation_group = pygame.sprite.RenderUpdates()
     self.item_group = pygame.sprite.RenderUpdates()
     self.hero_projectile_group = pygame.sprite.RenderUpdates()
     self.enemy_projectile_group = pygame.sprite.RenderUpdates()

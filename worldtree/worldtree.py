@@ -33,7 +33,7 @@ def RunGame():
   clock = pygame.time.Clock()
 
   current_room = 'Map1'
-  current_region = 2
+  current_region = 1
   env = environment.Environment(current_room, current_region)
   screen.blit(env.GetImage(), MAP_POSITION)
   player = hero.Hero(env, position=(2, 5))
@@ -80,6 +80,7 @@ def RunGame():
     player_group.update()
     enemy_group.update()
     item_group.update()
+    env.dying_animation_group.update()
     env.hero_projectile_group.update()
     env.enemy_projectile_group.update()
     refresh_map = env.dirty
@@ -89,6 +90,7 @@ def RunGame():
     dirty_rects.extend(enemy_group.draw(screen))
     dirty_rects.extend(env.hero_projectile_group.draw(screen))
     dirty_rects.extend(env.enemy_projectile_group.draw(screen))
+    dirty_rects.extend(env.dying_animation_group.draw(screen))
     if refresh_map:
       dirty_rects = [pygame.Rect(MAP_POSITION[0], MAP_POSITION[1], MAP_WIDTH, MAP_HEIGHT)]
     else:
