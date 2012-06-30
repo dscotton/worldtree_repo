@@ -11,6 +11,7 @@ Created on June 2, 2012
 import sys
 
 import pygame
+pygame.mixer.pre_init(44100, -16, 2, 512)
 pygame.init()
 
 from characters import character
@@ -32,7 +33,7 @@ def RunGame():
   clock = pygame.time.Clock()
 
   current_room = 'Map1'
-  current_region = 1
+  current_region = 2
   env = environment.Environment(current_room, current_region)
   screen.blit(env.GetImage(), MAP_POSITION)
   player = hero.Hero(env, position=(2, 5))
@@ -167,7 +168,7 @@ def RunGame():
           new_song = environment.SONGS_BY_ROOM[current_region][current_room]
           if new_song != current_song:
             current_song = new_song
-            pygame.mixer.music.fadeout(300)
+            pygame.mixer.music.fadeout(250)
             pygame.mixer.music.load(os.path.join('media', 'music', current_song))
             pygame.mixer.music.play(-1)
         else:
