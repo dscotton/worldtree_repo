@@ -109,7 +109,7 @@ class Powerup(pygame.sprite.Sprite):
 class HealthBoost(Powerup):
   
   HEALTH_BONUS = 10
-  SOUND = pygame.mixer.Sound(os.path.join(game_constants.MUSIC_DIR, 'jingle.ogg'))
+  SOUND = pygame.mixer.Sound(os.path.join(game_constants.MUSIC_DIR, 'item_get.ogg'))
   IMAGE_FILE = None
   IMAGE_FILES = 'lifeup*.png'
   
@@ -136,7 +136,7 @@ class HealthRestore(Powerup):
 
 class DoubleJump(Powerup):
   
-  SOUND = pygame.mixer.Sound(os.path.join(game_constants.MUSIC_DIR, 'jingle.ogg'))
+  SOUND = pygame.mixer.Sound(os.path.join(game_constants.MUSIC_DIR, 'item_get.ogg'))
   IMAGE = None
   
   def __init__(self, environment, position):
@@ -150,7 +150,7 @@ class DoubleJump(Powerup):
 class MoreSeeds(Powerup):
   """Powerup that increases the player's maximum ammo."""
 
-  SOUND = pygame.mixer.Sound(os.path.join(game_constants.MUSIC_DIR, 'jingle.ogg'))
+  SOUND = pygame.mixer.Sound(os.path.join(game_constants.MUSIC_DIR, 'item_get.ogg'))
   IMAGE_FILE = None
   IMAGE_FILES = 'ammoup*.png'
   
