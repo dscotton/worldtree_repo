@@ -36,7 +36,7 @@ class Powerup(pygame.sprite.Sprite):
 
   def __init__(self, environment, position, one_time=True, cleanup=False, sound=None):
     """Constructor.
-    
+
     Args:
       environment: Environment object this powerup appears in.
       position: Initial (x, y) tile position for this item.  The top left corner of the
@@ -108,7 +108,7 @@ class Powerup(pygame.sprite.Sprite):
     
 class HealthBoost(Powerup):
   
-  HEALTH_BONUS = 10
+  HEALTH_BONUS = 5
   SOUND = pygame.mixer.Sound(os.path.join(game_constants.MUSIC_DIR, 'item_get.ogg'))
   IMAGE_FILE = None
   IMAGE_FILES = 'lifeup*.png'

@@ -25,7 +25,7 @@ class Beaver(character.Character):
   STARTING_HP = 10
   SPEED = 1
   STARTING_MOVEMENT = [-SPEED, 0]
-  DAMAGE = 1
+  DAMAGE = 2
   IMAGES = None
   ITEM_DROPS = [powerup.HealthRestore, powerup.AmmoRestore]
   DROP_PROBABILITY = 20
@@ -46,7 +46,7 @@ class Beaver(character.Character):
     self.SetCurrentImage()
 
   def SetCurrentImage(self):
-    if self.movement[0] <= 0:
+    if self.direction == LEFT:
       self.image = self.walk_left_animation.NextFrame()
     else:
       self.image = self.walk_right_animation.NextFrame()
@@ -239,7 +239,7 @@ class Shooter(character.Character):
   
   WIDTH = 48
   HEIGHT = 96
-  STARTING_HP = 5
+  STARTING_HP = 4
   SPEED = 0
   MOVEMENT = [0, 0]
   DAMAGE = 1
@@ -667,15 +667,37 @@ class Baron(Beaver):
   DROP_PROBABILITY = 20
   WIDTH = 384
   HEIGHT = 240
+  REST_TIME = 60
+  VARIABLE_REST = 60
+  MOVE_TIME = 48
+
+  def __init__(self, environment, position):
+    self.move_frames = self.MOVE_TIME
+    self.rest_frames = 0
+    character.Character.__init__(self, environment, position)
+    self.last_movement = self.movement
 
   def GetMove(self):
     """Get the movement vector for the Beaver."""
-    return self.WalkBackAndForth()
+    if self.move_frames > 0:
+      self.move_frames -= 1
+      if self.move_frames == 0:
+        self.rest_frames = self.REST_TIME + random.randint(0, self.VARIABLE_REST)
+        self.last_movement = self.movement
+      self.movement = self.WalkBackAndForth()
+    else:
+      self.movement[0] = 0
+      self.rest_frames -= 1
+      if self.rest_frames == 0:
+        self.move_frames = self.MOVE_TIME
+        self.movement = self.last_movement
+    return self.movement
   
   def InitImage(self):
+    if Beaver.IMAGES is None:
+      Beaver.InitImage(self)
     if Baron.IMAGES is None:
-      Baron.IMAGES = character.LoadImages('beaver1*.png', scaled=True,
-                                           colorkey=game_constants.SPRITE_COLORKEY)
+      Baron.IMAGES = [pygame.transform.scale(i, (self.WIDTH, self.HEIGHT)) for i in Beaver.IMAGES]
       Baron.IMAGES_RIGHT = [pygame.transform.flip(i, 1, 0) for i in Baron.IMAGES]
     self.walk_left_animation = animation.Animation(Baron.IMAGES, framedelay=3)
     self.walk_right_animation = animation.Animation(Baron.IMAGES_RIGHT, framedelay=3)

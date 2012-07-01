@@ -219,11 +219,11 @@ class Character(pygame.sprite.Sprite):
 
   def WalkBackAndForth(self):
     """Get movement for walking back and forth on the current platform occupied."""
-    if self.movement[0] <= 0:
+    if self.direction == LEFT:
       self.Walk(LEFT)
       dest_tile = self.env.TileIndexForPoint(
           self.Hitbox().left + self.movement[0], self.Hitbox().bottom)
-    elif self.movement[0] > 0:
+    elif self.direction == RIGHT:
       self.Walk(RIGHT)
       dest_tile = self.env.TileIndexForPoint(
           self.Hitbox().right + self.movement[0], self.Hitbox().bottom)

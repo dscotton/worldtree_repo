@@ -54,7 +54,7 @@ class Hero(character.Character):
     TERMINAL_VELOCITY: Maximum rate at which you can fall.
   """
 
-  STARTING_HP = 1
+  STARTING_HP = 30
   DAMAGE = 2
   # Actual size will be determined by the current image surface, but this is a 
   # default and guideline.
@@ -63,7 +63,7 @@ class Hero(character.Character):
   SIZE = (WIDTH, HEIGHT)
   COLOR = (0x00, 0xFF, 0x66)
   ACCEL = 2
-  SPEED = 4
+  SPEED = 5
   JUMP_FORCE = 10
   JUMP_DURATION = 22
   GRAVITY = 2
