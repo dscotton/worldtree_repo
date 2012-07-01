@@ -10,11 +10,15 @@ import os
 
 import pygame
 
+import environment
 import game_constants
 
 REGION_NAMES = {
-  1: 'High Branches',
-  2: 'Inside the Trunk'
+  'photosynthesis.ogg': 'High Branches',
+  'foreboding_cave.ogg': 'Ruins of Asgard',
+  'nighttime.ogg': 'Inside the Trunk',
+  'ozor.ogg':  'Star Caves',
+  'bongo_wip.ogg': "The Baron's Lair",
 }
 
 class Statusbar(object):
@@ -59,7 +63,9 @@ class Statusbar(object):
     if self.region != self.player.env.region:
       self.region = self.player.env.region
       self.dirty = True
-    region_text = self.font.render(REGION_NAMES[self.region], False, game_constants.WHITE)
+    region_text = self.font.render(
+        REGION_NAMES[environment.SONGS_BY_ROOM[self.region][self.player.env.name]],
+        False, game_constants.WHITE)
     region_text_box = region_text.get_rect()
     region_text_box.top = 10
     region_text_box.right = game_constants.SCREEN_WIDTH - 10

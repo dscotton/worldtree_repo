@@ -171,9 +171,6 @@ class Hero(character.Character):
     """Handles user input to move the character and change his action."""
     if self.attacking:
       self.StopMoving()
-      self.attacking -= 1
-      if self.attacking == 0:
-        self.ResetAnimations()
 
     actions = controller.GetInput()
     if ((LEFT in actions and RIGHT in actions) or
@@ -197,6 +194,12 @@ class Hero(character.Character):
       self.Shoot()
     else:
       self.attack_ready = True
+
+    if self.attacking:
+      self.attacking -= 1
+      if self.attacking == 0:
+        self.ResetAnimations()
+
   
   def StopMoving(self):
     if self.movement[0] > 0:
