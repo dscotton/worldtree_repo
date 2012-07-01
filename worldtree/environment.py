@@ -68,7 +68,9 @@ SONGS = {
                             'Map26', 'Map27', 'Map28', 'Map29',]
   },
   2: {
-    'nighttime.ogg': ['Map%i' % i for i in range(31)]
+    'nighttime.ogg': ['Map%i' % i for i in range(24)],
+    'ozor.ogg':  ['Map%i' % i for i in range(25, 32)],
+    'bongo_wip.ogg': ['Map32']
   },
 }
 
@@ -88,7 +90,7 @@ BG_COLORS = {
                            'Map24', 'Map25', 'Map26', 'Map27', 'Map28', 'Map29',]
   },
   2: {
-    BLACK: ['Map%i' % i for i in range(31)]
+    BLACK: ['Map%i' % i for i in range(32)]
   },
 }
 

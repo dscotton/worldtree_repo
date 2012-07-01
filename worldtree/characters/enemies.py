@@ -499,17 +499,19 @@ class Slug(character.Character):
   DROP_PROBABILITY = 30
   WIDTH = 96
   HEIGHT = 48
+  HITBOX_WIDTH = 46
+  HITBOX_HEIGHT = 46
   REST_TIME = 20
   MOVE_TIME = 40
   GRAVITY = 0
   
   def __init__(self, environment, position):
     self.surface_vector = None
+    self.move_frames = self.MOVE_TIME
+    self.rest_frames = 0
     character.Character.__init__(self, environment, position)
     self.surface_vector = self.FindSurface()
     self.SetCurrentImage()
-    self.move_frames = self.MOVE_TIME
-    self.rest_frames = 0
   
   def InitImage(self):
     if Slug.MOVE_LEFT_IMAGES is None:
@@ -530,9 +532,15 @@ class Slug(character.Character):
 
   def SetCurrentImage(self):
     if self.direction == LEFT:
-      self.image = self.walk_left_animation.NextFrame()
+      if self.move_frames > 0:
+        self.image = self.walk_left_animation.NextFrame()
+      else:
+        self.image = self.idle_left_animation.NextFrame()
     else:
-      self.image = self.walk_right_animation.NextFrame()
+      if self.move_frames > 0:
+        self.image = self.walk_right_animation.NextFrame()
+      else:
+        self.image = self.idle_right_animation.NextFrame()
 
     # TODO: Make sure rotate doesn't transform in place.
     if self.surface_vector == (1, 0):
@@ -570,16 +578,21 @@ class Slug(character.Character):
         self.move_frames = self.MOVE_TIME
       return self.movement
 
-  def GetLeadingRect(self):
+  def Hitbox(self):
     """Return one-tile large rect of the leading edge of the slug."""
     if self.direction == LEFT:
       if self.surface_vector in ((-1, 0), (0, -1)):
-        return pygame.Rect((self.rect.left, self.rect.top), (game_constants.TILE_SIZE))
+        x, y = self.env.MapCoordinateForScreenPoint(self.rect.left, self.rect.top)
+        return pygame.Rect(x + 1, y + 1, self.HITBOX_WIDTH, self.HITBOX_HEIGHT)
       elif self.surface_vector in ((1, 0), (0, 1)):
-        leading_rect = pygame.Rect((0, 0), (game_constants.TILE_SIZE))
-        leading_rect.right = self.rect.right
-        leading_rect.bottom = self.rect.bottom
-        return leading_rect
+        x, y = self.env.MapCoordinateForScreenPoint(self.rect.right, self.rect.bottom)
+        hitbox = pygame.Rect((0, 0), (self.HITBOX_WIDTH, self.HITBOX_HEIGHT))
+        hitbox.right = x
+        hitbox.bottom = y
+        return hitbox
+      else:
+        x, y = self.env.MapCoordinateForScreenPoint(self.rect.left, self.rect.top)
+        return pygame.Rect((x+3, y+3), (self.WIDTH-6, self.HEIGHT-6))
 
   def TurnDownward(self):
     """Changes the surface direction downward relative to the current frame of reference.
