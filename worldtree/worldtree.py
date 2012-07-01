@@ -33,11 +33,11 @@ def RunGame():
   
   clock = pygame.time.Clock()
 
-  current_room = 'Map1'
+  current_room = 'Map2'
   current_region = 1
   env = environment.Environment(current_room, current_region)
   screen.blit(env.GetImage(), MAP_POSITION)
-  player = hero.Hero(env, position=(2, 6))
+  player = hero.Hero(env, position=(19, 17))
   player_group = pygame.sprite.RenderUpdates(player)
   enemy_group = env.enemy_group
   item_group = env.item_group
@@ -202,4 +202,4 @@ if __name__ == '__main__':
     try:
       RunGame()
     except GameOverException:
-      pass
+      environment.ReloadMaps()

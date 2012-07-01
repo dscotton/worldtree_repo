@@ -72,7 +72,7 @@ class Hero(character.Character):
   ATTACK_DURATION = 30
   SHOOTING_COOLDOWN = 30
   IS_PLAYER = True
-  HITBOX_LEFT_OFFSET = 5
+  HITBOX_LEFT_OFFSET = -20
   HITBOX_RIGHT_OFFSET = 19
 
   # Store surfaces in class variables so they're only loaded once.
@@ -131,11 +131,15 @@ class Hero(character.Character):
       return pygame.Rect(x + self.HITBOX_RIGHT_OFFSET, y + 1, 47, self.rect.height - 2)
 
   def Fallbox(self):
-    """Gets the character's fallbox, that shows the area they're standing on."""
+    """Gets the character's fallbox, that shows the area they're standing on.
+    
+    This box does not change size or position when the player attacks.
+    """
     x, y = self.env.MapCoordinateForScreenPoint(self.rect.left, self.rect.top)
     if self.direction == LEFT:
+      right_x = x + self.rect.width
       fallbox = pygame.Rect(x + self.HITBOX_LEFT_OFFSET, y + 1, 47, self.rect.height - 2)
-      fallbox.right = self.Hitbox().right
+      fallbox.right = right_x
     else:
       fallbox = pygame.Rect(x + self.HITBOX_RIGHT_OFFSET, y + 1, 47, self.rect.height - 2)
     return fallbox
@@ -169,6 +173,9 @@ class Hero(character.Character):
 
   def HandleInput(self):
     """Handles user input to move the character and change his action."""
+    if self.attacking == 2:
+      # TODO: delete this
+      pass
     if self.attacking:
       self.StopMoving()
 
@@ -272,10 +279,9 @@ class Hero(character.Character):
     # at handling cases where we don't want a different image for every possible state. This
     # way we can only apply animation logic when there are multiple frames to animate.
 
-    # Save right edge to maintain right-alignment if width changes and sprite is facing left.
-    # TODO: This could allow the character to penetrate walls with an attack, and if moving
-    # possibly end up inside the wall afterward?  Investigate whether it's a problem.
-    right = self.rect.right
+    # Save the original rect.  At the end of this method the fallbox should be exactly the same
+    # even if the image has changed direction or size.
+    initial_box = self.Fallbox()
     if LEFT == self.direction:
       if self.attacking > 0:
         self.image = self.ATTACK_LEFT_ANIMATION.NextFrame()
@@ -299,22 +305,13 @@ class Hero(character.Character):
       else:
         self.image = self.STAND_RIGHT_IMAGE
     self.FlickerIfInvulnerable()
-    
-    # Account for position changes due to different size sprites / different hitbox alignment.
     self.rect.width = self.image.get_width()
-    if self.direction == LEFT:
-      self.rect.right = right
-    if self.direction != self.last_state[1]:
-      if self.direction == LEFT:
-        self.rect.left += (self.HITBOX_RIGHT_OFFSET - self.HITBOX_LEFT_OFFSET)
-        if self.last_state[2] and not self.state[2]:
-          # Was attacking last frame, now we aren't
-          self.rect.left -= 72
-      else:
-        self.rect.left -= (self.HITBOX_RIGHT_OFFSET - self.HITBOX_LEFT_OFFSET)
-        if self.last_state[2] and not self.state[2]:
-          # Was attacking last frame, now we aren't
-          self.rect.left += 72
+
+    # Realign fallbox to original position
+    diff_x = initial_box.left - self.Fallbox().left
+    self.rect.left += diff_x
+    diff_y = initial_box.top - self.Fallbox().top
+    self.rect.top += diff_y
 
   def CollideWith(self, enemy):
     """Handle what happens when the player collides with an enemy."""
@@ -343,7 +340,9 @@ class Hero(character.Character):
 
   def update(self):
     self.SetCurrentImage()
+    print 'before ', self.Fallbox()
     new_rect = self.env.AttemptMove(self, self.movement)
+    print 'after  ', self.Fallbox()
     scroll_rect = self.env.ScreenRectForMapRect(self.Fallbox())
     scroll_vector = self.env.Scroll(scroll_rect)
     new_rect = new_rect.move(scroll_vector)

@@ -103,6 +103,14 @@ for region, bg_dict in BG_COLORS.iteritems():
       BG_COLORS_BY_ROOM[region][room] = color
 
 
+def ReloadMaps():
+  """Force reload of the map data from modules."""
+  reload(map_data)
+  reload(map_data2)
+  REGIONS[1] = map_data.map_data
+  REGIONS[2] = map_data2.map_data
+
+
 class Environment(object):
   """A game environment.
   
