@@ -60,6 +60,28 @@ N - shoot (requires ammo)
 
 Return - start
 """
+CREDITS = """
+You have defeated the Beaver
+Baron and brought peace to
+the World Tree.
+Congratulations!  Your name
+echoes through the canopy
+as all the creatures of the
+forest sing your praise.
+
+Fight, Seamus!  For
+everlasting peace!
+\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n
+
+WORLDTREE TEAM
+
+David Scotton
+Neal "Justin" Bailey
+Nicholas Collins
+\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n
+
+See you next mission!
+"""
 JOKE_INTRO_TEXT = """
 I first battled the beavers in
 northern Ontario. It was there
@@ -212,3 +234,7 @@ def ShowTitle(screen):
   title.ShowTitle(screen)
   intro = Title(text=CONTROLS_TEXT, text_speed=1, fade_rate=12)
   intro.ShowTitle(screen)
+
+def ShowCredits(screen):
+  credits = Title(text=CREDITS, text_speed=2)
+  credits.ShowTitle(screen)

@@ -49,3 +49,7 @@ SHOOT = 8
 
 class GameOverException(Exception):
   """Thrown to let the main loop know the player has died."""
+
+
+class GameWonException(Exception):
+  """Thrown when you win the game!"""

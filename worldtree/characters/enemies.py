@@ -658,7 +658,7 @@ class Slug(character.Character):
 class Baron(Beaver):
   """The ultimate enemy, the evil Beaver Baron."""
   
-  STARTING_HP = 100
+  STARTING_HP = 10
   SPEED = 6
   STARTING_MOVEMENT = [-SPEED, 0]
   DAMAGE = 1
@@ -671,6 +671,8 @@ class Baron(Beaver):
   VARIABLE_REST = 60
   MOVE_TIME = 48
 
+  DEATH_SOUND = pygame.mixer.Sound(os.path.join('media', 'music', 'win.ogg'))
+
   def __init__(self, environment, position):
     self.move_frames = self.MOVE_TIME
     self.rest_frames = 0
@@ -679,6 +681,9 @@ class Baron(Beaver):
 
   def GetMove(self):
     """Get the movement vector for the Beaver."""
+    if self.hp < 10:
+      self.SPEED = 12
+      self.REST_TIME = 0
     if self.move_frames > 0:
       self.move_frames -= 1
       if self.move_frames == 0:
@@ -702,3 +707,12 @@ class Baron(Beaver):
     self.walk_left_animation = animation.Animation(Baron.IMAGES, framedelay=3)
     self.walk_right_animation = animation.Animation(Baron.IMAGES_RIGHT, framedelay=3)
     self.SetCurrentImage()
+
+  def Die(self):
+    """This character dies."""
+    dying = character.Dying(self.rect, boss=True, sound=self.DEATH_SOUND)
+    dying.animation = animation.Animation(
+      [pygame.transform.scale(i, (self.WIDTH, self.HEIGHT)) for i in character.Dying.IMAGES],
+      looping=False, framedelay=3)
+    self.env.dying_animation_group.add(dying)
+    self.kill()

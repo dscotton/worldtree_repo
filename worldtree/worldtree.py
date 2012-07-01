@@ -64,7 +64,6 @@ def RunGame():
                                              collided=character.CollideCharacters)
     for enemy in collisions:
       player.CollideWith(enemy)
-    # TODO: Powerup hitbox is too big
     item_pickups = pygame.sprite.spritecollide(player, item_group, False, 
                                                collided=powerup.CollideSprites)
     for item in item_pickups:
@@ -82,7 +81,12 @@ def RunGame():
     player_group.update()
     enemy_group.update()
     item_group.update()
-    env.dying_animation_group.update()
+    try:
+      env.dying_animation_group.update()
+    except GameWonException:
+      print 'You won!'
+      titlescreen.ShowCredits(screen)
+      raise GameOverException()
     env.hero_projectile_group.update()
     env.enemy_projectile_group.update()
     refresh_map = env.dirty

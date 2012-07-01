@@ -301,7 +301,7 @@ class Dying(pygame.sprite.Sprite):
 
   IMAGES = None
   
-  def __init__(self, rect, player=False, sound=None):
+  def __init__(self, rect, player=False, boss=False, sound=None):
     """Constructor.
     
     Args:
@@ -313,7 +313,9 @@ class Dying(pygame.sprite.Sprite):
     self.rect.centerx, self.rect.centery = rect.centerx, rect.centery
     self.death_frames = 20
     self.player = player
-    if player:
+    self.boss = boss
+    if player or boss:
+      print 'boss dying!'
       pygame.mixer.music.fadeout(500)
       self.channel = sound.play()
   
@@ -328,15 +330,22 @@ class Dying(pygame.sprite.Sprite):
     return pygame.Rect((0, 0), (0, 0))
 
   def SetCurrentImage(self):
+    print 'death animation!'
     self.image = self.animation.NextFrame()
   
   def update(self):
     self.SetCurrentImage()
     if self.death_frames == 0:
+      'character is disappearing!'
       self.kill()
       if self.player:
         while self.channel.get_busy():
           time.sleep(0.1)
         raise game_constants.GameOverException()
+      elif self.boss:
+        'boss dying!'
+        while self.channel.get_busy():
+          time.sleep(0.1)
+        raise game_constants.GameWonException()
     else:
       self.death_frames -= 1
