@@ -29,8 +29,8 @@ ENEMIES = {
   2: enemies.Dragonfly,
   3: enemies.BoomBug,
   4: enemies.Shooter,
-  5: enemies.PipeBug,
-  6: enemies.BugPipe,
+  5: enemies.BugPipe,
+  6: enemies.PipeBug,
   7: enemies.Batzor,
   8: enemies.BiterPipe,
   9: enemies.Biter,
@@ -175,7 +175,6 @@ class Environment(object):
 
         mapcode = map_info['mapcodes'][row][col]
         if mapcode != 0:
-          print mapcode
           if mapcode in ENEMIES:
             self.enemy_group.add(ENEMIES[mapcode](self, (col, row)))
           elif mapcode in ITEMS:
@@ -400,14 +399,16 @@ class Environment(object):
       vector: (x, y) vector for the direction to check.  This can be used to check if the
         movement would still be attached to a wall for enemies with weird move patterns.
     """
-    dest = rect.move((0, 1))
+    dest = rect.move(vector)
     old_tiles = self.TilesForRect(rect)
     new_tiles = [tile for tile in self.TilesForRect(dest) if tile not in old_tiles]
     for col, row in new_tiles:
       if col < 0 or col >= self.width:
         continue
-      if row >= self.height:
+      if row < 0:
         return False
+      if row >= self.height:
+        return True
       try:
         if self.grid[col][row].solid_top:
           return True

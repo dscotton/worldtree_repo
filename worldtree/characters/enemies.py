@@ -378,7 +378,7 @@ class BugPipe(character.Character):
   def Hitbox(self):
     """Can't be hit."""
     return pygame.Rect(0, 0, 0, 0)
-  
+
   def GetMove(self):
     return self.movement
 
@@ -488,7 +488,7 @@ class Batzor(character.Character):
 
 
 class Slug(character.Character):
-  """Class for the notorious primary foe, the Slug."""
+  """Class for the creepy crawly Slug."""
   
   STARTING_HP = 6
   SPEED = 1
@@ -501,18 +501,17 @@ class Slug(character.Character):
   HEIGHT = 48
   HITBOX_WIDTH = 46
   HITBOX_HEIGHT = 46
-  REST_TIME = 20
-  MOVE_TIME = 40
-  GRAVITY = 0
+  REST_TIME = 60
+  VARIABLE_REST = 60
+  MOVE_TIME = 48
   
   def __init__(self, environment, position):
-    self.surface_vector = None
+#    self.surface_vector = None
     self.move_frames = self.MOVE_TIME
     self.rest_frames = 0
     character.Character.__init__(self, environment, position)
-    self.surface_vector = self.FindSurface()
-    self.SetCurrentImage()
-  
+#    self.SetCurrentImage()
+
   def InitImage(self):
     if Slug.MOVE_LEFT_IMAGES is None:
       Slug.IDLE_LEFT_IMAGES = character.LoadImages('slug000*.png', scaled=True,
@@ -541,59 +540,65 @@ class Slug(character.Character):
         self.image = self.walk_right_animation.NextFrame()
       else:
         self.image = self.idle_right_animation.NextFrame()
-
+    '''
     # TODO: Make sure rotate doesn't transform in place.
     if self.surface_vector == (1, 0):
-      self.image = self.image.rotate(90)
+      self.image = pygame.transform.rotate(self.image, 90)
     elif self.surface_vector == (0, 1):
-      self.image = self.image.rotate(180)
+      self.image = pygame.transform.rotate(self.image, 180)
     elif self.surface_vector == (-1, 0):
-      self.image = self.image.rotate(270)
+      self.image = pygame.transform.rotate(self.image, 270)
 
   def FindSurface(self):
     """If touching a surface, return a vector pointing to it, otherwise return None."""
     for vector in ((0, 1), (-1, 0), (0, -1), (1, 0)):
       if self.env.IsRectSupported(self.Hitbox(), vector=vector):
+        print 'Surface in direction: %s for rect %s' % (vector, self.Hitbox())
         return vector
     return None
+    '''
 
   def GetMove(self):
     """Inch along the wall."""
-    if self.surface_vector is None:
-      self.FindSurface()
-      if self.surface_vector is None:
-        self.movement = [0, 8]
-        return self.movement
+#    if self.surface_vector is None:
+#      self.surface_vector = self.FindSurface()
+#      if self.surface_vector is None:
+#        self.movement = [0, 8]
     if self.move_frames > 0:
       self.move_frames -= 1
       if self.move_frames == 0:
         self.rest_frames = self.REST_TIME + random.randint(0, self.VARIABLE_REST)
-      return self.WalkBackAndForthAndAround()
+      self.movement = self.WalkBackAndForth()
+#      self.movement = self.WalkBackAndForthAndAround()
     else:
       # TODO: make gravity work if not supported
       self.movement = [0, 0]
       self.rest_frames -= 1
       if self.rest_frames == 0:
-        self.vector = [-self.vector[1], self.vector[0]]
         self.move_frames = self.MOVE_TIME
-      return self.movement
+        self.movement = self.WalkBackAndForth()
+#        self.movement = self.WalkBackAndForthAndAround()
+
+    return self.movement
 
   def Hitbox(self):
     """Return one-tile large rect of the leading edge of the slug."""
     if self.direction == LEFT:
-      if self.surface_vector in ((-1, 0), (0, -1)):
-        x, y = self.env.MapCoordinateForScreenPoint(self.rect.left, self.rect.top)
-        return pygame.Rect(x + 1, y + 1, self.HITBOX_WIDTH, self.HITBOX_HEIGHT)
-      elif self.surface_vector in ((1, 0), (0, 1)):
-        x, y = self.env.MapCoordinateForScreenPoint(self.rect.right, self.rect.bottom)
-        hitbox = pygame.Rect((0, 0), (self.HITBOX_WIDTH, self.HITBOX_HEIGHT))
-        hitbox.right = x
-        hitbox.bottom = y
-        return hitbox
-      else:
-        x, y = self.env.MapCoordinateForScreenPoint(self.rect.left, self.rect.top)
-        return pygame.Rect((x+3, y+3), (self.WIDTH-6, self.HEIGHT-6))
-
+#      if self.surface_vector in ((1, 0), (0, 1)):
+#        x, y = self.env.MapCoordinateForScreenPoint(self.rect.right, self.rect.bottom)
+#        hitbox = pygame.Rect((0, 0), (self.HITBOX_WIDTH, self.HITBOX_HEIGHT))
+#        hitbox.right = x
+#        hitbox.bottom = y
+#        return hitbox
+#      else:
+      x, y = self.env.MapCoordinateForScreenPoint(self.rect.left, self.rect.top)
+      return pygame.Rect(x + 1, y + 1, self.HITBOX_WIDTH, self.HITBOX_HEIGHT)
+    else:
+      x, y = self.env.MapCoordinateForScreenPoint(self.rect.left, self.rect.top)
+      return pygame.Rect(x + 1 + (self.WIDTH - self.HITBOX_WIDTH),
+                         y + 1, self.HITBOX_WIDTH, self.HITBOX_HEIGHT)
+      
+  '''
   def TurnDownward(self):
     """Changes the surface direction downward relative to the current frame of reference.
     
@@ -626,10 +631,11 @@ class Slug(character.Character):
     elif self.direction == RIGHT:
       self.movement = [self.SPEED * self.surface_vector[1],
                        self.SPEED * self.surface_vector[0]]
-    movebox = self.env.MapRectForScreenRect(self.GetLeadingRect())
-    dest = movebox.move(self.movement)
+    print self.movement, self.Hitbox()
+    dest = self.Hitbox().move(self.movement)
 
     if not self.env.IsRectSupported(dest, vector=self.surface_vector):
+      print 'Turning downward, %s not supported in direction %s' % (dest, self.surface_vector)
       self.TurnDownward()
 
     elif not self.env.IsMoveLegal(self, self.movement):
@@ -638,7 +644,7 @@ class Slug(character.Character):
 
     # TODO: Add logic for turning around if no legal moves.      
     return self.movement
-
+  '''
 
 class Baron(Beaver):
   """The ultimate enemy, the evil Beaver Baron."""

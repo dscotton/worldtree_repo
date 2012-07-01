@@ -37,7 +37,7 @@ def RunGame():
   env = environment.Environment(current_room, current_region)
   screen.blit(env.GetImage(), MAP_POSITION)
   player = hero.Hero(env, position=(17, 26))
-#  player = hero.Hero(env, position=(2, 5))
+#  player = hero.Hero(env, position=(3, 10))
   player_group = pygame.sprite.RenderUpdates(player)
   enemy_group = env.enemy_group
   item_group = env.item_group
