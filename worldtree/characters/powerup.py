@@ -19,6 +19,7 @@ import animation
 import character
 import game_constants
 import map_data
+import map_data2
 
 class Powerup(pygame.sprite.Sprite):
   """An item picked up by the player that has an effect on his stats.
@@ -100,7 +101,10 @@ class Powerup(pygame.sprite.Sprite):
       pygame.mixer.music.unpause()
     self.Use(player)
     if self.cleanup:
-      map_data.map_data[self.env.name]['mapcodes'][self.row][self.col] = 0
+      if self.env.region == 1:
+        map_data.map_data[self.env.name]['mapcodes'][self.row][self.col] = 0
+      elif self.env.region == 2:
+        map_data2.map_data[self.env.name]['mapcodes'][self.row][self.col] = 0
     if self.one_time:
       self.env.dirty = True  # Needed to make the image vanish right away.
       self.kill()
