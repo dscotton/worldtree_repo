@@ -29,16 +29,16 @@ def RunGame():
   pygame.display.set_caption(GAME_NAME)
   screen = pygame.display.set_mode(SCREEN_SIZE)
   screen.fill(BLACK)
-#  titlescreen.ShowTitle(screen)
+  titlescreen.ShowTitle(screen)
   
   clock = pygame.time.Clock()
 
-  current_room = 'Map31'
-  current_region = 2
+  current_room = 'Map1'
+  current_region = 1
   env = environment.Environment(current_room, current_region)
   screen.blit(env.GetImage(), MAP_POSITION)
-  player = hero.Hero(env, position=(51, 10))
-#  player = hero.Hero(env, position=(3, 10))
+#  player = hero.Hero(env, position=(51, 10))
+  player = hero.Hero(env, position=(2, 6))
   player_group = pygame.sprite.RenderUpdates(player)
   enemy_group = env.enemy_group
   item_group = env.item_group

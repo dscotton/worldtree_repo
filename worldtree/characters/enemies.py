@@ -658,10 +658,10 @@ class Slug(character.Character):
 class Baron(Beaver):
   """The ultimate enemy, the evil Beaver Baron."""
   
-  STARTING_HP = 10
+  STARTING_HP = 100
   SPEED = 6
   STARTING_MOVEMENT = [-SPEED, 0]
-  DAMAGE = 1
+  DAMAGE = 3
   IMAGES = None
   ITEM_DROPS = [powerup.HealthRestore, powerup.AmmoRestore]
   DROP_PROBABILITY = 20
@@ -684,6 +684,7 @@ class Baron(Beaver):
     if self.hp < 10:
       self.SPEED = 12
       self.REST_TIME = 0
+      self.VARIABLE_REST = 30
     if self.move_frames > 0:
       self.move_frames -= 1
       if self.move_frames == 0:

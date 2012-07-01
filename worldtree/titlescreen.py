@@ -140,7 +140,7 @@ we're making soup tonight."""
 class Title(object):
   """Class representing a screen showing some combination of image, text, and music."""
   
-  def __init__(self, image=None, music=None, text=None, text_speed=6, fade_rate=4, frame_delay=0):
+  def __init__(self, image=None, music=None, text=None, text_speed=4, fade_rate=4, frame_delay=0):
     """Constructor.
     
     Args:
@@ -230,11 +230,11 @@ class Title(object):
 
 def ShowTitle(screen):
   title_background = pygame.image.load(os.path.join('media', INTRO_IMAGE)).convert()
-  title = Title(text=INTRO_TEXT, image=title_background, music='june_breeze.ogg', frame_delay=60)
+  title = Title(text=INTRO_TEXT, image=title_background, music='june_breeze.ogg', frame_delay=120)
   title.ShowTitle(screen)
   intro = Title(text=CONTROLS_TEXT, text_speed=1, fade_rate=12)
   intro.ShowTitle(screen)
 
 def ShowCredits(screen):
-  credits = Title(text=CREDITS, text_speed=2)
+  credits = Title(text=CREDITS, music='june_breeze_2.ogg', text_speed=2)
   credits.ShowTitle(screen)
