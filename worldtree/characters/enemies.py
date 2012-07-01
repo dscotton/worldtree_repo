@@ -340,15 +340,24 @@ class PipeBug(character.Character):
   def GetMove(self):
     return self.movement
 
+  def CollisionPushback(self, other):
+    """Calculate and apply a movement vector for being hit by another character."""
+    pushback_x = self.rect.centerx - other.rect.centerx
+    pushback_y = self.rect.centery - other.rect.centery
+    pushback_scalar = other.PUSHBACK / (float(pushback_x ** 2 + pushback_y ** 2) ** 0.5)
+    self.rect.left += int(pushback_x * pushback_scalar)
+    self.rect.top += int(pushback_y * pushback_scalar)
+
   def update(self):
     if not self.env.IsMoveLegal(self, self.GetMove()):
       self.kill()
     else:
       self.rect = self.rect.move(self.GetMove())
       self.SetCurrentImage()
+      self.FlickerIfInvulnerable()
       if self.invulnerable > 0:
         self.invulnerable -= 1
-
+  
 
 class BugPipe(character.Character):
   """Enemy that spawns a stream of PipeBugs."""
@@ -572,7 +581,7 @@ class Slug(character.Character):
 #      self.movement = self.WalkBackAndForthAndAround()
     else:
       # TODO: make gravity work if not supported
-      self.movement = [0, 0]
+      self.movement[0] = 0
       self.rest_frames -= 1
       if self.rest_frames == 0:
         self.move_frames = self.MOVE_TIME

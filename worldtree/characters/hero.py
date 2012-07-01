@@ -54,7 +54,7 @@ class Hero(character.Character):
     TERMINAL_VELOCITY: Maximum rate at which you can fall.
   """
 
-  STARTING_HP = 30
+  STARTING_HP = 1
   DAMAGE = 2
   # Actual size will be determined by the current image surface, but this is a 
   # default and guideline.
@@ -88,6 +88,7 @@ class Hero(character.Character):
   # Some sounds
   ATTACK_SOUND = pygame.mixer.Sound(os.path.join('media', 'sfx', 'attack.wav'))
   JUMP_SOUND = pygame.mixer.Sound(os.path.join('media', 'sfx', 'jump.wav'))
+  DEATH_SOUND = pygame.mixer.Sound(os.path.join('media', 'music', 'game_over.ogg'))
     
   def __init__(self, environment, position=(0, 0)):
     character.Character.__init__(self, environment, position)
@@ -341,3 +342,11 @@ class Hero(character.Character):
     # ticked down every frame.
     self.shooting_cooldown -= 1
     self.last_state = self.state
+
+  def Die(self):
+    """Game over, man."""
+    self.invulnerable = 2**31
+    self.env.dying_animation_group.add(character.Dying(self.rect, player=True,
+                                                       sound=self.DEATH_SOUND))
+    self.kill()
+    

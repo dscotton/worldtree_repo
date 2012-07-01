@@ -9,6 +9,7 @@ Created on Jun 11, 2012
 import glob
 import os
 import random
+import time
 
 import pygame
 
@@ -300,7 +301,7 @@ class Dying(pygame.sprite.Sprite):
 
   IMAGES = None
   
-  def __init__(self, rect):
+  def __init__(self, rect, player=False, sound=None):
     """Constructor.
     
     Args:
@@ -311,6 +312,10 @@ class Dying(pygame.sprite.Sprite):
     self.rect = pygame.Rect((0, 0), self.image.get_size())
     self.rect.centerx, self.rect.centery = rect.centerx, rect.centery
     self.death_frames = 20
+    self.player = player
+    if player:
+      pygame.mixer.music.fadeout(500)
+      self.channel = sound.play()
   
   def InitImage(self):
     if Dying.IMAGES is None:
@@ -329,5 +334,9 @@ class Dying(pygame.sprite.Sprite):
     self.SetCurrentImage()
     if self.death_frames == 0:
       self.kill()
+      if self.player:
+        while self.channel.get_busy():
+          time.sleep(0.1)
+        raise game_constants.GameOverException()
     else:
       self.death_frames -= 1

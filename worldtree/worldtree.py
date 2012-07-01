@@ -17,6 +17,7 @@ pygame.init()
 from characters import character
 from characters import hero
 from characters import powerup
+import controller
 import environment
 from game_constants import *
 import map_data
@@ -106,6 +107,16 @@ def RunGame():
     if status.dirty:
       dirty_rects.append(pygame.Rect(0, 0, SCREEN_WIDTH, MAP_Y))
       status.dirty = False
+    if len(player_group) == 0:
+      # Player is dead
+      font = pygame.font.Font(os.path.join('media', 'font', FONT), 24)
+      game_over_text = font.render('Game Over', False, WHITE)
+      game_over_text_box = game_over_text.get_rect()
+      game_over_text_box.centerx = SCREEN_WIDTH / 2
+      game_over_text_box.centery = SCREEN_HEIGHT / 2
+      screen.blit(game_over_text, game_over_text_box)
+      dirty_rects.append(game_over_text_box)
+      
     pygame.display.update(dirty_rects)
       
     # Check if character is leaving the area and make the transition.
@@ -184,4 +195,8 @@ def RunGame():
 if __name__ == '__main__':
   # Set up dir correctly - required for compiled .exe to work reliably
   os.chdir(os.path.dirname(sys.argv[0]))
-  RunGame()
+  while True:
+    try:
+      RunGame()
+    except GameOverException:
+      pass

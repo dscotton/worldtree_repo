@@ -45,3 +45,7 @@ JUMP = 5
 ATTACK = 6
 START = 7
 SHOOT = 8
+
+
+class GameOverException(Exception):
+  """Thrown to let the main loop know the player has died."""
