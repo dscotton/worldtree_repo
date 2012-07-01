@@ -116,6 +116,13 @@ class Character(pygame.sprite.Sprite):
     x, y = self.env.MapCoordinateForScreenPoint(self.rect.left, self.rect.top)
     # TODO: Make these offsets constants so they can be configured per-class?
     return pygame.Rect(x + 1, y + 1, self.rect.width - 2, self.rect.height - 2)
+  
+  def Fallbox(self):
+    """Hitbox for the purpose of calculating falls rather than hits.
+    
+    Same as hitbox for most characters, but can be overriden (for the player).
+    """
+    return self.Hitbox()
 
   def SenseAndReturnHitbox(self, player):
     """Allows the character to be aware of the player's position, and then returns hitbox.
@@ -181,7 +188,6 @@ class Character(pygame.sprite.Sprite):
     """Take a hit for a given amount of damage."""
     self.HIT_SOUND.play()
     self.hp -= damage
-    print self.hp
     if self.hp <= 0:
       self.Die()
     else:
@@ -206,7 +212,6 @@ class Character(pygame.sprite.Sprite):
     pushback_scalar = other.PUSHBACK / (float(pushback_x ** 2 + pushback_y ** 2) ** 0.5)
     self.movement[0] += int(pushback_x * pushback_scalar)
     self.movement[1] += int(pushback_y * pushback_scalar)
-    print '%s is getting knocked back! %s' % (type(self), self.movement)
 
   def RaiseMaxHp(self, amount):
     """Raises the character's max HP and also recovers their current HP by the same amount."""
@@ -238,7 +243,7 @@ class Character(pygame.sprite.Sprite):
   def update(self):
     new_rect = self.env.AttemptMove(self, self.GetMove())
     self.rect = new_rect
-    if self.env.IsRectSupported(self.Hitbox()):
+    if self.env.IsRectSupported(self.Fallbox()):
       self.Supported()
     else:
       self.Gravity()
@@ -315,7 +320,6 @@ class Dying(pygame.sprite.Sprite):
     self.player = player
     self.boss = boss
     if player or boss:
-      print 'boss dying!'
       pygame.mixer.music.fadeout(500)
       self.channel = sound.play()
   
@@ -330,13 +334,11 @@ class Dying(pygame.sprite.Sprite):
     return pygame.Rect((0, 0), (0, 0))
 
   def SetCurrentImage(self):
-    print 'death animation!'
     self.image = self.animation.NextFrame()
   
   def update(self):
     self.SetCurrentImage()
     if self.death_frames == 0:
-      'character is disappearing!'
       self.kill()
       if self.player:
         while self.channel.get_busy():

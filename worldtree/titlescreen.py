@@ -190,7 +190,7 @@ class Title(object):
     text_array = []
     lines = self.text.splitlines()
   
-    while controller.START not in controller.GetInput() or (self.frame_delay - frame) > -30:
+    while controller.START not in controller.GetInput() or (self.frame_delay + frame) < 30:
       # Frame count is there because otherwise having multiple Titles in sequence is impossible
       # because one keypress skips the second one.
       if pygame.QUIT in (event.type for event in pygame.event.get()):

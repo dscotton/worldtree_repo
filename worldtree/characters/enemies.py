@@ -231,6 +231,7 @@ class BoomBug(character.Character):
     self.SetCurrentImage()
     if self.invulnerable > 0:
       self.invulnerable -= 1
+    self.FlickerIfInvulnerable()
     self.last_state = self.state
 
 
@@ -292,6 +293,7 @@ class Shooter(character.Character):
     self.SetCurrentImage()
     if self.invulnerable > 0:
       self.invulnerable -= 1
+    self.FlickerIfInvulnerable()
     self.last_state = self.state
 
 

@@ -257,7 +257,7 @@ class Environment(object):
       the environment.
     """
     # Hack to work around the environment not beginning at the top of the screen
-    hitbox = sprite.Hitbox()
+    hitbox = sprite.Fallbox()
     dest = hitbox.move(vector)
     new_vector = list(vector)
     # Figure out which tiles contain the old and new position.
@@ -460,6 +460,8 @@ class Environment(object):
       enemy.rect = enemy.rect.move(scroll_vector)
     for item in self.item_group:
       item.rect = item.rect.move(scroll_vector)
+    for animation in self.dying_animation_group:
+      animation.rect = animation.rect.move(scroll_vector)
     for bullet in self.hero_projectile_group:
       bullet.rect = bullet.rect.move(scroll_vector)
     for bullet in self.enemy_projectile_group:

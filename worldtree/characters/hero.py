@@ -105,6 +105,7 @@ class Hero(character.Character):
     # This should start at 1 and be upgraded by an item.
     self.max_jumps = 1
     self.remaining_jumps = self.max_jumps
+    self.attack_ready = True
     self.attacking = 0
     self.shooting_cooldown = 0
     self.ammo = 0
@@ -128,6 +129,16 @@ class Hero(character.Character):
       return pygame.Rect(x + self.HITBOX_LEFT_OFFSET, y + 1, 47, self.rect.height - 2)
     else:
       return pygame.Rect(x + self.HITBOX_RIGHT_OFFSET, y + 1, 47, self.rect.height - 2)
+
+  def Fallbox(self):
+    """Gets the character's fallbox, that shows the area they're standing on."""
+    x, y = self.env.MapCoordinateForScreenPoint(self.rect.left, self.rect.top)
+    if self.direction == LEFT:
+      fallbox = pygame.Rect(x + self.HITBOX_LEFT_OFFSET, y + 1, 47, self.rect.height - 2)
+      fallbox.right = self.Hitbox().right
+    else:
+      fallbox = pygame.Rect(x + self.HITBOX_RIGHT_OFFSET, y + 1, 47, self.rect.height - 2)
+    return fallbox
 
   def InitImage(self):
     # Walking animation
@@ -178,10 +189,14 @@ class Hero(character.Character):
     else:
       self.StopUpwardMovement()
       self.jump_ready = True
-    if ATTACK in actions and self.attacking <= 0:
-      self.Attack()
+    if ATTACK in actions:
+      if self.attacking <= 0:
+        self.Attack()
+        self.attack_ready = False
     elif SHOOT in actions and self.attacking <= 0 and self.shooting_cooldown <= 0 and self.ammo > 0:
       self.Shoot()
+    else:
+      self.attack_ready = True
   
   def StopMoving(self):
     if self.movement[0] > 0:
@@ -226,8 +241,9 @@ class Hero(character.Character):
     
   def Attack(self):
     """Initiate an attack action."""
-    self.ATTACK_SOUND.play()
-    self.attacking = self.ATTACK_DURATION
+    if self.attack_ready:
+      self.ATTACK_SOUND.play()
+      self.attacking = self.ATTACK_DURATION
     
   def Shoot(self):
     """Fire a projectile."""
@@ -329,8 +345,9 @@ class Hero(character.Character):
     scroll_vector = self.env.Scroll(scroll_rect)
     new_rect = new_rect.move(scroll_vector)
     self.rect = new_rect
-    if (self.env.IsRectSupported(self.Hitbox())
-        or self.env.IsRectSupported(self.Hitbox().move(self.movement[0], 0))):  # Second part needed for wall jumping
+    if (self.env.IsRectSupported(self.Fallbox())
+        or self.env.IsRectSupported(self.Fallbox().move(self.movement[0], 0))):
+      # Second part needed for wall jumping
       self.Supported()
     elif self.vertical != character.JUMP:
       # If not supported and not jumping, handle FALL status.
