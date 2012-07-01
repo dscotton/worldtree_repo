@@ -25,7 +25,7 @@ class Beaver(character.Character):
   STARTING_HP = 10
   SPEED = 1
   STARTING_MOVEMENT = [-SPEED, 0]
-  DAMAGE = 2
+  DAMAGE = 5
   IMAGES = None
   ITEM_DROPS = [powerup.HealthRestore, powerup.AmmoRestore]
   DROP_PROBABILITY = 20
@@ -59,7 +59,7 @@ class Dragonfly(character.Character):
   SPEED = 16
   GRAVITY = 0
   STARTING_MOVEMENT = [0, 0]
-  DAMAGE = 1
+  DAMAGE = 3
   REST_TIME = 40
   VARIABLE_REST = 20  # Random amount in this interval
   HORIZONTAL_MOVE_TIME = 15
@@ -125,7 +125,7 @@ class BoomBug(character.Character):
   STARTING_MOVEMENT = [-SPEED, 0]
   DAMAGE = 1
   TRIGGER_RADIUS = 160
-  EXPLODING_DAMAGE = 5
+  EXPLODING_DAMAGE = 10
   EXPLODING_PUSHBACK = 48
   EXPLODING_DELAY = 90
   EXPLODING_FRAMES = 40
@@ -504,7 +504,7 @@ class Slug(character.Character):
   STARTING_HP = 6
   SPEED = 1
   STARTING_MOVEMENT = [-SPEED, 0]
-  DAMAGE = 3
+  DAMAGE = 10
   MOVE_LEFT_IMAGES = None
   ITEM_DROPS = [powerup.HealthRestore, powerup.AmmoRestore]
   DROP_PROBABILITY = 30

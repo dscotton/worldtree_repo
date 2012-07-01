@@ -122,7 +122,7 @@ class HealthBoost(Powerup):
 
 class HealthRestore(Powerup):
   
-  HEALTH_BONUS = 10
+  HEALTH_BONUS = 3
   IMAGE_FILE = None
   IMAGE_FILES = 'healthrestore*.png'
 
@@ -158,8 +158,8 @@ class MoreSeeds(Powerup):
     Powerup.__init__(self, environment, position, cleanup=True, sound=MoreSeeds.SOUND)
 
   def Use(self, player):
-    player.max_ammo += 5
-    player.ammo = min(player.max_ammo, player.ammo + 5)
+    player.max_ammo += 2
+    player.ammo = min(player.max_ammo, player.ammo + 2)
 
 
 class AmmoRestore(Powerup):
@@ -172,7 +172,7 @@ class AmmoRestore(Powerup):
     Powerup.__init__(self, environment, position)
 
   def Use(self, player):
-    player.ammo = min(player.max_ammo, player.ammo + 5)
+    player.ammo = min(player.max_ammo, player.ammo + 2)
 
 
 class Lava(Powerup):
