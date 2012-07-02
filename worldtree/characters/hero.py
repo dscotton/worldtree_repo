@@ -60,6 +60,7 @@ class Hero(character.Character):
   # default and guideline.
   WIDTH = 72
   HEIGHT = 96
+  STAND_WIDTH = 47
   SIZE = (WIDTH, HEIGHT)
   COLOR = (0x00, 0xFF, 0x66)
   ACCEL = 2
@@ -91,6 +92,7 @@ class Hero(character.Character):
   DEATH_SOUND = pygame.mixer.Sound(os.path.join('media', 'music', 'game_over.ogg'))
     
   def __init__(self, environment, position=(0, 0)):
+    self._direction = None
     character.Character.__init__(self, environment, position)
   
     # Load the sprite graphics once so we don't need to reload on the fly.
@@ -116,6 +118,24 @@ class Hero(character.Character):
   def state(self):
     return (self.action, self.direction, self.attacking)
 
+  @property
+  def direction(self):
+    return self._direction
+  
+  @direction.setter
+  def direction(self, new_direction):
+    if new_direction != self._direction and self._direction is not None:
+      original_box = self.Fallbox()
+      self._direction = new_direction
+      if new_direction == LEFT:
+        right, top = self.env.ScreenCoordinateForMapPoint(original_box.right, original_box.top)
+        self.rect.right = right - self.HITBOX_LEFT_OFFSET
+      else:
+        left, top = self.env.ScreenCoordinateForMapPoint(original_box.left, original_box.top)
+        self.rect.left = left - self.HITBOX_RIGHT_OFFSET
+    else:
+      self._direction = new_direction
+  
   def Hitbox(self):
     """Gets the Map hitbox for the sprite, which is relative to the map rather than the screen.
     
@@ -126,9 +146,9 @@ class Hero(character.Character):
     if self.attacking:
       return pygame.Rect(x + 1, y + 1, self.rect.width - 2, self.rect.height - 2)
     elif self.direction == LEFT:
-      return pygame.Rect(x + self.HITBOX_LEFT_OFFSET, y + 1, 47, self.rect.height - 2)
+      return pygame.Rect(x +10, y + 1, 50, self.rect.height - 2)
     else:
-      return pygame.Rect(x + self.HITBOX_RIGHT_OFFSET, y + 1, 47, self.rect.height - 2)
+      return pygame.Rect(x + 10, y + 1, 52, self.rect.height - 2)
 
   def Fallbox(self):
     """Gets the character's fallbox, that shows the area they're standing on.
@@ -137,11 +157,11 @@ class Hero(character.Character):
     """
     x, y = self.env.MapCoordinateForScreenPoint(self.rect.left, self.rect.top)
     if self.direction == LEFT:
-      right_x = x + self.rect.width
-      fallbox = pygame.Rect(x + self.HITBOX_LEFT_OFFSET, y + 1, 47, self.rect.height - 2)
-      fallbox.right = right_x
+      fallbox = pygame.Rect(x + self.HITBOX_LEFT_OFFSET + self.rect.width - self.STAND_WIDTH, y + 1,
+                            self.STAND_WIDTH, self.rect.height - 2)
     else:
-      fallbox = pygame.Rect(x + self.HITBOX_RIGHT_OFFSET, y + 1, 47, self.rect.height - 2)
+      fallbox = pygame.Rect(x + self.HITBOX_RIGHT_OFFSET, y + 1,
+                            self.STAND_WIDTH, self.rect.height - 2)
     return fallbox
 
   def InitImage(self):
@@ -173,9 +193,6 @@ class Hero(character.Character):
 
   def HandleInput(self):
     """Handles user input to move the character and change his action."""
-    if self.attacking == 2:
-      # TODO: delete this
-      pass
     if self.attacking:
       self.StopMoving()
 
@@ -282,6 +299,7 @@ class Hero(character.Character):
     # Save the original rect.  At the end of this method the fallbox should be exactly the same
     # even if the image has changed direction or size.
     initial_box = self.Fallbox()
+#    initial_width = self.rect.width
     if LEFT == self.direction:
       if self.attacking > 0:
         self.image = self.ATTACK_LEFT_ANIMATION.NextFrame()
@@ -308,7 +326,10 @@ class Hero(character.Character):
     self.rect.width = self.image.get_width()
 
     # Realign fallbox to original position
-    diff_x = initial_box.left - self.Fallbox().left
+    if LEFT == self.direction:
+      diff_x = initial_box.right - self.Fallbox().right
+    elif RIGHT == self.direction:
+      diff_x = initial_box.left - self.Fallbox().left
     self.rect.left += diff_x
     diff_y = initial_box.top - self.Fallbox().top
     self.rect.top += diff_y
@@ -340,9 +361,7 @@ class Hero(character.Character):
 
   def update(self):
     self.SetCurrentImage()
-    print 'before ', self.Fallbox()
     new_rect = self.env.AttemptMove(self, self.movement)
-    print 'after  ', self.Fallbox()
     scroll_rect = self.env.ScreenRectForMapRect(self.Fallbox())
     scroll_vector = self.env.Scroll(scroll_rect)
     new_rect = new_rect.move(scroll_vector)

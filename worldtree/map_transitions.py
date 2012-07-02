@@ -94,7 +94,7 @@ transitions = {
     },
     'Map11' : {
       LEFT : (Transition(0, 21, 1, 'Map1', 18),),
-      RIGHT : (Transition(0, 21, 1, 'Map30', 1),),
+      RIGHT : (Transition(0, 21, 1, 'Map30', 0),),
       UP : (Transition(0, 34, 1, 'Map5', 0),),
       DOWN : (Transition(0, 29, 1, 'Map3', 35),),
     },

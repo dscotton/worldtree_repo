@@ -84,13 +84,13 @@ class Character(pygame.sprite.Sprite):
     """
     pygame.sprite.Sprite.__init__(self)
     self.env = environment
+    self.action, self.direction = self.DEFAULT_STATE
     map_rect = self.env.RectForTile(*position)
     screen_coordinates = self.env.ScreenCoordinateForMapPoint(map_rect.left, map_rect.bottom)
     self.rect = pygame.Rect((screen_coordinates[0], 0), (self.WIDTH, self.HEIGHT))
     # Align the bottoms of the sprite and tile - this allows easier placement for things that
     # are more than one tile tall.
     self.rect.bottom = screen_coordinates[1]
-    self.action, self.direction = self.DEFAULT_STATE
     self.vertical = FALL
     self.movement = [0, 0]
     self.max_hp = self.STARTING_HP

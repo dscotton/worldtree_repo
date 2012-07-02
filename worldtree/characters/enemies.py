@@ -259,11 +259,12 @@ class Shooter(character.Character):
       Shooter.IMAGES = character.LoadImages('mush*.png', scaled=True,
                                             colorkey=game_constants.SPRITE_COLORKEY)
     self.shoot_animation = animation.Animation(Shooter.IMAGES, framedelay=4)
+    self.static_image = self.IMAGES[0].copy()
     self.SetCurrentImage()
 
   def SetCurrentImage(self):
     if self.shooting_cooldown > 12:
-      self.image = self.IMAGES[0]
+      self.image = self.static_image
     else:
       self.image = self.shoot_animation.NextFrame()
 

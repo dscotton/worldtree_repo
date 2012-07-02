@@ -33,11 +33,11 @@ def RunGame():
   
   clock = pygame.time.Clock()
 
-  current_room = 'Map1'
-  current_region = 1
+  current_room = 'Map32'
+  current_region = 2
   env = environment.Environment(current_room, current_region)
   screen.blit(env.GetImage(), MAP_POSITION)
-  player = hero.Hero(env, position=(2, 8))
+  player = hero.Hero(env, position=(2, 10))
   player_group = pygame.sprite.RenderUpdates(player)
   enemy_group = env.enemy_group
   item_group = env.item_group
@@ -123,7 +123,7 @@ def RunGame():
     pygame.display.update(dirty_rects)
       
     # Check if character is leaving the area and make the transition.
-    if env.IsOutsideMap(player.Hitbox()):
+    if env.IsOutsideMap(player.Fallbox()):
       # Use the character's center to determine when they leave the map, but for all other
       # positioning use their upper left corner for precision.
       tile_x, tile_y = env.TileIndexForPoint(player.Hitbox().centerx, player.Hitbox().centery)

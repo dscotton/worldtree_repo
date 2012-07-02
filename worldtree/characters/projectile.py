@@ -79,7 +79,7 @@ class Projectile(pygame.sprite.Sprite):
 
 class SeedBullet(Projectile):
   
-  DAMAGE = 2
+  DAMAGE = 4
   SPEED = 12
   IMAGES = None
   
