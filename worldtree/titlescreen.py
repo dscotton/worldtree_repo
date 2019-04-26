@@ -155,6 +155,7 @@ class Title(object):
     if self.background is None:
       self.background = pygame.Surface(game_constants.SCREEN_SIZE)
       self.background.fill(game_constants.BLACK)
+      self.background.set_alpha(255)
     self.music = music
     self.text = text
     if text is None:
@@ -201,7 +202,7 @@ class Title(object):
       if frame >= 0:
         text_position = text_bottom - (frame / self.text_speed)
         if frame % (self.text_speed * line_height) == 0:
-          line_number = frame / (self.text_speed * line_height)
+          line_number = int(frame / (self.text_speed * line_height))
           if line_number < len(lines):
             text = font.render(lines[line_number],
                                False, game_constants.WHITE)

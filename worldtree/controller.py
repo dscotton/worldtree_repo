@@ -44,4 +44,4 @@ KEY_MAP = {
 def GetInput():
   """Returns a list of the currently active active_keys signals."""
   active_keys = pygame.key.get_pressed()
-  return [action for (key, action) in KEY_MAP.iteritems() if active_keys[key]]
+  return [action for (key, action) in list(KEY_MAP.items()) if active_keys[key]]

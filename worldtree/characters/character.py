@@ -13,9 +13,9 @@ import time
 
 import pygame
 
-import animation
+from . import animation
 import game_constants
-import powerup
+from . import powerup
 
 # Enum of possible character action states.
 STAND = 1
@@ -265,7 +265,7 @@ def LoadImage(filename, default_width=game_constants.TILE_WIDTH,
   try:
     return LoadImages(filename, scaled=scaled, colorkey=colorkey)[0]
   except pygame.error as e:
-    print filename, e
+    print(filename, e)
     placeholder = pygame.Surface((default_width, default_height)).convert_alpha()
     placeholder.fill(game_constants.WHITE)
     return placeholder

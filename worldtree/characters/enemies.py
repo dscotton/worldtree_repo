@@ -11,13 +11,13 @@ import random
 
 import pygame
 
-import animation
-import character
+from . import animation
+from . import character
 from controller import LEFT
 from controller import RIGHT
 import game_constants
-import powerup
-import projectile
+from . import powerup
+from . import projectile
 
 class Beaver(character.Character):
   """Class for the notorious primary foe, the Beaver."""
@@ -395,7 +395,7 @@ class BugPipe(character.Character):
     return self.movement
 
   def SpawnBug(self):
-    print 'spawning a bug!'
+    print('spawning a bug!')
     self.spawning_cooldown = self.SPAWNING_COOLDOWN
     map_coordinate = self.env.MapCoordinateForScreenPoint(self.rect.centerx, self.rect.top-1)
     new_bug = PipeBug(self.env, self.env.TileIndexForPoint(*map_coordinate))

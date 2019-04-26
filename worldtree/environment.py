@@ -6,6 +6,7 @@ Created on Jun 3, 2012
 @author: dscotton@gmail.com (David Scotton)
 """
 
+import math
 import os
 import sys
 
@@ -17,6 +18,7 @@ from game_constants import *
 import map_data
 import map_data2
 import tile
+import importlib
 
 MAPS_PATH = os.path.join('media', 'maps')
 
@@ -68,17 +70,17 @@ SONGS = {
                             'Map26', 'Map27', 'Map28', 'Map29',]
   },
   2: {
-    'nighttime.ogg': ['Map%i' % i for i in range(25)],
-    'ozor.ogg':  ['Map%i' % i for i in range(25, 32)],
+    'nighttime.ogg': ['Map{}'.format(i) for i in range(25)],
+    'ozor.ogg':  ['Map{}'.format(i) for i in range(25, 32)],
     'bongo_wip.ogg': ['Map32']
   },
 }
 
 # {region: {room: song}}
 SONGS_BY_ROOM = {}
-for region, song_dict in SONGS.iteritems():
+for region, song_dict in SONGS.items():
   SONGS_BY_ROOM[region] = {}
-  for song, room_list in song_dict.iteritems():
+  for song, room_list in song_dict.items():
     for room in room_list:
       SONGS_BY_ROOM[region][room] = song
 
@@ -90,23 +92,23 @@ BG_COLORS = {
                            'Map24', 'Map25', 'Map26', 'Map27', 'Map28', 'Map29',]
   },
   2: {
-    BLACK: ['Map%i' % i for i in range(33)]
+    BLACK: ['Map{}'.format(i) for i in range(33)]
   },
 }
 
 # {region: {room: song}}
 BG_COLORS_BY_ROOM = {}
-for region, bg_dict in BG_COLORS.iteritems():
+for region, bg_dict in BG_COLORS.items():
   BG_COLORS_BY_ROOM[region] = {}
-  for color, room_list in bg_dict.iteritems():
+  for color, room_list in bg_dict.items():
     for room in room_list:
       BG_COLORS_BY_ROOM[region][room] = color
 
 
 def ReloadMaps():
   """Force reload of the map data from modules."""
-  reload(map_data)
-  reload(map_data2)
+  importlib.reload(map_data)
+  importlib.reload(map_data2)
   REGIONS[1] = map_data.map_data
   REGIONS[2] = map_data2.map_data
 
@@ -172,7 +174,7 @@ class Environment(object):
         if map_info['layout'][row][col] == 0:
           self.grid[col].append(EMPTY_TILE)
         else:
-          image_name = '%s-%s.png' % (map_info['tileset'], map_info['layout'][row][col])
+          image_name = '{}-{}.png'.format(map_info['tileset'], map_info['layout'][row][col])
           if image_name not in image_cache:
             image_path = os.path.join(TILE_DIR, image_name)
             image = pygame.transform.scale(pygame.image.load(image_path), TILE_SIZE).convert_alpha()
@@ -190,7 +192,7 @@ class Environment(object):
           elif mapcode in AREAS:
             areas.setdefault(mapcode, []).append((col, row))
           else:
-            raise Exception("Unknown mapcode: %s" % mapcode)
+            raise Exception("Unknown mapcode: {}".format(mapcode))
     # TODO: Prevent enemies from walking into items.
     self.CreateAreas(areas)
     
@@ -200,7 +202,7 @@ class Environment(object):
     Args:
       area_dict: map of mapcode string to list of (row, col) tile coordinates.
     """
-    for mapcode, coordinates in area_dict.iteritems():
+    for mapcode, coordinates in area_dict.items():
       i = 0
       while (i < len(coordinates)):
         start = coordinates[i]
@@ -211,7 +213,7 @@ class Environment(object):
           width += 1
         # TODO: Consider calculating lava areas more than one row deep.
         area = AREAS[mapcode](self, start, (width, 0))
-        print 'Area created! Coordinates: %s Size: %s' % (start, width)
+        print('Area created! Coordinates: {} Size: {}'.format(start, width))
         self.item_group.add(area)
         i += width
 
@@ -220,10 +222,10 @@ class Environment(object):
 
     Return tuple is ((first_column, last_column), (first_row, last_row)) for the visible area.
     """
-    first_x = self.screen_offset[0] / TILE_WIDTH
-    last_x = first_x + (MAP_WIDTH / TILE_WIDTH)
-    first_y = self.screen_offset[1] / TILE_HEIGHT
-    last_y = first_y + (MAP_HEIGHT / TILE_HEIGHT)
+    first_x = int(self.screen_offset[0] / TILE_WIDTH)
+    last_x = first_x + int(MAP_WIDTH / TILE_WIDTH)
+    first_y = int(self.screen_offset[1] / TILE_HEIGHT)
+    last_y = first_y + int(MAP_HEIGHT / TILE_HEIGHT)
     return ((first_x, last_x), (first_y, last_y))
 
   def GetImage(self):
@@ -249,7 +251,7 @@ class Environment(object):
             try:
               self.surface.blit(self.grid[col][row].image, (tile_x_pos, tile_y_pos))
             except TypeError:
-              print col, row, type(self.grid[col][row])
+              print(col, row, type(self.grid[col][row]))
 
       self.dirty = False
     return self.surface
@@ -346,10 +348,10 @@ class Environment(object):
 
     The rect is a position on the map, including any portions currently offscreen.
     """
-    left_col = rect.left / TILE_WIDTH
-    right_col = rect.right / TILE_WIDTH
-    top_row = rect.top / TILE_HEIGHT
-    bottom_row = rect.bottom / TILE_HEIGHT
+    left_col = math.floor(rect.left / TILE_WIDTH)
+    right_col = math.floor(rect.right / TILE_WIDTH)
+    top_row = math.floor(rect.top / TILE_HEIGHT)
+    bottom_row = math.floor(rect.bottom / TILE_HEIGHT)
     return [(col, row) for col in range (left_col, right_col+1)
             for row in range(top_row, bottom_row+1)]
 
@@ -364,7 +366,7 @@ class Environment(object):
 
   def TileIndexForPoint(self, x, y):
     """Return the col, row index for the tile containing map coordinate (x, y)."""
-    return (x / TILE_WIDTH, y / TILE_HEIGHT)
+    return (math.floor(x / TILE_WIDTH), math.floor(y / TILE_HEIGHT))
 
   def ScreenCoordinateForMapPoint(self, x, y):
     """Convert map-relative (x, y) pixel coordinates into screen-relative coordinates."""
@@ -421,7 +423,7 @@ class Environment(object):
         if self.grid[col][row].solid_top:
           return True
       except IndexError:
-        print col, row
+        print(col, row)
         raise
     return False
 

@@ -13,16 +13,16 @@ import os
 
 import pygame
 
-import animation
-import character
+from . import animation
+from . import character
 import controller
-import enemies
+from . import enemies
 from game_constants import LEFT
 from game_constants import RIGHT
 from game_constants import ATTACK
 from game_constants import SHOOT
 import game_constants
-import projectile
+from . import projectile
 
 
 class Hero(character.Character):

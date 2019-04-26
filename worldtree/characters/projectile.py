@@ -8,8 +8,8 @@ Created on June 20, 2012
 
 import pygame
 
-import animation
-import character
+from . import animation
+from . import character
 import game_constants
 
 class Projectile(pygame.sprite.Sprite):

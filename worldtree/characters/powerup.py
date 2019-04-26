@@ -15,8 +15,8 @@ import time
 
 import pygame
 
-import animation
-import character
+from . import animation
+from . import character
 import game_constants
 import map_data
 import map_data2
@@ -132,7 +132,7 @@ class HealthRestore(Powerup):
 
   def __init__(self, environment, position):
     Powerup.__init__(self, environment, position)
-    print 'creating powerup at %s' % (position,)
+    print('creating powerup at {}'.format(position))
     
   def Use(self, player):
     player.RecoverHealth(self.HEALTH_BONUS)
@@ -148,7 +148,7 @@ class DoubleJump(Powerup):
 
   def Use(self, player):
     player.max_jumps = 2
-    print 'Now you can double jump!'
+    print('Now you can double jump!')
     
 
 class MoreSeeds(Powerup):

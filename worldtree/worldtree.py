@@ -33,8 +33,8 @@ def RunGame():
   
   clock = pygame.time.Clock()
 
-  current_room = 'Map32'
-  current_region = 2
+  current_room = 'Map1'
+  current_region = 1
   env = environment.Environment(current_room, current_region)
   screen.blit(env.GetImage(), MAP_POSITION)
   player = hero.Hero(env, position=(2, 10))
@@ -83,7 +83,7 @@ def RunGame():
     try:
       env.dying_animation_group.update()
     except GameWonException:
-      print 'You won!'
+      print('You won!')
       titlescreen.ShowCredits(screen)
       raise GameOverException()
     env.hero_projectile_group.update()
@@ -197,7 +197,7 @@ def RunGame():
 
 if __name__ == '__main__':
   # Set up dir correctly - required for compiled .exe to work reliably
-  os.chdir(os.path.dirname(sys.argv[0]))
+  # os.chdir(os.path.dirname(sys.argv[0]))
   while True:
     try:
       RunGame()
