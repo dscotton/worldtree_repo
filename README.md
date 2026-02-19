@@ -1,7 +1,32 @@
-Worldtree is a 2d platform game written for the National Game Development Month
-game jam in 2012.
+Worldtree is a 2d platform game originally written for the National
+Game Development Month game jam in 2012.
 
-Worldtree was written using pygame, which must be installed for it to work.
+Original Version
+================
 
-TODO: update to use pygame2, and set up reasonable dependency management (pip
-install didn't work for pygame1 when I last checked.)
+Worldtree was written using PyGame. The PyGame version is playable,
+assuming you have cloned the repo, with:
+```
+cd worldtree
+python -m venv venv
+source venv/bin/activate
+pip install --upgrade pip
+pip install pygame
+python worldtree.py
+```
+
+Raylib-cs version
+=================
+
+In 2026 the project was ported to C# with the Raylib-cs library by AI
+agents. The initial port was intended to be as close to identical to
+the Python version as possible.
+
+Requires .NET 9 SDK. The `media/` directory is a symlink to the
+original Python assets.
+`data/`.
+
+```
+cd worldtree-raylib/src
+dotnet run
+```
