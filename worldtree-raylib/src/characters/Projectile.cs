@@ -54,7 +54,7 @@ public class SeedBullet : Projectile
     private const int SeedDamage = 4;
     private const float SeedSpeed = 12f;
     private static Texture2D[]? _images;
-    private Animation<Texture2D> _anim;
+    private Animation<Texture2D> _anim = null!;
 
     private static Texture2D[] Images => _images ??=
         TextureCache.LoadImages("seedprojectile*.png", scaled: true, colorkey: true);

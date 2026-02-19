@@ -105,7 +105,6 @@ public class TitleScreen
         var textArray = new List<string>();
         const int fontHeight = 16;
         const int lineHeight = 20;
-        const int textTop = 144;
         const int textBottom = 576;
 
         while (!Raylib.WindowShouldClose())
