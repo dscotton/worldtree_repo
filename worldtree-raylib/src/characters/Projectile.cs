@@ -29,6 +29,8 @@ public abstract class Projectile
 
     public Rectangle Hitbox() => Rect;
 
+    public void Kill() => IsDead = true;
+
     public virtual void CollideWith(Character sprite)
     {
         if (sprite.Invulnerable == 0)
