@@ -219,7 +219,7 @@ class Title(object):
 
     pygame.mixer.music.stop()
     fade_frame = 0
-    while self.background.get_alpha() > 4:
+    while (self.background.get_alpha() or 255) > 4:
       fade_frame +=1
       clock.tick(60)
       screen.fill(game_constants.BLACK)
