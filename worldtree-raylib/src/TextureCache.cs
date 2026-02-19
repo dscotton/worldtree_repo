@@ -76,10 +76,16 @@ public static class TextureCache
     private static Texture2D LoadFromPath(string path, bool scaled, bool colorkey)
     {
         Image img = Raylib.LoadImage(path);
+        
+        // Ensure image has an alpha channel so transparency works
+        Raylib.ImageFormat(ref img, PixelFormat.UncompressedR8G8B8A8);
+
         if (colorkey)
             Raylib.ImageColorReplace(ref img, GameConstants.SpriteColorkey, Color.Blank);
+        
         if (scaled)
-            Raylib.ImageResize(ref img, img.Width * 3, img.Height * 3);
+            Raylib.ImageResizeNN(ref img, img.Width * 3, img.Height * 3); // Use NN for pixel art crispness
+
         Texture2D tex = Raylib.LoadTextureFromImage(img);
         Raylib.UnloadImage(img);
         return tex;
