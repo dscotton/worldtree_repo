@@ -2308,7 +2308,7 @@ git commit -am "feat: add Powerup classes"
 
 ---
 
-## Task 17: Enemies.cs
+## Task 17: Enemies.cs ✅
 
 **Files:**
 - Replace stub: `worldtree-raylib/src/characters/Enemies.cs`
