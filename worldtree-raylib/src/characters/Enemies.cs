@@ -23,8 +23,8 @@ public static class Enemies
         protected override void InitImages()
         {
             var walk = TextureCache.LoadImages("beaver1*.png", scaled: true, colorkey: true);
-            _walkRight = new Animation<Texture2D>(walk, frameDelay: 3);
-            _walkLeft = new Animation<Texture2D>(walk.Select(TextureCache.FlipHorizontal).ToArray(), frameDelay: 3);
+            _walkLeft = new Animation<Texture2D>(walk, frameDelay: 3);
+            _walkRight = new Animation<Texture2D>(walk.Select(TextureCache.FlipHorizontal).ToArray(), frameDelay: 3);
             
             CurrentImage = _walkLeft.NextFrame();
         }
