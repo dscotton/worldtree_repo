@@ -5,6 +5,7 @@ using WorldTree;
 using Env = WorldTree.Environment;
 
 // Working directory: dotnet run sets this to the project dir automatically
+Raylib.SetTraceLogLevel(TraceLogLevel.Warning);
 Raylib.InitWindow(GameConstants.ScreenWidth, GameConstants.ScreenHeight, GameConstants.GameName);
 Raylib.InitAudioDevice();
 Raylib.SetTargetFPS(60);
@@ -218,69 +219,63 @@ void HandleRoomTransition(ref Env env, ref Hero player, ref Camera2D camera,
                           ref string? currentSong, ref Music? currentMusic,
                           Dictionary<int, Dictionary<string, Dictionary<TransitionDirection, List<TransitionInfo>>>> transitions)
 {
-    // Determine direction of exit
+    // Determine direction of exit using Fallbox (consistent with IsOutsideMap check)
     TransitionDirection dir;
-    if (player.Rect.CenterX() < 0) dir = TransitionDirection.Left;
-    else if (player.Rect.CenterX() > env.Width * GameConstants.TileWidth) dir = TransitionDirection.Right;
-    else if (player.Rect.CenterY() < 0) dir = TransitionDirection.Up;
+    Rectangle bounds = player.Fallbox();
+    if (bounds.CenterX() < 0) dir = TransitionDirection.Left;
+    else if (bounds.CenterX() > env.Width * GameConstants.TileWidth) dir = TransitionDirection.Right;
+    else if (bounds.CenterY() < 0) dir = TransitionDirection.Up;
     else dir = TransitionDirection.Down;
 
     if (transitions.TryGetValue(currentRegion, out var regionTrans) &&
         regionTrans.TryGetValue(currentRoom, out var roomTrans) &&
         roomTrans.TryGetValue(dir, out var transList))
     {
-        // Find matching transition based on coordinate
-        // Horizontal exit -> check Y coordinate (row)
-        // Vertical exit -> check X coordinate (col)
+                // Use upper-left of hitbox for transition matching (Fix 3)
+                var ulTile = env.TileIndexForPoint(player.Hitbox().Left(), player.Hitbox().Top());
+                int ulCol = ulTile.col;
+                int ulRow = ulTile.row;
         
-        int pCol = (int)(player.Rect.CenterX() / GameConstants.TileWidth);
-        int pRow = (int)(player.Rect.CenterY() / GameConstants.TileHeight);
+                TransitionInfo? match = null;
+                foreach (var t in transList)
+                {
+                    if (dir == TransitionDirection.Left || dir == TransitionDirection.Right)
+                    {
+                        if (ulRow >= t.First && ulRow <= t.Last) { match = t; break; }
+                    }
+                    else
+                    {
+                        if (ulCol >= t.First && ulCol <= t.Last) { match = t; break; }
+                    }
+                }
         
-        // Clamp to map bounds for safety
-        pCol = Math.Clamp(pCol, 0, env.Width - 1);
-        pRow = Math.Clamp(pRow, 0, env.Height - 1);
-
-        TransitionInfo? match = null;
-        foreach (var t in transList)
-        {
-            if (dir == TransitionDirection.Left || dir == TransitionDirection.Right)
-            {
-                if (pRow >= t.First && pRow <= t.Last) { match = t; break; }
-            }
-            else
-            {
-                if (pCol >= t.First && pCol <= t.Last) { match = t; break; }
-            }
-        }
-
-        if (match != null)
-        {
-            currentRegion = match.Region;
-            currentRoom = match.Dest;
-            
-            env = new Env(currentRoom, currentRegion);
-            
-            // Calculate new position
+                if (match != null)
+                {
+                    currentRegion = match.Region;
+                    currentRoom = match.Dest;
+                    
+                    env = new Env(currentRoom, currentRegion);
+                    // Calculate new position — matches worldtree.py:139-176 exactly
             int newCol = 0, newRow = 0;
             if (dir == TransitionDirection.Left)
             {
-                newCol = env.Width - 2;
-                newRow = pRow + match.Offset;
+                newCol = env.Width - 1;
+                newRow = ulRow + match.Offset;
             }
             else if (dir == TransitionDirection.Right)
             {
-                newCol = 1;
-                newRow = pRow + match.Offset;
+                newCol = 0;
+                newRow = ulRow + match.Offset;
             }
             else if (dir == TransitionDirection.Up)
             {
-                newCol = pCol + match.Offset;
-                newRow = env.Height - 2;
+                newCol = ulCol + match.Offset;
+                newRow = env.Height - 1;
             }
             else if (dir == TransitionDirection.Down)
             {
-                newCol = pCol + match.Offset;
-                newRow = 1;
+                newCol = ulCol + match.Offset;
+                newRow = 0;
             }
             
             // Update player
