@@ -218,7 +218,7 @@ git commit -m "feat: add map data conversion script and generated JSON"
 
 ---
 
-## Task 4: GameConstants.cs
+## Task 4: GameConstants.cs ✅
 
 **Files:**
 - Create: `worldtree-raylib/src/GameConstants.cs`
@@ -286,7 +286,7 @@ git commit -m "feat: add GameConstants and enums"
 
 ---
 
-## Task 5: RectangleExtensions.cs
+## Task 5: RectangleExtensions.cs ✅
 
 **Files:**
 - Create: `worldtree-raylib/src/RectangleExtensions.cs`
@@ -403,7 +403,7 @@ git commit -m "feat: add RectangleExtensions with tests"
 
 ---
 
-## Task 6: Tile.cs
+## Task 6: Tile.cs ✅
 
 **Files:**
 - Create: `worldtree-raylib/src/Tile.cs`
