@@ -17,6 +17,8 @@ public class Environment
     public static Dictionary<int, Dictionary<string, string>> SongsByRoom = new();
     // {region: {room: Color}}
     public static Dictionary<int, Dictionary<string, Color>> BgColorsByRoom = new();
+    // Transitions
+    public static Dictionary<int, Dictionary<string, Dictionary<TransitionDirection, List<TransitionInfo>>>> AllTransitions = new();
 
     public string Name { get; }
     public int Region { get; }

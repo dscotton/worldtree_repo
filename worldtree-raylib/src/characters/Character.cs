@@ -7,12 +7,18 @@ namespace WorldTree;
 public enum CharacterAction { Stand = 1, Walk = 2, Run = 3, Jump = 4, Fall = 5, Grounded = 6 }
 public enum Direction { Left = 3, Right = 4 }
 
+public interface IPushbackSource
+{
+    Rectangle Rect { get; }
+    float PushBack { get; }
+}
+
 /// <summary>
 /// Abstract base for all game characters (player, enemies).
 /// All positions are in world (map) coordinates.
 /// Corresponds to worldtree/characters/character.py.
 /// </summary>
-public abstract class Character
+public abstract class Character : IPushbackSource
 {
     // --- Constants (override in subclasses) ---
     public virtual int StartingHp => 1;
@@ -30,7 +36,7 @@ public abstract class Character
     public virtual bool IsPlayer => false;
 
     // --- State ---
-    public Rectangle Rect;       // world coordinates
+    public Rectangle Rect { get; set; }       // world coordinates
     public bool IsDead { get; private set; }
     public int Hp { get; protected set; }
     public int MaxHp { get; protected set; }
@@ -145,7 +151,7 @@ public abstract class Character
         Vector2.Distance(new Vector2(Hitbox().CenterX(), Hitbox().CenterY()),
                          new Vector2(other.Hitbox().CenterX(), other.Hitbox().CenterY()));
 
-    public void CollisionPushback(Character other)
+    public void CollisionPushback(IPushbackSource other)
     {
         float dx = Rect.CenterX() - other.Rect.CenterX();
         float dy = Rect.CenterY() - other.Rect.CenterY();

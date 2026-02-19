@@ -146,13 +146,9 @@ public static class Powerups
         }
 
         // Minimal proxy so CollisionPushback can use Spike's rect
-        private class SpikeProxy : Character
+        private record SpikeProxy(Rectangle Rect) : IPushbackSource
         {
-            public SpikeProxy(Rectangle r) : base(null!, (0, 0)) { Rect = r; }
-            public override float PushBack => SpikePushback;
-            protected override void InitImages() { }
-            protected override void SetCurrentImage() { }
-            protected override (float, float) GetMove() => (0, 0);
+            public float PushBack => SpikePushback;
         }
     }
 }

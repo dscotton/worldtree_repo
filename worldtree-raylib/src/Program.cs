@@ -29,12 +29,12 @@ void LoadStaticData()
     Env.Regions[2] = allMaps2;
     Env.SongsByRoom = BuildSongsByRoom();
     Env.BgColorsByRoom = BuildBgColorsByRoom();
+    Env.AllTransitions = MapLoader.LoadTransitions("data/map_transitions.json");
+    GameConstants.GameOverFont = Raylib.LoadFont(Path.Combine(GameConstants.FontDir, GameConstants.Font));
 }
 
 void RunGame()
 {
-    var allTransitions = MapLoader.LoadTransitions("data/map_transitions.json");
-
     TitleScreen.ShowTitle();
 
     string currentRoom = "Map1";
@@ -124,10 +124,9 @@ void RunGame()
 
         if (gameState == GameState.GameOver)
         {
-            var font = Raylib.LoadFont(Path.Combine(GameConstants.FontDir, GameConstants.Font));
             var text = "Game Over";
-            var size = Raylib.MeasureTextEx(font, text, 24, 1);
-            Raylib.DrawTextEx(font, text,
+            var size = Raylib.MeasureTextEx(GameConstants.GameOverFont, text, 24, 1);
+            Raylib.DrawTextEx(GameConstants.GameOverFont, text,
                 new Vector2(GameConstants.ScreenWidth / 2f - size.X / 2f,
                             GameConstants.ScreenHeight / 2f - size.Y / 2f),
                 24, 1, Color.White);
@@ -139,7 +138,7 @@ void RunGame()
         if (env.IsOutsideMap(player.Fallbox()))
             HandleRoomTransition(ref env, ref player, ref camera, ref currentRoom,
                                  ref currentRegion, ref currentSong, ref currentMusic,
-                                 allTransitions);
+                                 Env.AllTransitions);
     }
 
     if (currentMusic.HasValue) Raylib.StopMusicStream(currentMusic.Value);
@@ -174,54 +173,42 @@ string? TryStartMusic(Env env, ref Music? currentMusic, string? currentSong)
 
 Dictionary<int, Dictionary<string, string>> BuildSongsByRoom()
 {
-    // Manually building this based on environment.py SONGS dict
+    // Mirrors SONGS / SONGS_BY_ROOM from worldtree/environment.py exactly.
     var dict = new Dictionary<int, Dictionary<string, string>>();
-    
-    // Region 1
-    dict[1] = new Dictionary<string, string>();
-    string[] map1Songs = { "Map1", "Map2", "Map3", "Map4", "Map5", "Map6", "Map7" };
-    foreach (var m in map1Songs) dict[1][m] = "june_breeze.ogg";
-    
-    dict[1]["Map8"] = "photosynthesis.ogg";
-    dict[1]["Map9"] = "photosynthesis.ogg";
-    dict[1]["Map10"] = "photosynthesis.ogg";
-    dict[1]["Map11"] = "foreboding_cave.ogg";
-    dict[1]["Map12"] = "foreboding_cave.ogg";
-    dict[1]["Map13"] = "foreboding_cave.ogg";
-    dict[1]["Map14"] = "foreboding_cave.ogg";
-    dict[1]["Map15"] = "nighttime.ogg";
-    dict[1]["Map16"] = "nighttime.ogg";
-    dict[1]["Map17"] = "nighttime.ogg";
-    dict[1]["Map18"] = "nighttime.ogg";
 
-    // Region 2
+    dict[1] = new Dictionary<string, string>();
+    foreach (var room in new[] { "Map1","Map2","Map3","Map4","Map5","Map6","Map8","Map9",
+                                  "Map11","Map13","Map16","Map30","Map31","Map32" })
+        dict[1][room] = "photosynthesis.ogg";
+    foreach (var room in new[] { "Map7","Map10","Map12","Map14","Map15","Map17","Map18",
+                                  "Map19","Map20","Map21","Map22","Map23","Map24","Map25",
+                                  "Map26","Map27","Map28","Map29" })
+        dict[1][room] = "foreboding_cave.ogg";
+
     dict[2] = new Dictionary<string, string>();
-    dict[2]["Map1"] = "ozor.ogg";
-    dict[2]["Map2"] = "ozor.ogg";
-    dict[2]["Map3"] = "ozor.ogg";
-    dict[2]["Map4"] = "ozor.ogg";
-    dict[2]["Map5"] = "bongo_wip.ogg"; // Boss room
-    
+    for (int i = 0; i < 25; i++) dict[2][$"Map{i}"] = "nighttime.ogg";
+    for (int i = 25; i < 32; i++) dict[2][$"Map{i}"] = "ozor.ogg";
+    dict[2]["Map32"] = "bongo_wip.ogg";
+
     return dict;
 }
 
 Dictionary<int, Dictionary<string, Color>> BuildBgColorsByRoom()
 {
+    // Mirrors BG_COLORS / BG_COLORS_BY_ROOM from worldtree/environment.py exactly.
     var dict = new Dictionary<int, Dictionary<string, Color>>();
+
     dict[1] = new Dictionary<string, Color>();
-    
-    var blue = GameConstants.ColorBlue;
-    var black = GameConstants.ColorBlack;
-
-    string[] blueMaps = { "Map1", "Map2", "Map3", "Map4", "Map5", "Map6", "Map7", "Map8", "Map9", "Map10" };
-    foreach (var m in blueMaps) dict[1][m] = blue;
-
-    string[] blackMaps = { "Map11", "Map12", "Map13", "Map14", "Map15", "Map16", "Map17", "Map18" };
-    foreach (var m in blackMaps) dict[1][m] = black;
+    foreach (var room in new[] { "Map1","Map2","Map3","Map4","Map5",
+                                  "Map11","Map16","Map30","Map31","Map32" })
+        dict[1][room] = GameConstants.ColorBlue;
+    foreach (var room in new[] { "Map6","Map7","Map8","Map9","Map10","Map12","Map13","Map14",
+                                  "Map15","Map17","Map18","Map19","Map20","Map21","Map22",
+                                  "Map23","Map24","Map25","Map26","Map27","Map28","Map29" })
+        dict[1][room] = GameConstants.ColorBlack;
 
     dict[2] = new Dictionary<string, Color>();
-    string[] r2Maps = { "Map1", "Map2", "Map3", "Map4", "Map5" };
-    foreach (var m in r2Maps) dict[2][m] = black;
+    for (int i = 0; i < 33; i++) dict[2][$"Map{i}"] = GameConstants.ColorBlack;
 
     return dict;
 }

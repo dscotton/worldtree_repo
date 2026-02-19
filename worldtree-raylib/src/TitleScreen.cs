@@ -10,25 +10,33 @@ public class TitleScreen
         The World Tree, source of all
         life...
         
-        It has been overtaken by
-        invaders who are leeching its
-        energy.
         
-        The creatures of the forest
-        have been corrupted by the
-        dark influence.
+        Legend tells of a catastrophic
+        battle in which the evil
+        Beaver Baron and his legion of
+        minions nearly succeeded in
+        gnawing down the World Tree
+        to make a dam.
         
-        You, a small seed, have been
-        awakened by the Tree's last
-        remaining power.
         
-        You must climb the World Tree
-        and defeat the source of this
-        corruption.
+        Over 1000 years have passed
+        since the evil Beaver Baron
+        was defeated by the protectors
+        of the World Tree.  Since that
+        time, the World Tree has
+        prospered under the care of
+        its guardians.
         
-        Save the World Tree...
-        Save the world.
-        ...
+        
+        But time flows like a river...
+        And history repeats...
+        
+        
+        You are Seamus, one of the
+        World Tree's guardian spirits.
+        Are you a bad enough dude
+        to save the World Tree?
+        
         """;
 
     private static readonly string ControlsText = """
@@ -53,24 +61,58 @@ public class TitleScreen
         Baron and brought peace to
         the World Tree.
         
-        The corrupted creatures have
-        returned to their peaceful
-        selves.
+        Congratulations!  Your name
+        echoes through the canopy
+        as all the creatures of the
+        forest sing your praise.
         
-        The World Tree begins to heal,
-        its leaves glowing with renewed
-        vitality.
-        
-        Thank you for playing
-        World Tree!
+        Fight, Seamus!  For
+        everlasting peace!
         
         
-        Created by David Scotton
         
-        Music by various artists
-        (see credits.txt)
         
-        ...
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        WORLDTREE TEAM
+        
+        David Scotton
+        Neal "Justin" Bailey
+        Nicholas Collins
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        See you next mission!
+        
         """;
 
     private Font _font;

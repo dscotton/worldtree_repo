@@ -28,6 +28,8 @@ public static class GameConstants
     public const string MusicDir = "media/music";
     public const string SpritesDir = "media/sprites";
     public const string FontDir = "media/font";
+
+    public static Font GameOverFont;
 }
 
 // Input action constants
