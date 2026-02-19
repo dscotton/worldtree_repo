@@ -38,9 +38,9 @@ public abstract class Character
     public CharacterAction Action { get; protected set; } = CharacterAction.Stand;
     public Direction Facing { get; protected set; } = Direction.Left;
     public CharacterAction Vertical { get; protected set; } = CharacterAction.Fall;
+    public Environment Env { get; protected set; }
     protected Vector2 Movement;
     protected int JumpFrames;
-    protected Environment Env;
     protected Texture2D CurrentImage;
 
     // Sounds (lazy-loaded after Raylib init)
