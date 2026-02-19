@@ -29,7 +29,7 @@ public class Environment
 
     // Entity groups (world coordinates)
     public List<Character> EnemyGroup { get; } = new();
-    public List<Character> DyingAnimationGroup { get; } = new();
+    public List<DyingAnimation> DyingAnimationGroup { get; } = new();
     public List<Powerup> ItemGroup { get; } = new();
     public List<Projectile> HeroProjectileGroup { get; } = new();
     public List<Projectile> EnemyProjectileGroup { get; } = new();
