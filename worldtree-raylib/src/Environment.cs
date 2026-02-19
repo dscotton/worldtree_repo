@@ -34,6 +34,19 @@ public class Environment
     public List<Projectile> HeroProjectileGroup { get; } = new();
     public List<Projectile> EnemyProjectileGroup { get; } = new();
 
+    /// <summary>
+    /// Internal constructor for testing. Bypasses asset loading.
+    /// </summary>
+    internal Environment(int width, int height, Tile[][] grid)
+    {
+        Name = "TestMap";
+        Region = 1;
+        Width = width;
+        Height = height;
+        BgColor = Color.Black;
+        _grid = grid;
+    }
+
     public Environment(string mapName, int region)
     {
         Name = mapName;
@@ -249,4 +262,111 @@ public class Environment
     public bool IsWorldPointVisible(float x, float y) =>
         x >= ScreenOffset.X && x <= ScreenOffset.X + GameConstants.MapWidth &&
         y >= ScreenOffset.Y && y <= ScreenOffset.Y + GameConstants.MapHeight;
+
+    /// <summary>
+    /// Check which tile grid cells a world-coordinate rect intersects.
+    /// </summary>
+    public List<(int col, int row)> TilesForRect(Rectangle rect)
+    {
+        int left = (int)MathF.Floor(rect.Left() / GameConstants.TileWidth);
+        int right = (int)MathF.Floor(rect.Right() / GameConstants.TileWidth);
+        int top = (int)MathF.Floor(rect.Top() / GameConstants.TileHeight);
+        int bot = (int)MathF.Floor(rect.Bottom() / GameConstants.TileHeight);
+        var result = new List<(int, int)>();
+        for (int c = left; c <= right; c++)
+            for (int r = top; r <= bot; r++)
+                result.Add((c, r));
+        return result;
+    }
+
+    /// <summary>
+    /// Attempt a move, blocking per-tile-side solidity. Returns new world rect.
+    /// For player (isPlayer=true), allows moving off map edges for room transitions.
+    /// </summary>
+    public Rectangle AttemptMove(Rectangle hitbox, (float x, float y) vector, bool isPlayer = false)
+    {
+        var dest = hitbox.Move(vector.x, vector.y);
+        float newVX = vector.x, newVY = vector.y;
+
+        var oldTiles = new HashSet<(int, int)>(TilesForRect(hitbox));
+        var newTiles = TilesForRect(dest).Where(t => !oldTiles.Contains(t));
+
+        foreach (var (col, row) in newTiles)
+        {
+            Tile square;
+            if (col < 0 || col >= Width || row < 0 || row >= Height)
+                square = isPlayer ? new Tile(null, false, false, false, false)
+                                  : new Tile(null, true, true, true, true);
+            else
+                square = _grid[col][row];
+
+            var tileRect = RectForTile(col, row);
+
+            if (hitbox.Bottom() < tileRect.Top() && square.SolidTop
+                && dest.Bottom() >= tileRect.Top())
+                newVY = tileRect.Top() - hitbox.Bottom() - 1;
+            else if (hitbox.Top() > tileRect.Bottom() && square.SolidBottom
+                     && dest.Top() <= tileRect.Bottom())
+                newVY = tileRect.Bottom() - hitbox.Top() + 1;
+
+            if (hitbox.Right() < tileRect.Left() && square.SolidLeft
+                && dest.Right() >= tileRect.Left())
+                newVX = tileRect.Left() - hitbox.Right() - 1;
+            else if (hitbox.Left() > tileRect.Right() && square.SolidRight
+                     && dest.Left() <= tileRect.Right())
+                newVX = tileRect.Right() - hitbox.Left() + 1;
+        }
+
+        return hitbox.Move(newVX, newVY);
+    }
+
+    /// <summary>
+    /// Simplified collision check for projectiles — off-map is illegal.
+    /// </summary>
+    public bool IsMoveLegal(Rectangle hitbox, (float x, float y) vector)
+    {
+        var dest = hitbox.Move(vector.x, vector.y);
+        var oldTiles = new HashSet<(int, int)>(TilesForRect(hitbox));
+        foreach (var (col, row) in TilesForRect(dest).Where(t => !oldTiles.Contains(t)))
+        {
+            Tile square;
+            if (col < 0 || col >= Width || row < 0 || row >= Height)
+                square = new Tile(null, true, true, true, true);
+            else
+                square = _grid[col][row];
+
+            var tileRect = RectForTile(col, row);
+
+            if (hitbox.Bottom() < tileRect.Top() && square.SolidTop && dest.Bottom() >= tileRect.Top())
+                return false;
+            if (hitbox.Top() > tileRect.Bottom() && square.SolidBottom && dest.Top() <= tileRect.Bottom())
+                return false;
+            if (hitbox.Right() < tileRect.Left() && square.SolidLeft && dest.Right() >= tileRect.Left())
+                return false;
+            if (hitbox.Left() > tileRect.Right() && square.SolidRight && dest.Left() <= tileRect.Right())
+                return false;
+        }
+        return true;
+    }
+
+    /// <summary>
+    /// Returns true if there is a solid tile in the direction of vector from rect.
+    /// </summary>
+    public bool IsRectSupported(Rectangle rect, (float x, float y) vector = default)
+    {
+        if (vector == default) vector = (0, 1);
+        var dest = rect.Move(vector.x, vector.y);
+        var oldTiles = new HashSet<(int, int)>(TilesForRect(rect));
+        foreach (var (col, row) in TilesForRect(dest).Where(t => !oldTiles.Contains(t)))
+        {
+            if (col < 0 || col >= Width) continue;
+            if (row < 0) return false;
+            if (row >= Height) return true;
+            if (_grid[col][row].SolidTop) return true;
+        }
+        return false;
+    }
+
+    public bool IsTileSupported(int col, int row) =>
+        IsRectSupported(RectForTile(col, row));
 }
