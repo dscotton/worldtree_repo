@@ -22,4 +22,12 @@
     <ProjectReference Include="..\src\WorldTree.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- Copy data files to the test output directory so MapLoader tests can find them -->
+    <Content Include="..\data\**\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>data\%(RecursiveDir)%(Filename)%(Extension)</Link>
+    </Content>
+  </ItemGroup>
+
 </Project>
