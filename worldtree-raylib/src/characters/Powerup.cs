@@ -9,14 +9,20 @@ public abstract class Powerup
     public bool IsDead { get; protected set; }
     protected Environment Env;
     private readonly bool _oneTime;
+    private readonly bool _cleanup;
+    private readonly int _col;
+    private readonly int _row;
     private static Sound? _itemGetSound;
     protected static Sound ItemGetSound =>
         _itemGetSound ??= Raylib.LoadSound("media/music/item_get.ogg");
 
-    protected Powerup(Environment env, (int col, int row) position, bool oneTime = true)
+    protected Powerup(Environment env, (int col, int row) position, bool oneTime = true, bool cleanup = false)
     {
         Env = env;
         _oneTime = oneTime;
+        _cleanup = cleanup;
+        _col = position.col;
+        _row = position.row;
         var tileRect = env.RectForTile(position.col, position.row);
         Rect = new Rectangle(tileRect.X, tileRect.Y, 48, 48);
         InitImages();
@@ -31,6 +37,11 @@ public abstract class Powerup
     public void PickUp(Hero player)
     {
         Use(player);
+        if (_cleanup && Environment.Regions.TryGetValue(Env.Region, out var region) &&
+            region.TryGetValue(Env.Name, out var mapInfo))
+        {
+            mapInfo.Mapcodes[_row][_col] = 0;
+        }
         if (_oneTime) IsDead = true;
     }
 
@@ -48,7 +59,7 @@ public static class Powerups
         private static Texture2D[] Imgs => _imgs ??=
             TextureCache.LoadImages("lifeup*.png", scaled: true, colorkey: true);
 
-        public HealthBoost(Environment env, (int, int) pos) : base(env, pos, oneTime: true)
+        public HealthBoost(Environment env, (int, int) pos) : base(env, pos, oneTime: true, cleanup: true)
         { _anim = new Animation<Texture2D>(Imgs, frameDelay: 1); }
 
         protected override void InitImages() { }
@@ -77,7 +88,7 @@ public static class Powerups
 
     public class DoubleJump : Powerup
     {
-        public DoubleJump(Environment env, (int, int) pos) : base(env, pos, oneTime: true) { }
+        public DoubleJump(Environment env, (int, int) pos) : base(env, pos, oneTime: true, cleanup: true) { }
         protected override void Use(Hero p) { p.MaxJumps = 2; Raylib.PlaySound(ItemGetSound); }
     }
 
@@ -88,7 +99,7 @@ public static class Powerups
         private static Texture2D[] Imgs => _imgs ??=
             TextureCache.LoadImages("ammoup*.png", scaled: true, colorkey: true);
 
-        public MoreSeeds(Environment env, (int, int) pos) : base(env, pos, oneTime: true)
+        public MoreSeeds(Environment env, (int, int) pos) : base(env, pos, oneTime: true, cleanup: true)
         { _anim = new Animation<Texture2D>(Imgs, frameDelay: 1); }
 
         protected override void InitImages() { }
