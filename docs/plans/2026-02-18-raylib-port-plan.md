@@ -1864,7 +1864,7 @@ git commit -am "feat: add Projectile, SeedBullet, SporeCloud"
 
 ---
 
-## Task 15: Hero.cs
+## Task 15: Hero.cs ✅
 
 **Files:**
 - Create: `worldtree-raylib/src/characters/Hero.cs`
