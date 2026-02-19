@@ -2585,7 +2585,7 @@ git commit -am "feat: add TitleScreen"
 
 ---
 
-## Task 20: Program.cs — Game Loop
+## Task 20: Program.cs — Game Loop ✅
 
 **Files:**
 - Replace: `worldtree-raylib/src/Program.cs`
