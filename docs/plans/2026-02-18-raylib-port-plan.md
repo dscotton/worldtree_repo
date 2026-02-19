@@ -2127,7 +2127,7 @@ git commit -am "feat: add Hero player character"
 
 ---
 
-## Task 16: Powerup.cs
+## Task 16: Powerup.cs ✅
 
 **Files:**
 - Replace stub: `worldtree-raylib/src/characters/Powerups.cs`
