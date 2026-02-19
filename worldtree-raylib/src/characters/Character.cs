@@ -209,7 +209,6 @@ public class DyingAnimation
         _endSound = endSound;
         if (isPlayer || isBoss)
         {
-            Raylib.StopMusicStream(default); // music stop handled by caller
             if (endSound.HasValue) Raylib.PlaySound(endSound.Value);
         }
     }

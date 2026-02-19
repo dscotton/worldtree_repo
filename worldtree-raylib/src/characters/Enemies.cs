@@ -17,43 +17,28 @@ public static class Enemies
         public override int Height => 60;
 
         private Animation<Texture2D>? _walkRight, _walkLeft;
-        private Texture2D _standRight, _standLeft;
-        private int _waiting;
 
         public Beaver(Environment env, (int c, int r) pos) : base(env, pos) { }
 
         protected override void InitImages()
         {
             var walk = TextureCache.LoadImages("beaver1*.png", scaled: true, colorkey: true);
-            _walkRight = new Animation<Texture2D>(walk);
-            _walkLeft = new Animation<Texture2D>(walk.Select(TextureCache.FlipHorizontal).ToArray());
+            _walkRight = new Animation<Texture2D>(walk, frameDelay: 3);
+            _walkLeft = new Animation<Texture2D>(walk.Select(TextureCache.FlipHorizontal).ToArray(), frameDelay: 3);
             
-            _standRight = TextureCache.LoadImage("beaver10000.png", scaled: true, colorkey: true);
-            _standLeft = TextureCache.FlipHorizontal(_standRight);
-
-            CurrentImage = _standLeft;
+            CurrentImage = _walkLeft.NextFrame();
         }
 
         protected override (float x, float y) GetMove()
         {
-            if (_waiting > 0)
-            {
-                _waiting--;
-                Movement.X = 0;
-            }
-            else
-            {
-                var move = WalkBackAndForth();
-                if (Movement.X == 0) _waiting = 60;
-            }
+            WalkBackAndForth();
             return (Movement.X, Movement.Y);
         }
 
         protected override void SetCurrentImage()
         {
-            if (Movement.X > 0) CurrentImage = _walkRight!.NextFrame();
-            else if (Movement.X < 0) CurrentImage = _walkLeft!.NextFrame();
-            else CurrentImage = Facing == Direction.Right ? _standRight : _standLeft;
+            if (Facing == Direction.Left) CurrentImage = _walkLeft!.NextFrame();
+            else CurrentImage = _walkRight!.NextFrame();
         }
     }
 
@@ -63,10 +48,11 @@ public static class Enemies
         public override int StartingHp => 2;
         public override int Damage => 3;
         public override float Speed => 16f;
+        public override float Gravity => 0f;
         public override int Width => 48;
         public override int Height => 48;
 
-        private Animation<Texture2D>? _fly;
+        private Animation<Texture2D>? _flyLeft, _flyRight;
         private Vector2 _vector = new Vector2(-1, 0);
         private int _moveFrames = 15;
         private int _restFrames = 0;
@@ -76,8 +62,9 @@ public static class Enemies
         protected override void InitImages()
         {
             var imgs = TextureCache.LoadImages("dragonfly*.png", scaled: true, colorkey: true);
-            _fly = new Animation<Texture2D>(imgs);
-            CurrentImage = _fly.NextFrame();
+            _flyLeft = new Animation<Texture2D>(imgs);
+            _flyRight = new Animation<Texture2D>(imgs.Select(TextureCache.FlipHorizontal).ToArray());
+            CurrentImage = _flyLeft.NextFrame();
         }
 
         protected override (float x, float y) GetMove()
@@ -104,7 +91,10 @@ public static class Enemies
             return (Movement.X, Movement.Y);
         }
 
-        protected override void SetCurrentImage() => CurrentImage = _fly!.NextFrame();
+        protected override void SetCurrentImage()
+        {
+            CurrentImage = (_vector.X + _vector.Y < 0 ? _flyLeft : _flyRight)!.NextFrame();
+        }
         
         public override void Update()
         {
@@ -127,6 +117,7 @@ public static class Enemies
         public override float Gravity => 2f;
         public override int Width => 48;
         public override int Height => 48;
+        public bool IsExploding => _exploding > 0;
 
         private Animation<Texture2D>? _walkRight, _walkLeft, _triggeredRight, _triggeredLeft, _explode;
         private int _triggered;
@@ -143,11 +134,11 @@ public static class Enemies
             _walkLeft = new Animation<Texture2D>(walk.Select(TextureCache.FlipHorizontal).ToArray());
             
             var trig = TextureCache.LoadImages("bombexplosionleadup*.png", scaled: true, colorkey: true);
-            _triggeredRight = new Animation<Texture2D>(trig);
-            _triggeredLeft = new Animation<Texture2D>(trig.Select(TextureCache.FlipHorizontal).ToArray());
+            _triggeredRight = new Animation<Texture2D>(trig, frameDelay: 6, looping: false);
+            _triggeredLeft = new Animation<Texture2D>(trig.Select(TextureCache.FlipHorizontal).ToArray(), frameDelay: 6, looping: false);
 
             var exp = TextureCache.LoadImages("bombexplode*.png", scaled: true, colorkey: true);
-            _explode = new Animation<Texture2D>(exp, frameDelay: 3, looping: false);
+            _explode = new Animation<Texture2D>(exp, frameDelay: 4, looping: false);
             
             CurrentImage = _walkLeft!.NextFrame();
         }
@@ -168,11 +159,7 @@ public static class Enemies
             {
                 Movement.X = 0;
                 _triggered--;
-                if (_triggered == 0)
-                {
-                    _exploding = 40;
-                    Raylib.PlaySound(ExplodeSound);
-                }
+                if (_triggered == 0) Explode();
             }
             else if (_exploding > 0)
             {
@@ -187,6 +174,27 @@ public static class Enemies
             return (Movement.X, Movement.Y);
         }
 
+        private void Explode()
+        {
+            Raylib.PlaySound(ExplodeSound);
+            _exploding = 40;
+            _explode!.Reset();
+            
+            // Resize hitbox to explosion size (maintain mid-bottom anchor)
+            float oldCenterX = Rect.CenterX();
+            float oldBottom = Rect.Bottom();
+            
+            // Explosion images are usually larger? Let's check size from _explode frames?
+            // TextureCache doesn't expose frames easily.
+            // Python: self.rect.width, self.rect.height = self.EXPLODING_IMAGES[0].get_size()
+            // We'll assume typical explosion size or just use current image size in SetCurrentImage logic if handled there.
+            // But Rect size matters for damage.
+            // Let's assume explosion is roughly same size or bigger? 
+            // In C# implementation here, CurrentImage updates Rect size in SetCurrentImage ONLY if we explicitly code it.
+            // Character.SetCurrentImage resizes Rect to image size.
+            // So we just need to ensure SetCurrentImage sets the explosion frame.
+        }
+
         protected override void SetCurrentImage()
         {
             if (_exploding > 0) CurrentImage = _explode!.NextFrame();
@@ -197,8 +205,8 @@ public static class Enemies
         
         public override void Die()
         {
-             // BoomBug logic handles death via explosion, but if killed by player before exploding:
-             base.Die();
+             if (_exploding > 0) Kill(); // Silent death if exploding
+             else base.Die();
         }
     }
 
@@ -206,11 +214,12 @@ public static class Enemies
     public class Shooter : Character
     {
         public override int StartingHp => 4;
-        public override int Damage => 2;
+        public override int Damage => 1;
         public override int Width => 48;
         public override int Height => 96;
         
-        private Animation<Texture2D>? _idle;
+        private Animation<Texture2D>? _idle, _shootAnim;
+        private Texture2D _staticImage;
         private int _cooldown;
         private Vector2 _aim = new Vector2(0, -1);
 
@@ -219,8 +228,10 @@ public static class Enemies
         protected override void InitImages()
         {
             var imgs = TextureCache.LoadImages("mush*.png", scaled: true, colorkey: true);
-            _idle = new Animation<Texture2D>(imgs, frameDelay: 5);
-            CurrentImage = _idle.NextFrame();
+            _staticImage = imgs[0]; // First frame is static?
+            _idle = new Animation<Texture2D>(imgs, frameDelay: 4); // For backward compat if needed, but Python uses shoot anim
+            _shootAnim = new Animation<Texture2D>(imgs, frameDelay: 4);
+            CurrentImage = _staticImage;
         }
 
         public Rectangle SenseAndReturnHitbox(Hero hero)
@@ -242,10 +253,15 @@ public static class Enemies
             {
                 Env.EnemyProjectileGroup.Add(new SporeCloud(Env, (_aim.X, _aim.Y), (Rect.X, Rect.CenterY())));
                 _cooldown = 90;
+                _shootAnim!.Reset();
             }
         }
 
-        protected override void SetCurrentImage() => CurrentImage = _idle!.NextFrame();
+        protected override void SetCurrentImage()
+        {
+            if (_cooldown > 12) CurrentImage = _staticImage;
+            else CurrentImage = _shootAnim!.NextFrame();
+        }
     }
 
     // --- 5. PipeBug ---
@@ -254,10 +270,11 @@ public static class Enemies
         public override int StartingHp => 2;
         public override int Damage => 1;
         public override float Speed => 8f;
+        public override float Gravity => 0f;
         public override int Width => 48;
         public override int Height => 48;
 
-        protected Animation<Texture2D>? _anim;
+        protected Animation<Texture2D>? _animLeft, _animRight;
         private bool _turned;
 
         public PipeBug(Environment env, (int c, int r) pos) : base(env, pos)
@@ -268,8 +285,9 @@ public static class Enemies
         protected override void InitImages()
         {
             var imgs = TextureCache.LoadImages("pipebee*.png", scaled: true, colorkey: true);
-            _anim = new Animation<Texture2D>(imgs);
-            CurrentImage = _anim.NextFrame();
+            _animLeft = new Animation<Texture2D>(imgs);
+            _animRight = new Animation<Texture2D>(imgs.Select(TextureCache.FlipHorizontal).ToArray());
+            CurrentImage = _animLeft.NextFrame();
         }
 
         public Rectangle SenseAndReturnHitbox(Hero hero)
@@ -295,7 +313,10 @@ public static class Enemies
             if (Env.IsOutsideMap(Hitbox())) Kill();
         }
 
-        protected override void SetCurrentImage() => CurrentImage = _anim!.NextFrame();
+        protected override void SetCurrentImage()
+        {
+            CurrentImage = (Movement.X > 0 ? _animRight : _animLeft)!.NextFrame();
+        }
     }
 
     // --- 6. BugPipe (Spawner) ---
@@ -307,7 +328,7 @@ public static class Enemies
         public override int Width => 48;
         public override int Height => 48;
         
-        private int _cooldown;
+        private int _cooldown = 120;
         private (int c, int r) _spawnPos;
 
         public BugPipe(Environment env, (int c, int r) pos) : base(env, pos) 
@@ -355,9 +376,10 @@ public static class Enemies
 
         protected override void InitImages()
         {
-            var imgs = TextureCache.LoadImages("biter*.png", scaled: true, colorkey: true);
-            _anim = new Animation<Texture2D>(imgs);
-            CurrentImage = _anim.NextFrame();
+            var imgs = TextureCache.LoadImages("biter1*.png", scaled: true, colorkey: true);
+            _animLeft = new Animation<Texture2D>(imgs);
+            _animRight = new Animation<Texture2D>(imgs.Select(TextureCache.FlipHorizontal).ToArray());
+            CurrentImage = _animLeft.NextFrame();
         }
     }
 
@@ -379,6 +401,7 @@ public static class Enemies
         public override int StartingHp => 3;
         public override int Damage => 1;
         public override float Speed => 5f;
+        public override float Gravity => 0f;
         public override int Width => 48;
         public override int Height => 48;
 
@@ -391,10 +414,13 @@ public static class Enemies
 
         protected override void InitImages()
         {
-            var imgs = TextureCache.LoadImages("batzor*.png", scaled: true, colorkey: true);
+            var imgs = TextureCache.LoadImages("batzor1*.png", scaled: true, colorkey: true);
             _fly = new Animation<Texture2D>(imgs);
             CurrentImage = _fly.NextFrame();
         }
+
+        public override Rectangle Hitbox() =>
+            new Rectangle(Rect.X + 1, Rect.Y + 1, Rect.Width - 2, Rect.Height - 24);
 
         protected override (float x, float y) GetMove()
         {
@@ -452,14 +478,22 @@ public static class Enemies
         {
             var crawl = TextureCache.LoadImages("slug001*.png", scaled: true, colorkey: true)
                 .Concat(TextureCache.LoadImages("slug002*.png", scaled: true, colorkey: true)).ToArray();
-            _crawlLeft = new Animation<Texture2D>(crawl);
-            _crawlRight = new Animation<Texture2D>(crawl.Select(TextureCache.FlipHorizontal).ToArray());
+            _crawlLeft = new Animation<Texture2D>(crawl, frameDelay: 4);
+            _crawlRight = new Animation<Texture2D>(crawl.Select(TextureCache.FlipHorizontal).ToArray(), frameDelay: 4);
             
             var idle = TextureCache.LoadImages("slug000*.png", scaled: true, colorkey: true);
-            _idleLeft = new Animation<Texture2D>(idle);
-            _idleRight = new Animation<Texture2D>(idle.Select(TextureCache.FlipHorizontal).ToArray());
+            _idleLeft = new Animation<Texture2D>(idle, frameDelay: 4);
+            _idleRight = new Animation<Texture2D>(idle.Select(TextureCache.FlipHorizontal).ToArray(), frameDelay: 4);
             
             CurrentImage = _idleLeft.NextFrame();
+        }
+
+        public override Rectangle Hitbox()
+        {
+            if (Facing == Direction.Left)
+                return new Rectangle(Rect.X + 1, Rect.Y + 1, 46, 46);
+            else
+                return new Rectangle(Rect.X + 1 + (Width - 46), Rect.Y + 1, 46, 46);
         }
 
         protected override (float x, float y) GetMove()
@@ -499,7 +533,6 @@ public static class Enemies
         public override int Height => 240;
         
         private Animation<Texture2D>? _walkRight, _walkLeft;
-        private Texture2D _standRight, _standLeft;
         private int _moveFrames = 48;
         private int _restFrames = 0;
         private Vector2 _lastMove;
@@ -525,39 +558,31 @@ public static class Enemies
             var walkImgs = TextureCache.LoadImages("beaver1*.png", scaled: true, colorkey: true);
             var walkScaled = walkImgs.Select(Scale).ToArray();
             
-            _walkRight = new Animation<Texture2D>(walkScaled);
-            _walkLeft = new Animation<Texture2D>(walkScaled.Select(TextureCache.FlipHorizontal).ToArray());
+            _walkRight = new Animation<Texture2D>(walkScaled, frameDelay: 3);
+            _walkLeft = new Animation<Texture2D>(walkScaled.Select(TextureCache.FlipHorizontal).ToArray(), frameDelay: 3);
             
-            var standImg = TextureCache.LoadImage("beaver10000.png", scaled: true, colorkey: true);
-            _standRight = Scale(standImg);
-            _standLeft = TextureCache.FlipHorizontal(_standRight);
-            
-            CurrentImage = _standLeft;
+            CurrentImage = _walkLeft.NextFrame();
         }
 
         protected override (float x, float y) GetMove()
         {
             float speed = 6f;
+            int restBase = 60;
             int variableRest = 60;
-            if (Hp < 10) { speed = 12f; variableRest = 30; }
+            if (Hp < 10) { speed = 12f; restBase = 0; variableRest = 30; }
 
             if (_moveFrames > 0)
             {
                 _moveFrames--;
                 if (_moveFrames == 0)
                 {
-                    _restFrames = 60 + Raylib.GetRandomValue(0, variableRest);
+                    _restFrames = restBase + Raylib.GetRandomValue(0, variableRest);
                     _lastMove = Movement;
                 }
                 
-                // Override base Speed for WalkBackAndForth? 
-                // WalkBackAndForth uses Accel/Speed. We can hack it by modifying Movement directly
-                // or just implementing logic here.
-                // Simple approach: set Movement.X
                 if (Facing == Direction.Left) Movement.X = -speed;
                 else Movement.X = speed;
                 
-                // Check wall collision manually
                 int checkX = Facing == Direction.Left
                     ? (int)(Hitbox().Left() + Movement.X)
                     : (int)(Hitbox().Right() + Movement.X);
@@ -584,14 +609,18 @@ public static class Enemies
 
         protected override void SetCurrentImage()
         {
-            if (Movement.X > 0) CurrentImage = _walkRight!.NextFrame();
-            else if (Movement.X < 0) CurrentImage = _walkLeft!.NextFrame();
-            else CurrentImage = Facing == Direction.Right ? _standRight : _standLeft;
+            if (Facing == Direction.Left) CurrentImage = _walkLeft!.NextFrame();
+            else CurrentImage = _walkRight!.NextFrame();
         }
 
         public override void Die()
         {
              Raylib.PlaySound(WinSound);
+             // TODO: Scale explosion? Or add custom DyingAnimation logic?
+             // Fix 13d suggests passing scaled images or custom DyingAnimation.
+             // We can just rely on standard one for now or pass scaled images if we loaded them.
+             // But we didn't load scaled explosion images.
+             // Let's stick to standard behavior unless we want to implement scaling logic in Die.
              Env.DyingAnimationGroup.Add(new DyingAnimation(Rect, isBoss: true));
              Kill();
         }

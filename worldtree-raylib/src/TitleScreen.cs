@@ -60,7 +60,6 @@ public class TitleScreen
         You have defeated the Beaver
         Baron and brought peace to
         the World Tree.
-        
         Congratulations!  Your name
         echoes through the canopy
         as all the creatures of the

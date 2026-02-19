@@ -220,7 +220,11 @@ public class Hero : Character
         }
         else
         {
-            if (Invulnerable == 0) { CollisionPushback(enemy); TakeHit(enemy.Damage); }
+            bool isBoomBugExploding = enemy is Enemies.BoomBug bb && bb.IsExploding;
+            if (Invulnerable == 0 || isBoomBugExploding)
+                CollisionPushback(enemy);
+            if (Invulnerable == 0 && enemy.Invulnerable == 0)
+                TakeHit(enemy.Damage);
         }
     }
 

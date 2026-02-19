@@ -33,7 +33,14 @@ public static class TextureCache
         string[] files = Directory.GetFiles(GameConstants.SpritesDir, pattern)
                                   .OrderBy(f => f)
                                   .ToArray();
-        return files.Select(f => LoadFromPath(f, scaled, colorkey)).ToArray();
+        return files.Select(f =>
+        {
+            string key = $"{f}|{scaled}|{colorkey}";
+            if (_cache.TryGetValue(key, out var cached)) return cached;
+            var tex = LoadFromPath(f, scaled, colorkey);
+            _cache[key] = tex;
+            return tex;
+        }).ToArray();
     }
 
     /// <summary>Return a horizontally-flipped copy of a texture (for left/right variants).</summary>
