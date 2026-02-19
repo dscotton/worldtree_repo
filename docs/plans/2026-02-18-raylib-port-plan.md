@@ -1266,7 +1266,7 @@ git commit -m "feat: add Environment construction and tile grid"
 
 ---
 
-## Task 11: Environment.cs — Camera and Rendering
+## Task 11: Environment.cs — Camera and Rendering ✅
 
 **Files:**
 - Modify: `worldtree-raylib/src/Environment.cs`
