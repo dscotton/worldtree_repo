@@ -1501,7 +1501,7 @@ git commit -am "feat: add Environment collision methods"
 
 ---
 
-## Task 13: Character.cs — Base Class
+## Task 13: Character.cs — Base Class ✅
 
 **Files:**
 - Replace stub: `worldtree-raylib/src/characters/Character.cs`
@@ -1755,7 +1755,7 @@ git commit -am "feat: add Character base class and DyingAnimation"
 
 ---
 
-## Task 14: Projectile.cs
+## Task 14: Projectile.cs ✅
 
 **Files:**
 - Replace stub: `worldtree-raylib/src/characters/Projectile.cs`
