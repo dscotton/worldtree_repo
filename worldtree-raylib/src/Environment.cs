@@ -176,4 +176,77 @@ public class Environment
         var (col, row) = TileIndexForPoint(rect.CenterX(), rect.CenterY());
         return col < 0 || col >= Width || row < 0 || row >= Height;
     }
+
+    // Camera state (replaces screen_offset in Python)
+    public Vector2 ScreenOffset { get; private set; } = Vector2.Zero;
+
+    public Camera2D MakeCamera() => new Camera2D
+    {
+        Offset = new Vector2(GameConstants.MapX, GameConstants.MapY),
+        Target = ScreenOffset,
+        Rotation = 0f,
+        Zoom = 1f
+    };
+
+    /// <summary>
+    /// Update the camera to follow rect (world coords). Returns updated camera.
+    /// Replaces Environment.Scroll() in Python — no need to apply scroll_vector to entities
+    /// because all entities are already in world coordinates.
+    /// </summary>
+    public Camera2D Scroll(Camera2D camera, Rectangle rect)
+    {
+        var offset = ScreenOffset;
+        float mapPixelW = Width * GameConstants.TileWidth;
+        float mapPixelH = Height * GameConstants.TileHeight;
+
+        if (rect.CenterX() < offset.X + GameConstants.ScrollMarginX && offset.X > 0)
+            offset.X = MathF.Max(0, rect.CenterX() - GameConstants.ScrollMarginX);
+        else if (rect.CenterX() > offset.X + GameConstants.MapWidth - GameConstants.ScrollMarginX
+                 && offset.X + GameConstants.MapWidth < mapPixelW)
+            offset.X = MathF.Min(mapPixelW - GameConstants.MapWidth,
+                                 rect.CenterX() - (GameConstants.MapWidth - GameConstants.ScrollMarginX));
+
+        if (rect.CenterY() < offset.Y + GameConstants.ScrollMarginY && offset.Y > 0)
+            offset.Y = MathF.Max(0, rect.CenterY() - GameConstants.ScrollMarginY);
+        else if (rect.CenterY() > offset.Y + GameConstants.MapHeight - GameConstants.ScrollMarginY
+                 && offset.Y + GameConstants.MapHeight < mapPixelH)
+            offset.Y = MathF.Min(mapPixelH - GameConstants.MapHeight,
+                                 rect.CenterY() - (GameConstants.MapHeight - GameConstants.ScrollMarginY));
+
+        ScreenOffset = offset;
+        camera.Target = offset;
+        return camera;
+    }
+
+    /// <summary>Set initial camera offset (e.g. on room transition).</summary>
+    public void SetScreenOffset(float x, float y) =>
+        ScreenOffset = new Vector2(
+            Math.Clamp(x, 0, Width * GameConstants.TileWidth - GameConstants.MapWidth),
+            Math.Clamp(y, 0, Height * GameConstants.TileHeight - GameConstants.MapHeight));
+
+    /// <summary>
+    /// Draw the visible tiles. Call this inside BeginMode2D / EndMode2D.
+    /// </summary>
+    public void DrawTiles()
+    {
+        int firstCol = (int)(ScreenOffset.X / GameConstants.TileWidth);
+        int lastCol = firstCol + GameConstants.MapWidth / GameConstants.TileWidth + 1;
+        int firstRow = (int)(ScreenOffset.Y / GameConstants.TileHeight);
+        int lastRow = firstRow + GameConstants.MapHeight / GameConstants.TileHeight + 1;
+
+        for (int col = firstCol; col <= Math.Min(lastCol, Width - 1); col++)
+            for (int row = firstRow; row <= Math.Min(lastRow, Height - 1); row++)
+            {
+                var tile = _grid[col][row];
+                if (tile == Tile.Empty || tile.Image == null) continue;
+                Raylib.DrawTexture(tile.Image.Value,
+                    col * GameConstants.TileWidth,
+                    row * GameConstants.TileHeight,
+                    Color.White);
+            }
+    }
+
+    public bool IsWorldPointVisible(float x, float y) =>
+        x >= ScreenOffset.X && x <= ScreenOffset.X + GameConstants.MapWidth &&
+        y >= ScreenOffset.Y && y <= ScreenOffset.Y + GameConstants.MapHeight;
 }
