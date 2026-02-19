@@ -358,8 +358,7 @@ public class Environment
     {
         if (vector == default) vector = (0, 1);
         var dest = rect.Move(vector.x, vector.y);
-        var oldTiles = new HashSet<(int, int)>(TilesForRect(rect));
-        foreach (var (col, row) in TilesForRect(dest).Where(t => !oldTiles.Contains(t)))
+        foreach (var (col, row) in TilesForRect(dest))
         {
             if (col < 0 || col >= Width) continue;
             if (row < 0) return false;
