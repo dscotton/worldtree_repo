@@ -532,7 +532,7 @@ git commit -m "feat: add Tile with ParseBoundByte and tests"
 
 ---
 
-## Task 7: Animation.cs
+## Task 7: Animation.cs ✅
 
 **Files:**
 - Create: `worldtree-raylib/src/Animation.cs`
@@ -664,7 +664,7 @@ git commit -m "feat: add generic Animation<T> with tests"
 
 ---
 
-## Task 8: Map Data Types and MapLoader.cs
+## Task 8: Map Data Types and MapLoader.cs ✅
 
 **Files:**
 - Create: `worldtree-raylib/src/MapData.cs`
@@ -849,7 +849,7 @@ git commit -m "feat: add MapData types and MapLoader with JSON parsing"
 
 ---
 
-## Task 9: TextureCache.cs and Controller.cs
+## Task 9: TextureCache.cs and Controller.cs ✅
 
 **Files:**
 - Create: `worldtree-raylib/src/TextureCache.cs`
