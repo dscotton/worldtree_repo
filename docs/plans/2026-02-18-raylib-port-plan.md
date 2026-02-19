@@ -2342,7 +2342,7 @@ git commit -am "feat: add all 11 enemy types"
 
 ---
 
-## Task 18: Statusbar.cs
+## Task 18: Statusbar.cs ✅
 
 **Files:**
 - Create: `worldtree-raylib/src/Statusbar.cs`
