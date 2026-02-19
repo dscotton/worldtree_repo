@@ -1366,7 +1366,7 @@ git commit -am "feat: add Environment camera, scroll, and tile rendering"
 
 ---
 
-## Task 12: Environment.cs — Collision
+## Task 12: Environment.cs — Collision ✅
 
 **Files:**
 - Modify: `worldtree-raylib/src/Environment.cs`
