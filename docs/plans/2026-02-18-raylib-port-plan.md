@@ -12,7 +12,7 @@
 
 ---
 
-## Task 1: Project Scaffold
+## Task 1: Project Scaffold ✅
 
 **Files:**
 - Create: `worldtree-raylib/WorldTree.sln`
@@ -102,7 +102,7 @@ git commit -m "feat: scaffold Raylib-cs project structure"
 
 ---
 
-## Task 2: Media Setup
+## Task 2: Media Setup ✅
 
 **Files:**
 - Create: `worldtree-raylib/media` (symlink)
@@ -133,7 +133,7 @@ git commit -m "feat: symlink media assets into raylib project"
 
 ---
 
-## Task 3: Map Data Conversion
+## Task 3: Map Data Conversion ✅
 
 **Files:**
 - Create: `worldtree-raylib/convert_maps.py`
