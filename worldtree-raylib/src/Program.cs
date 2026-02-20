@@ -50,11 +50,16 @@ void RunGame()
     string? currentSong = null;
     currentSong = TryStartMusic(env, ref currentMusic, null);
 
-    while (!Raylib.WindowShouldClose() && gameState == GameState.Playing)
+    while (!Raylib.WindowShouldClose() && gameState is GameState.Playing or GameState.Paused)
     {
         if (currentMusic.HasValue) Raylib.UpdateMusicStream(currentMusic.Value);
 
-        // --- Update ---
+        if (Controller.IsActionJustPressed(InputAction.Pause))
+            gameState = gameState == GameState.Paused ? GameState.Playing : GameState.Paused;
+
+        // --- Update (skipped while paused) ---
+        if (gameState == GameState.Paused) goto Draw;
+
         player.HandleInput();
 
         // Sprite-vs-enemy collision
@@ -108,6 +113,7 @@ void RunGame()
         env.DyingAnimationGroup.RemoveAll(d => d.IsDead);
 
         // --- Draw ---
+        Draw:
         Raylib.BeginDrawing();
         Raylib.ClearBackground(env.BgColor);
 
@@ -122,6 +128,18 @@ void RunGame()
         Raylib.EndMode2D();
 
         statusbar.Draw(); // screen-space HUD
+
+        if (gameState == GameState.Paused)
+        {
+            var pauseText = "Paused";
+            var textSize = Raylib.MeasureTextEx(GameConstants.GameOverFont, pauseText, 24, 1);
+            float panelW = textSize.X + 48, panelH = textSize.Y + 32;
+            float panelX = GameConstants.ScreenWidth / 2f - panelW / 2f;
+            float panelY = GameConstants.ScreenHeight / 2f - panelH / 2f;
+            Raylib.DrawRectangle((int)panelX, (int)panelY, (int)panelW, (int)panelH, Color.Black);
+            Raylib.DrawTextEx(GameConstants.GameOverFont, pauseText,
+                new Vector2(panelX + 24, panelY + 16), 24, 1, Color.White);
+        }
 
         if (gameState == GameState.GameOver)
         {

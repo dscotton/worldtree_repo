@@ -18,7 +18,7 @@ public static class Controller
         { KeyboardKey.Space, InputAction.Jump  },
         { KeyboardKey.M,     InputAction.Attack},
         { KeyboardKey.N,     InputAction.Shoot },
-        { KeyboardKey.Enter, InputAction.Start },
+        { KeyboardKey.Enter, InputAction.Pause },
         { KeyboardKey.W,     InputAction.Up    },
         { KeyboardKey.A,     InputAction.Left  },
         { KeyboardKey.S,     InputAction.Down  },
@@ -32,5 +32,17 @@ public static class Controller
             if (Raylib.IsKeyDown(key))
                 active.Add(action);
         return active;
+    }
+
+    /// <summary>
+    /// Returns true if the given action's key was pressed this frame (not held).
+    /// Use this for toggle actions like pause.
+    /// </summary>
+    public static bool IsActionJustPressed(InputAction action)
+    {
+        foreach (var (key, a) in KeyMap)
+            if (a == action && Raylib.IsKeyPressed(key))
+                return true;
+        return false;
     }
 }

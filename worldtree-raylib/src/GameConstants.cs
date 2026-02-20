@@ -36,8 +36,8 @@ public static class GameConstants
 public enum InputAction
 {
     Up = 1, Down = 2, Left = 3, Right = 4,
-    Jump = 5, Attack = 6, Start = 7, Shoot = 8
+    Jump = 5, Attack = 6, Start = 7, Shoot = 8, Pause = 9
 }
 
 // Game state — replaces GameOverException / GameWonException
-public enum GameState { Playing, GameOver, Won }
+public enum GameState { Playing, Paused, GameOver, Won }
