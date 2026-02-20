@@ -110,9 +110,9 @@ public class CollisionTests
         // [Empty]
         // [SolidTop]
         var grid = new Tile[1][];
-        grid[0] = new Tile[] { 
-            Tile.Empty, 
-            new Tile(null, false, false, true, false) 
+        grid[0] = new Tile[] {
+            Tile.Empty,
+            new Tile(null, false, false, true, false)
         };
         var env = CreateTestEnvironment(1, 2, grid);
 
@@ -129,5 +129,154 @@ public class CollisionTests
         // Rect high up (y=0)
         var airRect = new Rectangle(10, 0, 20, 20);
         Assert.False(env.IsRectSupported(airRect, (0, 1)));
+    }
+
+    // --- New tests ---
+
+    // Tile helpers  (TileWidth = TileHeight = 48)
+    private static Tile SolidLeft()   => new Tile(null, true,  false, false, false);
+    private static Tile SolidRight()  => new Tile(null, false, true,  false, false);
+    private static Tile SolidTop()    => new Tile(null, false, false, true,  false);
+    private static Tile SolidBottom() => new Tile(null, false, false, false, true);
+    private static Tile AllSolid()    => new Tile(null, true,  true,  true,  true);
+
+    [Fact]
+    public void AttemptMove_HorizontalRight_BlockedBySolidLeftWall()
+    {
+        // Grid (col x row):  [Empty(0,0)] [SolidLeft(1,0)]
+        var grid = new Tile[2][];
+        grid[0] = new[] { Tile.Empty };
+        grid[1] = new[] { SolidLeft() };
+        var env = CreateTestEnvironment(2, 1, grid);
+
+        // Rect at (10,10) size 20x20.  Right edge = 30.  Wall left edge = 48.
+        // Move +30: dest right = 60 >= 48, hitbox right 30 < 48 → blocked.
+        // newVX = 48 - 30 - 1 = 17  →  X = 27, right = 47 (just clear of wall).
+        var result = env.AttemptMove(new Rectangle(10, 10, 20, 20), (30, 0));
+        Assert.Equal(27, result.X);
+        Assert.Equal(10, result.Y);
+    }
+
+    [Fact]
+    public void AttemptMove_HorizontalLeft_BlockedBySolidRightWall()
+    {
+        // Grid: [SolidRight(0,0)] [Empty(1,0)]
+        var grid = new Tile[2][];
+        grid[0] = new[] { SolidRight() };
+        grid[1] = new[] { Tile.Empty };
+        var env = CreateTestEnvironment(2, 1, grid);
+
+        // Rect at (58,10) size 20x20.  Left = 58.  Wall right edge = 47.
+        // Move -30: dest left = 28 <= 47, hitbox left 58 > 47 → blocked.
+        // newVX = 47 - 58 + 1 = -10  →  X = 48, left = 48 (just clear of wall).
+        var result = env.AttemptMove(new Rectangle(58, 10, 20, 20), (-30, 0));
+        Assert.Equal(48, result.X);
+        Assert.Equal(10, result.Y);
+    }
+
+    [Fact]
+    public void AttemptMove_VerticalUp_BlockedBySolidBottomCeiling()
+    {
+        // Grid: [SolidBottom(0,0)]
+        //       [Empty(0,1)]
+        var grid = new Tile[1][];
+        grid[0] = new[] { SolidBottom(), Tile.Empty };
+        var env = CreateTestEnvironment(1, 2, grid);
+
+        // Rect at (10,60) size 20x20. Top = 60.  Ceiling bottom edge = 47.
+        // Move -30: dest top = 30 <= 47, hitbox top 60 > 47 → blocked.
+        // newVY = 47 - 60 + 1 = -12  →  Y = 48, top = 48 (just clear of ceiling).
+        var result = env.AttemptMove(new Rectangle(10, 60, 20, 20), (0, -30));
+        Assert.Equal(10, result.X);
+        Assert.Equal(48, result.Y);
+    }
+
+    [Fact]
+    public void AttemptMove_YFirstResolution_MovingUpAndRight_ClearsWallAtOriginalRow()
+    {
+        // Grid:  [Empty(0,0)]    [Empty(1,0)]     ← no wall at destination row
+        //        [Empty(0,1)]    [SolidLeft(1,1)] ← wall only at starting row
+        //        [Empty(0,2)]    [Empty(1,2)]
+        var grid = new Tile[2][];
+        grid[0] = new[] { Tile.Empty, Tile.Empty, Tile.Empty };
+        grid[1] = new[] { Tile.Empty, SolidLeft(), Tile.Empty };
+        var env = CreateTestEnvironment(2, 3, grid);
+
+        // Rect at (10,60) size 20x20: entirely in row 1 (60/48=1, 80/48=1).
+        // Move (+30, -40):
+        //   Y-first: moves up to row 0 (y=20), then MoveX sees no wall in row 0 → passes.
+        //   X-first: would hit SolidLeft in row 1 and be blocked at X=27.
+        var result = env.AttemptMove(new Rectangle(10, 60, 20, 20), (30, -40));
+        Assert.Equal(40, result.X); // cleared the wall
+        Assert.Equal(20, result.Y);
+    }
+
+    [Fact]
+    public void AttemptMove_LandsOnNearestFloorWhenMultipleInPath()
+    {
+        // Grid: [Empty(0,0)]
+        //       [SolidTop(0,1)]   ← nearer floor
+        //       [SolidTop(0,2)]   ← farther floor — should NOT be chosen
+        var grid = new Tile[1][];
+        grid[0] = new[] { Tile.Empty, SolidTop(), SolidTop() };
+        var env = CreateTestEnvironment(1, 3, grid);
+
+        // Rect at (5,10) size 20x20.  Bottom = 30.  Move down 80px.
+        // Dest bottom = 110, spanning rows 1 and 2.
+        // Floor at row 1 top = 48: newVY = min(80, 48-30-1) = 17 → Y = 27, bottom = 47.
+        // Floor at row 2 top = 96: newVY = min(17, 96-30-1) = 17 (unchanged).
+        // Without MathF.Min (old "last-write-wins"), row 2 would overwrite: Y = 75.
+        var result = env.AttemptMove(new Rectangle(5, 10, 20, 20), (0, 80));
+        Assert.Equal(5,  result.X);
+        Assert.Equal(27, result.Y); // landed on nearer floor, not the farther one
+    }
+
+    [Fact]
+    public void AttemptMove_PlayerCanExitMapEdge()
+    {
+        // 2-col grid, player moves far off the right edge.
+        var grid = new Tile[2][];
+        grid[0] = new[] { Tile.Empty };
+        grid[1] = new[] { Tile.Empty };
+        var env = CreateTestEnvironment(2, 1, grid);
+
+        // isPlayer=true: out-of-bounds tiles treated as non-solid → movement allowed.
+        var result = env.AttemptMove(new Rectangle(10, 10, 20, 20), (200, 0), isPlayer: true);
+        Assert.Equal(210, result.X);
+    }
+
+    [Fact]
+    public void AttemptMove_EnemyBlockedAtMapEdge()
+    {
+        // Same 2-col grid, enemy moves toward right edge.
+        var grid = new Tile[2][];
+        grid[0] = new[] { Tile.Empty };
+        grid[1] = new[] { Tile.Empty };
+        var env = CreateTestEnvironment(2, 1, grid);
+
+        // Enemy at (70,10) size 20x20. Right=90. Map right boundary at col 2 → x=96.
+        // Move +10: dest right=100 >= 96 → blocked. newVX = 96-90-1 = 5 → X = 75, right = 95.
+        var result = env.AttemptMove(new Rectangle(70, 10, 20, 20), (10, 0), isPlayer: false);
+        Assert.Equal(75, result.X);
+    }
+
+    [Fact]
+    public void IsRectSupported_WallBesideCharacterDoesNotCountAsSupport()
+    {
+        // Grid: [Empty(0,0)]        [SolidLeft+SolidTop(1,0)]
+        //       [Empty(0,1)]        [Empty(1,1)]
+        // A wall tile sits to the right of the player; there is no floor below.
+        // The shifted fallbox overlaps the wall column, but the wall's SolidTop
+        // should NOT trigger support — those tiles are "old tiles" for the probe.
+        var grid = new Tile[2][];
+        grid[0] = new[] { Tile.Empty, Tile.Empty };
+        grid[1] = new[] { new Tile(null, true, false, true, false), Tile.Empty };
+        var env = CreateTestEnvironment(2, 2, grid);
+
+        // Shift rect into the wall column: (40,10,20,20) spans cols 0 and 1.
+        // Probe 1px down: bottom goes 30→31, still row 0 — no NEW tiles enter.
+        // Old buggy code (no filter) would check (1,0).SolidTop and return true.
+        var shiftedRect = new Rectangle(40, 10, 20, 20);
+        Assert.False(env.IsRectSupported(shiftedRect));
     }
 }
