@@ -153,10 +153,20 @@ public abstract class Character : IPushbackSource
 
     protected virtual void DropItem()
     {
-        var tile = Env.TileIndexForPoint(Hitbox().CenterX(), Hitbox().CenterY());
+        if (DropTable.Length == 0) return;
+        int roll = Random.Shared.Next(100);
+        int cumulative = 0;
         foreach (var (factory, probability) in DropTable)
-            if (Random.Shared.Next(100) < probability)
+        {
+            cumulative += probability;
+            if (roll < cumulative)
+            {
+                var tile = Env.TileIndexForPoint(Hitbox().CenterX(), Hitbox().CenterY());
                 Env.ItemGroup.Add(factory(Env, (tile.col, tile.row)));
+                return;
+            }
+        }
+        // roll >= sum of all probabilities → nothing drops
     }
 
     public void Kill() => IsDead = true;
