@@ -140,16 +140,23 @@ public abstract class Character : IPushbackSource
         Kill();
     }
 
+    // Drop table: each entry is a factory and its independent drop probability (0–99).
+    // Subclasses override this to configure what they drop and how often.
+    protected virtual (Func<Environment, (int col, int row), Powerup> Factory, int Probability)[] DropTable =>
+        _defaultDropTable;
+
+    private static readonly (Func<Environment, (int col, int row), Powerup> Factory, int Probability)[] _defaultDropTable =
+    {
+        ((env, pos) => new Powerups.HealthRestore(env, pos), 10),
+        ((env, pos) => new Powerups.AmmoRestore(env, pos), 10),
+    };
+
     protected virtual void DropItem()
     {
-        if (Random.Shared.Next(100) < 20)
-        {
-            var tile = Env.TileIndexForPoint(Hitbox().CenterX(), Hitbox().CenterY());
-            Powerup drop = Random.Shared.Next(2) == 0
-                ? new Powerups.HealthRestore(Env, (tile.col, tile.row))
-                : new Powerups.AmmoRestore(Env, (tile.col, tile.row));
-            Env.ItemGroup.Add(drop);
-        }
+        var tile = Env.TileIndexForPoint(Hitbox().CenterX(), Hitbox().CenterY());
+        foreach (var (factory, probability) in DropTable)
+            if (Random.Shared.Next(100) < probability)
+                Env.ItemGroup.Add(factory(Env, (tile.col, tile.row)));
     }
 
     public void Kill() => IsDead = true;
