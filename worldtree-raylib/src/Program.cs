@@ -31,6 +31,7 @@ void LoadStaticData()
     Env.SongsByRoom = BuildSongsByRoom();
     Env.BgColorsByRoom = BuildBgColorsByRoom();
     Env.AllTransitions = MapLoader.LoadTransitions("data/map_transitions.json");
+    RegionMap.ComputeLayouts();
     GameConstants.GameOverFont = Raylib.LoadFont(Path.Combine(GameConstants.FontDir, GameConstants.Font));
 }
 
@@ -50,6 +51,9 @@ void RunGame()
     string? currentSong = null;
     currentSong = TryStartMusic(env, ref currentMusic, null);
     bool debugMode = false;
+
+    var visitedRooms = new Dictionary<int, HashSet<string>>
+        { [currentRegion] = new HashSet<string> { currentRoom } };
 
     while (!Raylib.WindowShouldClose() && gameState is GameState.Playing or GameState.Paused)
     {
@@ -134,16 +138,9 @@ void RunGame()
         statusbar.Draw(); // screen-space HUD
 
         if (gameState == GameState.Paused)
-        {
-            var pauseText = "Paused";
-            var textSize = Raylib.MeasureTextEx(GameConstants.GameOverFont, pauseText, 24, 1);
-            float panelW = textSize.X + 48, panelH = textSize.Y + 32;
-            float panelX = GameConstants.ScreenWidth / 2f - panelW / 2f;
-            float panelY = GameConstants.ScreenHeight / 2f - panelH / 2f;
-            Raylib.DrawRectangle((int)panelX, (int)panelY, (int)panelW, (int)panelH, Color.Black);
-            Raylib.DrawTextEx(GameConstants.GameOverFont, pauseText,
-                new Vector2(panelX + 24, panelY + 16), 24, 1, Color.White);
-        }
+            RegionMap.Draw(currentRegion,
+                visitedRooms.GetValueOrDefault(currentRegion, new HashSet<string>()),
+                currentRoom);
 
         if (gameState == GameState.GameOver)
         {
@@ -161,7 +158,7 @@ void RunGame()
         if (env.IsOutsideMap(player.Fallbox()))
             HandleRoomTransition(ref env, ref player, ref camera, ref currentRoom,
                                  ref currentRegion, ref currentSong, ref currentMusic,
-                                 Env.AllTransitions);
+                                 Env.AllTransitions, visitedRooms);
     }
 
     if (currentMusic.HasValue) Raylib.StopMusicStream(currentMusic.Value);
@@ -236,10 +233,11 @@ Dictionary<int, Dictionary<string, Color>> BuildBgColorsByRoom()
     return dict;
 }
 
-void HandleRoomTransition(ref Env env, ref Hero player, ref Camera2D camera, 
-                          ref string currentRoom, ref int currentRegion, 
+void HandleRoomTransition(ref Env env, ref Hero player, ref Camera2D camera,
+                          ref string currentRoom, ref int currentRegion,
                           ref string? currentSong, ref Music? currentMusic,
-                          Dictionary<int, Dictionary<string, Dictionary<TransitionDirection, List<TransitionInfo>>>> transitions)
+                          Dictionary<int, Dictionary<string, Dictionary<TransitionDirection, List<TransitionInfo>>>> transitions,
+                          Dictionary<int, HashSet<string>> visitedRooms)
 {
     // Determine direction of exit using Fallbox (consistent with IsOutsideMap check)
     TransitionDirection dir;
@@ -275,7 +273,9 @@ void HandleRoomTransition(ref Env env, ref Hero player, ref Camera2D camera,
                 {
                     currentRegion = match.Region;
                     currentRoom = match.Dest;
-                    
+                    visitedRooms.TryAdd(currentRegion, new HashSet<string>());
+                    visitedRooms[currentRegion].Add(currentRoom);
+
                     env = new Env(currentRoom, currentRegion);
                     // Calculate new position — matches worldtree.py:139-176 exactly
             int newCol = 0, newRow = 0;
