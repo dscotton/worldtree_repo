@@ -142,7 +142,14 @@ public abstract class Character : IPushbackSource
 
     protected virtual void DropItem()
     {
-        // Subclasses override to configure drops
+        if (Random.Shared.Next(100) < 20)
+        {
+            var tile = Env.TileIndexForPoint(Hitbox().CenterX(), Hitbox().CenterY());
+            Powerup drop = Random.Shared.Next(2) == 0
+                ? new Powerups.HealthRestore(Env, (tile.col, tile.row))
+                : new Powerups.AmmoRestore(Env, (tile.col, tile.row));
+            Env.ItemGroup.Add(drop);
+        }
     }
 
     public void Kill() => IsDead = true;
