@@ -19,6 +19,7 @@ public static class Controller
         { KeyboardKey.M,     InputAction.Attack},
         { KeyboardKey.N,     InputAction.Shoot },
         { KeyboardKey.Enter, InputAction.Pause },
+        { KeyboardKey.F1,    InputAction.Debug },
         { KeyboardKey.W,     InputAction.Up    },
         { KeyboardKey.A,     InputAction.Left  },
         { KeyboardKey.S,     InputAction.Down  },

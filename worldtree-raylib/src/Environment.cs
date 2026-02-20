@@ -261,6 +261,37 @@ public class Environment
             }
     }
 
+    /// <summary>
+    /// Draw solid-edge indicators for all visible tiles. Call inside BeginMode2D/EndMode2D.
+    /// Each solid edge is shown as a white line along that side of the tile.
+    /// </summary>
+    public void DrawDebugBounds()
+    {
+        int firstCol = (int)(ScreenOffset.X / GameConstants.TileWidth);
+        int lastCol  = firstCol + GameConstants.MapWidth  / GameConstants.TileWidth + 1;
+        int firstRow = (int)(ScreenOffset.Y / GameConstants.TileHeight);
+        int lastRow  = firstRow + GameConstants.MapHeight / GameConstants.TileHeight + 1;
+
+        for (int col = firstCol; col <= Math.Min(lastCol, Width - 1); col++)
+        {
+            for (int row = firstRow; row <= Math.Min(lastRow, Height - 1); row++)
+            {
+                var tile = _grid[col][row];
+                if (tile.IsEmpty) continue;
+
+                int x  = col * GameConstants.TileWidth;
+                int y  = row * GameConstants.TileHeight;
+                int x2 = x + GameConstants.TileWidth;
+                int y2 = y + GameConstants.TileHeight;
+
+                if (tile.SolidTop)    Raylib.DrawLine(x, y,  x2, y,  Color.White);
+                if (tile.SolidBottom) Raylib.DrawLine(x, y2, x2, y2, Color.White);
+                if (tile.SolidLeft)   Raylib.DrawLine(x, y,  x,  y2, Color.White);
+                if (tile.SolidRight)  Raylib.DrawLine(x2, y, x2, y2, Color.White);
+            }
+        }
+    }
+
     public bool IsWorldPointVisible(float x, float y) =>
         x >= ScreenOffset.X && x <= ScreenOffset.X + GameConstants.MapWidth &&
         y >= ScreenOffset.Y && y <= ScreenOffset.Y + GameConstants.MapHeight;

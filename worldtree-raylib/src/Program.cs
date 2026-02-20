@@ -49,6 +49,7 @@ void RunGame()
     Music? currentMusic = default;
     string? currentSong = null;
     currentSong = TryStartMusic(env, ref currentMusic, null);
+    bool debugMode = false;
 
     while (!Raylib.WindowShouldClose() && gameState is GameState.Playing or GameState.Paused)
     {
@@ -56,6 +57,8 @@ void RunGame()
 
         if (Controller.IsActionJustPressed(InputAction.Pause))
             gameState = gameState == GameState.Paused ? GameState.Playing : GameState.Paused;
+        if (Controller.IsActionJustPressed(InputAction.Debug))
+            debugMode = !debugMode;
 
         // --- Update (skipped while paused) ---
         if (gameState == GameState.Paused) goto Draw;
@@ -119,6 +122,7 @@ void RunGame()
 
         Raylib.BeginMode2D(camera);
         env.DrawTiles();
+        if (debugMode) env.DrawDebugBounds();
         foreach (var i in env.ItemGroup)    i.Draw();
         foreach (var e in env.EnemyGroup)   e.Draw();
         foreach (var b in env.HeroProjectileGroup)  b.Draw();
