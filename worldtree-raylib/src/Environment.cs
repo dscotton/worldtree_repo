@@ -283,17 +283,23 @@ public class Environment
 
     /// <summary>
     /// Attempt a move, blocking per-tile-side solidity. Returns new world rect.
+    /// Resolves Y first, then X, so upward movement clears obstacles before
+    /// horizontal movement is checked against them.
     /// For player (isPlayer=true), allows moving off map edges for room transitions.
     /// </summary>
     public Rectangle AttemptMove(Rectangle hitbox, (float x, float y) vector, bool isPlayer = false)
     {
-        var dest = hitbox.Move(vector.x, vector.y);
-        float newVX = vector.x, newVY = vector.y;
+        var afterY = MoveY(hitbox, vector.y, isPlayer);
+        return MoveX(afterY, vector.x, isPlayer);
+    }
 
+    private Rectangle MoveY(Rectangle hitbox, float dy, bool isPlayer)
+    {
+        if (dy == 0f) return hitbox;
+        var dest = hitbox.Move(0, dy);
+        float newVY = dy;
         var oldTiles = new HashSet<(int, int)>(TilesForRect(hitbox));
-        var newTiles = TilesForRect(dest).Where(t => !oldTiles.Contains(t));
-
-        foreach (var (col, row) in newTiles)
+        foreach (var (col, row) in TilesForRect(dest).Where(t => !oldTiles.Contains(t)))
         {
             Tile square;
             if (col < 0 || col >= Width || row < 0 || row >= Height)
@@ -304,22 +310,37 @@ public class Environment
 
             var tileRect = RectForTile(col, row);
 
-            if (hitbox.Bottom() < tileRect.Top() && square.SolidTop
-                && dest.Bottom() >= tileRect.Top())
-                newVY = tileRect.Top() - hitbox.Bottom() - 1;
-            else if (hitbox.Top() > tileRect.Bottom() && square.SolidBottom
-                     && dest.Top() <= tileRect.Bottom())
-                newVY = tileRect.Bottom() - hitbox.Top() + 1;
-
-            if (hitbox.Right() < tileRect.Left() && square.SolidLeft
-                && dest.Right() >= tileRect.Left())
-                newVX = tileRect.Left() - hitbox.Right() - 1;
-            else if (hitbox.Left() > tileRect.Right() && square.SolidRight
-                     && dest.Left() <= tileRect.Right())
-                newVX = tileRect.Right() - hitbox.Left() + 1;
+            if (hitbox.Bottom() < tileRect.Top() && square.SolidTop && dest.Bottom() >= tileRect.Top())
+                newVY = MathF.Min(newVY, tileRect.Top() - hitbox.Bottom() - 1);
+            else if (hitbox.Top() > tileRect.Bottom() && square.SolidBottom && dest.Top() <= tileRect.Bottom())
+                newVY = MathF.Max(newVY, tileRect.Bottom() - hitbox.Top() + 1);
         }
+        return hitbox.Move(0, newVY);
+    }
 
-        return hitbox.Move(newVX, newVY);
+    private Rectangle MoveX(Rectangle hitbox, float dx, bool isPlayer)
+    {
+        if (dx == 0f) return hitbox;
+        var dest = hitbox.Move(dx, 0);
+        float newVX = dx;
+        var oldTiles = new HashSet<(int, int)>(TilesForRect(hitbox));
+        foreach (var (col, row) in TilesForRect(dest).Where(t => !oldTiles.Contains(t)))
+        {
+            Tile square;
+            if (col < 0 || col >= Width || row < 0 || row >= Height)
+                square = isPlayer ? new Tile(null, false, false, false, false)
+                                  : new Tile(null, true, true, true, true);
+            else
+                square = _grid[col][row];
+
+            var tileRect = RectForTile(col, row);
+
+            if (hitbox.Right() < tileRect.Left() && square.SolidLeft && dest.Right() >= tileRect.Left())
+                newVX = MathF.Min(newVX, tileRect.Left() - hitbox.Right() - 1);
+            else if (hitbox.Left() > tileRect.Right() && square.SolidRight && dest.Left() <= tileRect.Right())
+                newVX = MathF.Max(newVX, tileRect.Right() - hitbox.Left() + 1);
+        }
+        return hitbox.Move(newVX, 0);
     }
 
     /// <summary>
