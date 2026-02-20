@@ -146,6 +146,7 @@ public class TitleScreen
         var textArray = new List<string>();
         const int fontHeight = 16;
         const int lineHeight = 20;
+        const int textTop = 144;
         const int textBottom = 576;
 
         while (!Raylib.WindowShouldClose())
@@ -167,16 +168,18 @@ public class TitleScreen
                 if (frame % (_textSpeed * lineHeight) == 0 && lineIdx < lines.Length)
                     textArray.Add(lines[lineIdx]);
 
+                // Wrap text drawing in Scissor Mode for pixel-perfect clipping (smooth scrolling)
+                Raylib.BeginScissorMode(0, textTop, GameConstants.ScreenWidth, textBottom - textTop);
+                
                 for (int i = 0; i < textArray.Count; i++)
                 {
                     float y = textPos + i * lineHeight;
-                    // Cull off-screen text
-                    if (y < -lineHeight || y > GameConstants.ScreenHeight) continue;
-
                     var size = Raylib.MeasureTextEx(_font, textArray[i], fontHeight, 1);
                     Raylib.DrawTextEx(_font, textArray[i],
                         new Vector2(480 - size.X / 2f, y), fontHeight, 1, Color.White);
                 }
+
+                Raylib.EndScissorMode();
             }
 
             Raylib.EndDrawing();
