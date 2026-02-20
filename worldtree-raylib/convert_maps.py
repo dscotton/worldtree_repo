@@ -24,10 +24,10 @@ os.makedirs(os.path.join(os.path.dirname(__file__), 'data'), exist_ok=True)
 out = os.path.join(os.path.dirname(__file__), 'data')
 
 with open(os.path.join(out, 'map_data.json'), 'w') as f:
-    json.dump(map_data.map_data, f)
+    json.dump(map_data.map_data, f, indent=4)
 
 with open(os.path.join(out, 'map_data2.json'), 'w') as f:
-    json.dump(map_data2.map_data, f)
+    json.dump(map_data2.map_data, f, indent=4)
 
 # Transitions: convert Transition objects to dicts.
 # Key structure: { region_str: { room: { direction_str: [ {first,last,region,dest,offset} ] } } }
@@ -51,6 +51,6 @@ for region, rooms in map_transitions.transitions.items():
             ]
 
 with open(os.path.join(out, 'map_transitions.json'), 'w') as f:
-    json.dump(trans_out, f)
+    json.dump(trans_out, f, indent=4)
 
 print("Done. Generated data/map_data.json, data/map_data2.json, data/map_transitions.json")
