@@ -31,18 +31,7 @@ public static class GameConstants
 
     public static Font GameOverFont;
 
-    // Fragment shader for the hit flash effect.
-    // Replaces every non-transparent pixel with the draw tint (Color.White),
-    // producing a proper sprite-shaped silhouette rather than a tile-sized rectangle.
-    public const string HitFlashFrag = @"#version 330
-in vec2 fragTexCoord;
-in vec4 fragColor;
-uniform sampler2D texture0;
-out vec4 finalColor;
-void main() {
-    vec4 texColor = texture(texture0, fragTexCoord);
-    finalColor = vec4(fragColor.rgb, texColor.a);
-}";
+    public const string ShaderDir = "media/shaders";
 
     public static Shader HitFlashShader;
 }
