@@ -231,8 +231,7 @@ public class DyingAnimation
     private Sound? _endSound;
 
     private static Texture2D[] Images => _images ??=
-        TextureCache.LoadImages("regularexplode1*.png", scaled: true,
-                                colorkey: true);
+        TextureCache.LoadImages("regularexplode1*.png", scaled: true);
 
     public DyingAnimation(Rectangle sourceRect, bool isPlayer = false,
                           bool isBoss = false, Sound? endSound = null)

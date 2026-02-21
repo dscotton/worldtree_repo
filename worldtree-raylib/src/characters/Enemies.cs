@@ -22,7 +22,7 @@ public static class Enemies
 
         protected override void InitImages()
         {
-            var walk = TextureCache.LoadImages("beaver1*.png", scaled: true, colorkey: true);
+            var walk = TextureCache.LoadImages("beaver1*.png", scaled: true);
             _walkLeft = new Animation<Texture2D>(walk, frameDelay: 3);
             _walkRight = new Animation<Texture2D>(walk.Select(TextureCache.FlipHorizontal).ToArray(), frameDelay: 3);
             
@@ -61,7 +61,7 @@ public static class Enemies
 
         protected override void InitImages()
         {
-            var imgs = TextureCache.LoadImages("dragonfly*.png", scaled: true, colorkey: true);
+            var imgs = TextureCache.LoadImages("dragonfly*.png", scaled: true);
             _flyLeft = new Animation<Texture2D>(imgs);
             _flyRight = new Animation<Texture2D>(imgs.Select(TextureCache.FlipHorizontal).ToArray());
             CurrentImage = _flyLeft.NextFrame();
@@ -128,15 +128,15 @@ public static class Enemies
 
         protected override void InitImages()
         {
-            var walk = TextureCache.LoadImages("bombug*.png", scaled: true, colorkey: true);
+            var walk = TextureCache.LoadImages("bombug*.png", scaled: true);
             _walkRight = new Animation<Texture2D>(walk);
             _walkLeft = new Animation<Texture2D>(walk.Select(TextureCache.FlipHorizontal).ToArray());
             
-            var trig = TextureCache.LoadImages("bombexplosionleadup*.png", scaled: true, colorkey: true);
+            var trig = TextureCache.LoadImages("bombexplosionleadup*.png", scaled: true);
             _triggeredRight = new Animation<Texture2D>(trig, frameDelay: 6, looping: false);
             _triggeredLeft = new Animation<Texture2D>(trig.Select(TextureCache.FlipHorizontal).ToArray(), frameDelay: 6, looping: false);
 
-            var exp = TextureCache.LoadImages("bombexplode*.png", scaled: true, colorkey: true);
+            var exp = TextureCache.LoadImages("bombexplode*.png", scaled: true);
             _explode = new Animation<Texture2D>(exp, frameDelay: 4, looping: false);
             
             CurrentImage = _walkLeft!.NextFrame();
@@ -226,7 +226,7 @@ public static class Enemies
 
         protected override void InitImages()
         {
-            var imgs = TextureCache.LoadImages("mush*.png", scaled: true, colorkey: true);
+            var imgs = TextureCache.LoadImages("mush*.png", scaled: true);
             _staticImage = imgs[0]; // First frame is static?
             _idle = new Animation<Texture2D>(imgs, frameDelay: 4); // For backward compat if needed, but Python uses shoot anim
             _shootAnim = new Animation<Texture2D>(imgs, frameDelay: 4);
@@ -283,7 +283,7 @@ public static class Enemies
 
         protected override void InitImages()
         {
-            var imgs = TextureCache.LoadImages("pipebee*.png", scaled: true, colorkey: true);
+            var imgs = TextureCache.LoadImages("pipebee*.png", scaled: true);
             _animLeft = new Animation<Texture2D>(imgs);
             _animRight = new Animation<Texture2D>(imgs.Select(TextureCache.FlipHorizontal).ToArray());
             CurrentImage = _animLeft.NextFrame();
@@ -375,7 +375,7 @@ public static class Enemies
 
         protected override void InitImages()
         {
-            var imgs = TextureCache.LoadImages("biter1*.png", scaled: true, colorkey: true);
+            var imgs = TextureCache.LoadImages("biter1*.png", scaled: true);
             _animLeft = new Animation<Texture2D>(imgs);
             _animRight = new Animation<Texture2D>(imgs.Select(TextureCache.FlipHorizontal).ToArray());
             CurrentImage = _animLeft.NextFrame();
@@ -413,7 +413,7 @@ public static class Enemies
 
         protected override void InitImages()
         {
-            var imgs = TextureCache.LoadImages("batzor1*.png", scaled: true, colorkey: true);
+            var imgs = TextureCache.LoadImages("batzor1*.png", scaled: true);
             _fly = new Animation<Texture2D>(imgs);
             CurrentImage = _fly.NextFrame();
         }
@@ -474,12 +474,12 @@ public static class Enemies
 
         protected override void InitImages()
         {
-            var crawl = TextureCache.LoadImages("slug001*.png", scaled: true, colorkey: true)
-                .Concat(TextureCache.LoadImages("slug002*.png", scaled: true, colorkey: true)).ToArray();
+            var crawl = TextureCache.LoadImages("slug001*.png", scaled: true)
+                .Concat(TextureCache.LoadImages("slug002*.png", scaled: true)).ToArray();
             _crawlLeft = new Animation<Texture2D>(crawl, frameDelay: 4);
             _crawlRight = new Animation<Texture2D>(crawl.Select(TextureCache.FlipHorizontal).ToArray(), frameDelay: 4);
             
-            var idle = TextureCache.LoadImages("slug000*.png", scaled: true, colorkey: true);
+            var idle = TextureCache.LoadImages("slug000*.png", scaled: true);
             _idleLeft = new Animation<Texture2D>(idle, frameDelay: 4);
             _idleRight = new Animation<Texture2D>(idle.Select(TextureCache.FlipHorizontal).ToArray(), frameDelay: 4);
             
@@ -553,7 +553,7 @@ public static class Enemies
             }
 
             // Load standard beaver textures then scale them
-            var walkImgs = TextureCache.LoadImages("beaver1*.png", scaled: true, colorkey: true);
+            var walkImgs = TextureCache.LoadImages("beaver1*.png", scaled: true);
             var walkScaled = walkImgs.Select(Scale).ToArray();
             
             _walkRight = new Animation<Texture2D>(walkScaled, frameDelay: 3);

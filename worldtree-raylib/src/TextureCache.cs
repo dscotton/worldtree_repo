@@ -13,14 +13,13 @@ public static class TextureCache
 
     /// <summary>
     /// Load a single image. 'scaled' means 3x upscale (for sprites).
-    /// 'colorkey' means replace #FF00FF with transparency.
     /// </summary>
-    public static Texture2D LoadImage(string filename, bool scaled = false, bool colorkey = false)
+    public static Texture2D LoadImage(string filename, bool scaled = false)
     {
         string path = Path.Combine(GameConstants.SpritesDir, filename);
-        string key = $"{path}|{scaled}|{colorkey}";
+        string key = $"{path}|{scaled}";
         if (_cache.TryGetValue(key, out var cached)) return cached;
-        var tex = LoadFromPath(path, scaled, colorkey);
+        var tex = LoadFromPath(path, scaled);
         _cache[key] = tex;
         return tex;
     }
@@ -28,16 +27,16 @@ public static class TextureCache
     /// <summary>
     /// Load all images matching a glob pattern (e.g. "beaver1*.png"), sorted alphabetically.
     /// </summary>
-    public static Texture2D[] LoadImages(string pattern, bool scaled = false, bool colorkey = false)
+    public static Texture2D[] LoadImages(string pattern, bool scaled = false)
     {
         string[] files = Directory.GetFiles(GameConstants.SpritesDir, pattern)
                                   .OrderBy(f => f)
                                   .ToArray();
         return files.Select(f =>
         {
-            string key = $"{f}|{scaled}|{colorkey}";
+            string key = $"{f}|{scaled}";
             if (_cache.TryGetValue(key, out var cached)) return cached;
-            var tex = LoadFromPath(f, scaled, colorkey);
+            var tex = LoadFromPath(f, scaled);
             _cache[key] = tex;
             return tex;
         }).ToArray();
@@ -73,16 +72,13 @@ public static class TextureCache
         _cache.Clear();
     }
 
-    private static Texture2D LoadFromPath(string path, bool scaled, bool colorkey)
+    private static Texture2D LoadFromPath(string path, bool scaled)
     {
         Image img = Raylib.LoadImage(path);
         
         // Ensure image has an alpha channel so transparency works
         Raylib.ImageFormat(ref img, PixelFormat.UncompressedR8G8B8A8);
 
-        if (colorkey)
-            Raylib.ImageColorReplace(ref img, GameConstants.SpriteColorkey, Color.Blank);
-        
         if (scaled)
             Raylib.ImageResizeNN(ref img, img.Width * 3, img.Height * 3); // Use NN for pixel art crispness
 

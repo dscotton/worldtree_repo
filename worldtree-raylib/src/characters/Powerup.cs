@@ -57,7 +57,7 @@ public static class Powerups
         private static Texture2D[]? _imgs;
         private Animation<Texture2D> _anim;
         private static Texture2D[] Imgs => _imgs ??=
-            TextureCache.LoadImages("lifeup*.png", scaled: true, colorkey: true);
+            TextureCache.LoadImages("lifeup*.png", scaled: true);
 
         public HealthBoost(Environment env, (int, int) pos) : base(env, pos, oneTime: true, cleanup: true)
         { _anim = new Animation<Texture2D>(Imgs, frameDelay: 1); }
@@ -74,7 +74,7 @@ public static class Powerups
         private static Texture2D[]? _imgs;
         private Animation<Texture2D> _anim;
         private static Texture2D[] Imgs => _imgs ??=
-            TextureCache.LoadImages("healthrestore*.png", scaled: true, colorkey: true);
+            TextureCache.LoadImages("healthrestore*.png", scaled: true);
 
         public HealthRestore(Environment env, (int, int) pos) : base(env, pos)
         { _anim = new Animation<Texture2D>(Imgs, frameDelay: 1); }
@@ -97,7 +97,7 @@ public static class Powerups
         private static Texture2D[]? _imgs;
         private Animation<Texture2D> _anim;
         private static Texture2D[] Imgs => _imgs ??=
-            TextureCache.LoadImages("ammoup*.png", scaled: true, colorkey: true);
+            TextureCache.LoadImages("ammoup*.png", scaled: true);
 
         public MoreSeeds(Environment env, (int, int) pos) : base(env, pos, oneTime: true, cleanup: true)
         { _anim = new Animation<Texture2D>(Imgs, frameDelay: 1); }
@@ -119,7 +119,7 @@ public static class Powerups
         private static Texture2D[]? _imgs;
         private Animation<Texture2D> _anim;
         private static Texture2D[] Imgs => _imgs ??=
-            TextureCache.LoadImages("seedammo*.png", scaled: true, colorkey: true);
+            TextureCache.LoadImages("seedammo*.png", scaled: true);
 
         public AmmoRestore(Environment env, (int, int) pos) : base(env, pos)
         { _anim = new Animation<Texture2D>(Imgs, frameDelay: 1); }

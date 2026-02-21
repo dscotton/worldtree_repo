@@ -57,7 +57,7 @@ public class SeedBullet : Projectile
     private Animation<Texture2D> _anim = null!;
 
     private static Texture2D[] Images => _images ??=
-        TextureCache.LoadImages("seedprojectile*.png", scaled: true, colorkey: true);
+        TextureCache.LoadImages("seedprojectile*.png", scaled: true);
 
     public SeedBullet(Environment env, (float x, float y) direction, (float x, float y) position)
         : base(env, SeedDamage, SeedSpeed, direction, position) { }
@@ -78,7 +78,7 @@ public class SporeCloud : Projectile
     private static Texture2D? _image;
 
     private static Texture2D Image => _image ??=
-        TextureCache.LoadImage("spore0000.png", scaled: true, colorkey: true);
+        TextureCache.LoadImage("spore0000.png", scaled: true);
 
     public SporeCloud(Environment env, (float x, float y) direction, (float x, float y) position)
         : base(env, SporeDamage, SporeSpeed, direction, position)
