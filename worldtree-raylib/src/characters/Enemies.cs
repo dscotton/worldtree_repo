@@ -99,11 +99,10 @@ public static class Enemies
         public override void Update()
         {
             var move = GetMove();
-            if (!Env.IsMoveLegal(Hitbox(), (move.x, move.y))) Kill();
-            else Rect = Rect.Move(move.x, move.y);
-            
+            var newHitbox = Env.AttemptMove(Hitbox(), move);
+            Rect = new Rectangle(newHitbox.X - 1, newHitbox.Y - 1, Rect.Width, Rect.Height);
             SetCurrentImage();
-            if (Env.IsOutsideMap(Hitbox())) Kill();
+            if (Invulnerable > 0) Invulnerable--;
         }
     }
 
@@ -448,11 +447,10 @@ public static class Enemies
         public override void Update()
         {
             var move = GetMove();
-            if (!Env.IsMoveLegal(Hitbox(), (move.x, move.y))) Kill();
-            else Rect = Rect.Move(move.x, move.y);
-            
+            var newHitbox = Env.AttemptMove(Hitbox(), move);
+            Rect = new Rectangle(newHitbox.X - 1, newHitbox.Y - 1, Rect.Width, Rect.Height);
             SetCurrentImage();
-            if (Env.IsOutsideMap(Hitbox())) Kill();
+            if (Invulnerable > 0) Invulnerable--;
         }
 
         protected override void SetCurrentImage() => CurrentImage = _fly!.NextFrame();
