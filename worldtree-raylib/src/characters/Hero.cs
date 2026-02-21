@@ -226,10 +226,13 @@ public class Hero : Character
         else
         {
             bool isBoomBugExploding = enemy is Enemies.BoomBug bb && bb.IsExploding;
-            if (Invulnerable == 0 || isBoomBugExploding)
-                CollisionPushback(enemy);
-            if (Invulnerable == 0 && enemy.Invulnerable == 0)
-                TakeHit(enemy.Damage);
+            // Pushback and damage are applied together so an invulnerable enemy
+            // can't silently shove the player without dealing damage. BoomBug
+            // explosions are exempted: they fling the player even through iframes.
+            bool dealDamage = Invulnerable == 0 && enemy.Invulnerable == 0;
+            bool doPushback = dealDamage || isBoomBugExploding;
+            if (doPushback) CollisionPushback(enemy);
+            if (dealDamage) TakeHit(enemy.Damage);
         }
     }
 

@@ -43,6 +43,7 @@ void LoadStaticData()
     Env.AllTransitions = MapLoader.LoadTransitions("data/map_transitions.json");
     RegionMap.ComputeLayouts();
     GameConstants.GameOverFont = Raylib.LoadFont(Path.Combine(GameConstants.FontDir, GameConstants.Font));
+    GameConstants.HitFlashShader = Raylib.LoadShaderFromMemory(null, GameConstants.HitFlashFrag);
 }
 
 void RunGame()

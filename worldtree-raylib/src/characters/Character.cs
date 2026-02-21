@@ -78,14 +78,14 @@ public abstract class Character : IPushbackSource
     // Draw the character (called inside BeginMode2D)
     public virtual void Draw()
     {
-        // Hit flash: solid white overlay for the first 2 frames of invulnerability,
-        // giving immediate visual confirmation that a hit connected.
+        // Hit flash: sprite-shaped white silhouette for the first 2 frames of
+        // invulnerability. The shader replaces pixel RGB with the tint colour
+        // while preserving alpha, so transparent areas stay transparent.
         if (InvulnerabilityFrames > 0 && Invulnerable >= InvulnerabilityFrames - 1)
         {
+            Raylib.BeginShaderMode(GameConstants.HitFlashShader);
             Raylib.DrawTexture(CurrentImage, (int)Rect.X, (int)Rect.Y, Color.White);
-            Raylib.DrawRectangle((int)Rect.X, (int)Rect.Y,
-                CurrentImage.Width, CurrentImage.Height,
-                new Color(255, 255, 255, 200));
+            Raylib.EndShaderMode();
             return;
         }
         // Invulnerability flicker (semi-transparent every 4-frame cycle)
@@ -190,7 +190,9 @@ public abstract class Character : IPushbackSource
     {
         float dx = Rect.CenterX() - other.Rect.CenterX();
         float dy = Rect.CenterY() - other.Rect.CenterY();
-        float scalar = other.PushBack / MathF.Sqrt(dx * dx + dy * dy);
+        float dist = MathF.Sqrt(dx * dx + dy * dy);
+        if (dist < 1f) return; // centers coincide — no safe direction, skip pushback
+        float scalar = other.PushBack / dist;
         Movement.X += (int)(dx * scalar);
         Movement.Y += (int)(dy * scalar);
     }
