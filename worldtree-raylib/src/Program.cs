@@ -10,6 +10,16 @@ Raylib.InitWindow(GameConstants.ScreenWidth, GameConstants.ScreenHeight, GameCon
 Raylib.InitAudioDevice();
 Raylib.SetTargetFPS(60);
 
+// Rooms within the cache retain live entity state on re-entry (enemies stay
+// dead, dropped items persist). Rooms that fall out are reloaded fresh so
+// enemies respawn. One-time powerups never respawn regardless, because their
+// mapcodes are permanently zeroed in Environment.Regions on pickup.
+//
+// TODO: consider converting to a true LRU cache. Current eviction is FIFO
+// (insertion order), so a room visited early may be evicted even if recently
+// revisited. An LRU cache would refresh the eviction order on every access.
+const int RoomCacheSize = 6;
+
 LoadStaticData();
 
 while (!Raylib.WindowShouldClose())
@@ -54,6 +64,9 @@ void RunGame()
 
     var visitedRooms = new Dictionary<int, HashSet<string>>
         { [currentRegion] = new HashSet<string> { currentRoom } };
+
+    var roomCache  = new Dictionary<(int region, string room), Env>();
+    var cacheQueue = new Queue<(int region, string room)>();
 
     while (!Raylib.WindowShouldClose() && gameState is GameState.Playing or GameState.Paused)
     {
@@ -158,7 +171,7 @@ void RunGame()
         if (env.IsOutsideMap(player.Fallbox()))
             HandleRoomTransition(ref env, ref player, ref camera, ref currentRoom,
                                  ref currentRegion, ref currentSong, ref currentMusic,
-                                 Env.AllTransitions, visitedRooms);
+                                 Env.AllTransitions, visitedRooms, roomCache, cacheQueue);
     }
 
     if (currentMusic.HasValue) Raylib.StopMusicStream(currentMusic.Value);
@@ -237,7 +250,9 @@ void HandleRoomTransition(ref Env env, ref Hero player, ref Camera2D camera,
                           ref string currentRoom, ref int currentRegion,
                           ref string? currentSong, ref Music? currentMusic,
                           Dictionary<int, Dictionary<string, Dictionary<TransitionDirection, List<TransitionInfo>>>> transitions,
-                          Dictionary<int, HashSet<string>> visitedRooms)
+                          Dictionary<int, HashSet<string>> visitedRooms,
+                          Dictionary<(int region, string room), Env> roomCache,
+                          Queue<(int region, string room)> cacheQueue)
 {
     // Determine direction of exit using Fallbox (consistent with IsOutsideMap check)
     TransitionDirection dir;
@@ -255,7 +270,7 @@ void HandleRoomTransition(ref Env env, ref Hero player, ref Camera2D camera,
                 var ulTile = env.TileIndexForPoint(player.Hitbox().Left(), player.Hitbox().Top());
                 int ulCol = ulTile.col;
                 int ulRow = ulTile.row;
-        
+
                 TransitionInfo? match = null;
                 foreach (var t in transList)
                 {
@@ -268,15 +283,28 @@ void HandleRoomTransition(ref Env env, ref Hero player, ref Camera2D camera,
                         if (ulCol >= t.First && ulCol <= t.Last) { match = t; break; }
                     }
                 }
-        
+
                 if (match != null)
                 {
+                    // Save outgoing room to cache before updating currentRegion/currentRoom.
+                    var exitKey = (currentRegion, currentRoom);
+                    if (!roomCache.ContainsKey(exitKey))
+                    {
+                        cacheQueue.Enqueue(exitKey);
+                        while (cacheQueue.Count > RoomCacheSize)
+                            roomCache.Remove(cacheQueue.Dequeue());
+                    }
+                    roomCache[exitKey] = env;
+
                     currentRegion = match.Region;
                     currentRoom = match.Dest;
                     visitedRooms.TryAdd(currentRegion, new HashSet<string>());
                     visitedRooms[currentRegion].Add(currentRoom);
 
-                    env = new Env(currentRoom, currentRegion);
+                    // Restore cached state or load fresh.
+                    if (!roomCache.TryGetValue((currentRegion, currentRoom), out var cachedEnv))
+                        cachedEnv = new Env(currentRoom, currentRegion);
+                    env = cachedEnv;
                     // Calculate new position — matches worldtree.py:139-176 exactly
             int newCol = 0, newRow = 0;
             if (dir == TransitionDirection.Left)
