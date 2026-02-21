@@ -21,8 +21,6 @@ public static class GameConstants
     public static readonly Color ColorBlack = Color.Black;
     public static readonly Color ColorBlue = new Color(0x10, 0x00, 0x66, 0xFF);
     public static readonly Color ColorWhite = Color.White;
-    // Colorkey used in sprites — replaced with transparency at load time
-    public static readonly Color SpriteColorkey = new Color(0xFF, 0x00, 0xFF, 0xFF);
 
     public const string TileDir = "media/tiles";
     public const string MusicDir = "media/music";

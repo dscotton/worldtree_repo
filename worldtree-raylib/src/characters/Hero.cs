@@ -51,18 +51,18 @@ public class Hero : Character
 
     protected override void InitImages()
     {
-        var walkImgs = TextureCache.LoadImages("treeguywalk*.png", scaled: true, colorkey: true);
+        var walkImgs = TextureCache.LoadImages("treeguywalk*.png", scaled: true);
         _walkRight = new Animation<Texture2D>(walkImgs);
         _walkLeft  = new Animation<Texture2D>(walkImgs.Select(TextureCache.FlipHorizontal).ToArray());
 
-        _standRight = TextureCache.LoadImage("treeguyidle0000.png", scaled: true, colorkey: true);
+        _standRight = TextureCache.LoadImage("treeguyidle0000.png", scaled: true);
         _standLeft  = TextureCache.FlipHorizontal(_standRight);
-        _jumpRight  = TextureCache.LoadImage("treeguyjump0000.png", scaled: true, colorkey: true);
+        _jumpRight  = TextureCache.LoadImage("treeguyjump0000.png", scaled: true);
         _jumpLeft   = TextureCache.FlipHorizontal(_jumpRight);
-        _fallRight  = TextureCache.LoadImage("treeguyfall0000.png", scaled: true, colorkey: true);
+        _fallRight  = TextureCache.LoadImage("treeguyfall0000.png", scaled: true);
         _fallLeft   = TextureCache.FlipHorizontal(_fallRight);
 
-        var atkImgs = TextureCache.LoadImages("treeguystrikefollow*.png", scaled: true, colorkey: true);
+        var atkImgs = TextureCache.LoadImages("treeguystrikefollow*.png", scaled: true);
         _attackRight = new Animation<Texture2D>(atkImgs, looping: false);
         _attackLeft  = new Animation<Texture2D>(atkImgs.Select(TextureCache.FlipHorizontal).ToArray(), looping: false);
 
