@@ -29,6 +29,9 @@ public class Environment
     // Tile grid indexed as [col][row]
     private Tile[][] _grid;
 
+    // Hitstop: while > 0, all entity updates are skipped (set by Hero on melee hit)
+    public int HitStop;
+
     // Entity groups (world coordinates)
     public List<Character> EnemyGroup { get; } = new();
     public List<DyingAnimation> DyingAnimationGroup { get; } = new();

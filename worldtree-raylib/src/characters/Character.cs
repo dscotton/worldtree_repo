@@ -78,6 +78,17 @@ public abstract class Character : IPushbackSource
     // Draw the character (called inside BeginMode2D)
     public virtual void Draw()
     {
+        // Hit flash: solid white overlay for the first 2 frames of invulnerability,
+        // giving immediate visual confirmation that a hit connected.
+        if (InvulnerabilityFrames > 0 && Invulnerable >= InvulnerabilityFrames - 1)
+        {
+            Raylib.DrawTexture(CurrentImage, (int)Rect.X, (int)Rect.Y, Color.White);
+            Raylib.DrawRectangle((int)Rect.X, (int)Rect.Y,
+                CurrentImage.Width, CurrentImage.Height,
+                new Color(255, 255, 255, 200));
+            return;
+        }
+        // Invulnerability flicker (semi-transparent every 4-frame cycle)
         float alpha = (Invulnerable > 0 && Invulnerable % 4 > 0) ? 128 : 255;
         var tint = new Color((byte)255, (byte)255, (byte)255, (byte)alpha);
         Raylib.DrawTexture(CurrentImage, (int)Rect.X, (int)Rect.Y, tint);

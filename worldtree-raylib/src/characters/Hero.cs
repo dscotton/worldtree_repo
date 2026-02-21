@@ -17,7 +17,7 @@ public class Hero : Character
     public override bool IsPlayer => true;
 
     private const int StandWidth = 47;
-    private const int AttackDuration = 30;
+    private const int AttackDuration = 15;
     private const int ShootingCooldown = 30;
     private const int HitboxLeftOffset = -20;
     private const int HitboxRightOffset = 19;
@@ -216,7 +216,12 @@ public class Hero : Character
     {
         if (_attacking > 0)
         {
-            if (enemy.Invulnerable == 0) { enemy.TakeHit(Damage); enemy.CollisionPushback(this); }
+            if (enemy.Invulnerable == 0)
+            {
+                enemy.TakeHit(Damage);
+                enemy.CollisionPushback(this);
+                Env.HitStop = 4;
+            }
         }
         else
         {

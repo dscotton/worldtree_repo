@@ -82,6 +82,11 @@ void RunGame()
 
         player.HandleInput();
 
+        // Hitstop: freeze all entity updates for a few frames when a melee hit lands.
+        // HandleInput still runs (so _attacking ticks and inputs are buffered),
+        // but nothing moves — creating the classic "weight on impact" feel.
+        if (env.HitStop > 0) { env.HitStop--; goto Draw; }
+
         // Sprite-vs-enemy collision
         foreach (var enemy in env.EnemyGroup.Where(e => !e.IsDead))
         {
