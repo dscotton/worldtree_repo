@@ -44,6 +44,10 @@ public class Hero : Character
     public int Ammo { get; set; }
     public int MaxAmmo { get; set; }
 
+    // Compass: set of regions where the player can see unique powerup locations on the map.
+    // Grant additional regions (e.g. on picking up a compass powerup in that region).
+    public HashSet<int> CompassRegions { get; } = new() { 1 };
+
     public Hero(Environment env, (int col, int row) position) : base(env, position)
     {
         _remainingJumps = MaxJumps;

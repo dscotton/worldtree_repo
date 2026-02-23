@@ -69,9 +69,17 @@ void RunGame()
     var roomCache  = new Dictionary<(int region, string room), Env>();
     var cacheQueue = new Queue<(int region, string room)>();
 
-    while (!Raylib.WindowShouldClose() && gameState is GameState.Playing or GameState.Paused)
+    while (!Raylib.WindowShouldClose() && gameState is GameState.Playing or GameState.Paused or GameState.GameOver)
     {
         if (currentMusic.HasValue) Raylib.UpdateMusicStream(currentMusic.Value);
+
+        // --- Game over: freeze everything, wait for player to acknowledge ---
+        if (gameState == GameState.GameOver)
+        {
+            if (Controller.IsActionJustPressed(InputAction.Pause))
+                break;
+            goto Draw;
+        }
 
         if (Controller.IsActionJustPressed(InputAction.Pause))
             gameState = gameState == GameState.Paused ? GameState.Playing : GameState.Paused;
@@ -159,7 +167,8 @@ void RunGame()
         if (gameState == GameState.Paused)
             RegionMap.Draw(currentRegion,
                 visitedRooms.GetValueOrDefault(currentRegion, new HashSet<string>()),
-                currentRoom);
+                currentRoom,
+                compassActive: player.CompassRegions.Contains(currentRegion));
 
         if (gameState == GameState.GameOver)
         {

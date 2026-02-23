@@ -83,10 +83,41 @@ public static class RegionMap
         return layout;
     }
 
+    // Mapcodes that identify unique (non-respawning) powerups worth showing on the compass.
+    private static readonly HashSet<int> UniquePowerupCodes = new() { 129, 130, 131 };
+
+    /// <summary>
+    /// Returns all uncollected unique powerup locations in the region.
+    /// Uses the live Regions data, so powerups zeroed on pickup are omitted automatically.
+    /// </summary>
+    private static IEnumerable<(string room, int col, int row)> GetPowerupLocations(int region)
+    {
+        if (!Environment.Regions.TryGetValue(region, out var rooms)) yield break;
+        foreach (var (roomName, mapInfo) in rooms)
+            for (int row = 0; row < mapInfo.Height; row++)
+                for (int col = 0; col < mapInfo.Width; col++)
+                    if (UniquePowerupCodes.Contains(mapInfo.Mapcodes[row][col]))
+                        yield return (roomName, col, row);
+    }
+
+    /// <summary>
+    /// Draw a marker for a unique powerup on the map.
+    /// Isolated here so it's easy to swap in a sprite later.
+    /// centerX/centerY are screen-space coordinates; tileScale is pixels-per-tile.
+    /// </summary>
+    private static void DrawPowerupMarker(float centerX, float centerY, float tileScale)
+    {
+        int size = Math.Max(2, (int)(tileScale * 0.4f));
+        Raylib.DrawRectangle((int)(centerX - size / 2f), (int)(centerY - size / 2f),
+                             size, size, Color.Red);
+    }
+
     /// <summary>
     /// Draw the map panel. Call this in screen space (outside BeginMode2D).
+    /// compassActive: when true, unique powerup locations are shown even in unvisited rooms.
     /// </summary>
-    public static void Draw(int region, HashSet<string> visited, string currentRoom)
+    public static void Draw(int region, HashSet<string> visited, string currentRoom,
+                            bool compassActive = false)
     {
         if (!Layouts.TryGetValue(region, out var layout)) return;
         if (!Environment.Regions.TryGetValue(region, out var rooms)) return;
@@ -150,6 +181,19 @@ public static class RegionMap
                     new Color(0xFF, 0xFF, 0x00, 0x40)); // dim yellow fill
             Raylib.DrawRectangleLines((int)rx, (int)ry, (int)rw, (int)rh,
                 room == currentRoom ? Color.Yellow : Color.White);
+        }
+
+        // Compass: draw markers for uncollected unique powerups across the whole region.
+        if (compassActive)
+        {
+            foreach (var (room, col, row) in GetPowerupLocations(region))
+            {
+                if (!layout.TryGetValue(room, out var pos)) continue;
+                // Centre of the powerup tile in screen space
+                float cx = originX + (pos.x - minX + col + 0.5f) * scale;
+                float cy = originY + (pos.y - minY + row + 0.5f) * scale;
+                DrawPowerupMarker(cx, cy, scale);
+            }
         }
     }
 }
