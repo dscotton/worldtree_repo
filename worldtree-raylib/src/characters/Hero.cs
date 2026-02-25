@@ -23,6 +23,10 @@ public class Hero : Character
     private const int HitboxRightOffset = 19;
     private const int JumpForce = 10;
     private const int JumpDurationConst = 22;
+    private const int CoyoteFrames = 6;       // frames after leaving a ledge where jumping is still allowed
+    private const int JumpBufferFrames = 6;   // frames before landing where a jump press is remembered
+    private const float MinJumpVelocity = 4f; // upward speed floor on early jump release (short-hop height)
+    private const float HalfGravThreshold = 4f; // |vy| below which gravity halves at the apex (when jump held)
 
     // Sprite state
     private Animation<Texture2D>? _walkRight, _walkLeft, _attackRight, _attackLeft;
@@ -38,6 +42,9 @@ public class Hero : Character
     public int MaxJumps { get; set; } = 1;
     private int _remainingJumps;
     private bool _jumpReady = true;
+    private bool _jumpHeld;
+    private int _coyoteFrames;   // counts down after leaving ground; jump still allowed while > 0
+    private int _jumpBuffer;     // counts down after pressing jump; fires on landing while > 0
     private bool _attackReady = true;
     private int _attacking;
     private int _shootingCooldown;
@@ -101,8 +108,21 @@ public class Hero : Character
         else if (goLeft  && (Vertical != CharacterAction.Grounded || _attacking == 0)) Walk(Direction.Left);
         else if (goRight && (Vertical != CharacterAction.Grounded || _attacking == 0)) Walk(Direction.Right);
 
-        if (actions.Contains(InputAction.Jump)) { DoJump(); _jumpReady = false; }
-        else { StopUpwardMovement(); _jumpReady = true; }
+        _jumpHeld = actions.Contains(InputAction.Jump);
+        if (_jumpHeld)
+        {
+            // Set buffer only on fresh press (not while holding), so it expires correctly.
+            if (_jumpReady) _jumpBuffer = JumpBufferFrames;
+            else if (_jumpBuffer > 0) _jumpBuffer--;
+            DoJump();
+            _jumpReady = false;
+        }
+        else
+        {
+            if (_jumpBuffer > 0) _jumpBuffer--;
+            StopUpwardMovement();
+            _jumpReady = true;
+        }
 
         if (actions.Contains(InputAction.Attack) && _attacking <= 0) { Attack(); _attackReady = false; }
         else if (actions.Contains(InputAction.Shoot) && _attacking <= 0
@@ -122,19 +142,31 @@ public class Hero : Character
 
     private void StopUpwardMovement()
     {
-        if (Vertical == CharacterAction.Jump) { Vertical = CharacterAction.Fall; JumpFrames = 0; }
+        if (Vertical == CharacterAction.Jump)
+        {
+            Vertical = CharacterAction.Fall;
+            JumpFrames = 0;
+            // Clamp upward velocity so a tap gives a noticeably shorter jump than a full hold.
+            if (Movement.Y < -MinJumpVelocity) Movement.Y = -MinJumpVelocity;
+        }
+    }
+
+    // Shared jump initiation used by DoJump() and the jump buffer.
+    private void InitiateJump()
+    {
+        Raylib.PlaySound(JumpSoundAsset);
+        Vertical = CharacterAction.Jump;
+        _remainingJumps--;
+        _coyoteFrames = 0; // consumed — can't coyote-jump again
+        _jumpBuffer   = 0; // consumed — clear any pending buffer
+        JumpFrames = JumpDurationConst;
+        Movement.Y = -JumpForce;
     }
 
     private void DoJump()
     {
         if (_jumpReady && _remainingJumps > 0)
-        {
-            Raylib.PlaySound(JumpSoundAsset);
-            Vertical = CharacterAction.Jump;
-            _remainingJumps--;
-            JumpFrames = JumpDurationConst;
-            Movement.Y = -JumpForce;
-        }
+            InitiateJump();
         else if (Vertical == CharacterAction.Jump)
         {
             JumpFrames--;
@@ -146,6 +178,7 @@ public class Hero : Character
     {
         Vertical = CharacterAction.Grounded;
         _remainingJumps = MaxJumps;
+        _coyoteFrames   = CoyoteFrames;
         Movement.Y = Math.Min(0, Movement.Y);
     }
 
@@ -209,8 +242,26 @@ public class Hero : Character
 
         bool supported = Env.IsRectSupported(Fallbox())
                       || Env.IsRectSupported(Fallbox().Move(Movement.X, 0));
-        if (supported) Supported();
-        else if (Vertical != CharacterAction.Jump) { Vertical = CharacterAction.Fall; ApplyGravity(); }
+        if (supported)
+        {
+            Supported();
+            // Fire a buffered jump: player pressed jump just before landing.
+            if (_jumpBuffer > 0) { _jumpBuffer = 0; InitiateJump(); }
+        }
+        else if (Vertical != CharacterAction.Jump)
+        {
+            // Coyote time: allow jumping for a few frames after leaving a ledge.
+            if (_coyoteFrames > 0) _coyoteFrames--;
+            else _remainingJumps = 0; // window expired — must land to jump again
+
+            Vertical = CharacterAction.Fall;
+
+            // Half-gravity at apex when jump is held, for a floatier peak.
+            if (_jumpHeld && MathF.Abs(Movement.Y) < HalfGravThreshold)
+                Movement.Y = MathF.Min(Movement.Y + Gravity * 0.5f, TerminalVelocity);
+            else
+                ApplyGravity();
+        }
 
         if (Invulnerable > 0) Invulnerable--;
         _shootingCooldown--;
