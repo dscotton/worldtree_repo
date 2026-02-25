@@ -152,7 +152,7 @@ public class TitleScreen
         while (!Raylib.WindowShouldClose())
         {
             if (_music.HasValue) Raylib.UpdateMusicStream(_music.Value);
-            bool startPressed = Raylib.IsKeyDown(KeyboardKey.Enter);
+            bool startPressed = Controller.GetInput().Contains(InputAction.Pause);
             bool canExit = startPressed && (frame + _frameDelay) >= 30;
 
             Raylib.BeginDrawing();
