@@ -1,14 +1,22 @@
 // src/Program.cs
 using Raylib_cs;
 using System.Numerics;
+using System.Linq;
 using WorldTree;
 using Env = WorldTree.Environment;
 
 // Working directory: dotnet run sets this to the project dir automatically
 Raylib.SetTraceLogLevel(TraceLogLevel.Warning);
-Raylib.InitWindow(GameConstants.ScreenWidth, GameConstants.ScreenHeight, GameConstants.GameName);
+
+var settings = Settings.Load();
+var (initW, initH) = settings.WindowSize();
+
+Raylib.InitWindow(initW, initH, GameConstants.GameName);
 Raylib.InitAudioDevice();
 Raylib.SetTargetFPS(60);
+
+if (settings.Fullscreen) Raylib.ToggleFullscreen();
+var renderCanvas = Raylib.LoadRenderTexture(GameConstants.ScreenWidth, GameConstants.ScreenHeight);
 
 // Rooms within the cache retain live entity state on re-entry (enemies stay
 // dead, dropped items persist). Rooms that fall out are reloaded fresh so
@@ -20,13 +28,34 @@ Raylib.SetTargetFPS(60);
 // revisited. An LRU cache would refresh the eviction order on every access.
 const int RoomCacheSize = 6;
 
+void BlitToScreen(RenderTexture2D canvas)
+{
+    float scaleX = Raylib.GetScreenWidth()  / (float)GameConstants.ScreenWidth;
+    float scaleY = Raylib.GetScreenHeight() / (float)GameConstants.ScreenHeight;
+    float scale  = Math.Min(scaleX, scaleY);
+    float destW  = GameConstants.ScreenWidth  * scale;
+    float destH  = GameConstants.ScreenHeight * scale;
+    float destX  = (Raylib.GetScreenWidth()  - destW) / 2f;
+    float destY  = (Raylib.GetScreenHeight() - destH) / 2f;
+
+    Raylib.BeginDrawing();
+    Raylib.ClearBackground(Color.Black);
+    Raylib.DrawTexturePro(
+        canvas.Texture,
+        new Rectangle(0, 0, GameConstants.ScreenWidth, -GameConstants.ScreenHeight),
+        new Rectangle(destX, destY, destW, destH),
+        Vector2.Zero, 0f, Color.White);
+    Raylib.EndDrawing();
+}
+
 LoadStaticData();
 
 while (!Raylib.WindowShouldClose())
 {
-    try { RunGame(); } catch { /* game over — restart */ }
+    try { RunGame(); } catch { /* game over -- restart */ }
 }
 
+Raylib.UnloadRenderTexture(renderCanvas);
 Raylib.CloseAudioDevice();
 Raylib.CloseWindow();
 
@@ -46,9 +75,68 @@ void LoadStaticData()
     GameConstants.HitFlashShader = Raylib.LoadShader(null, Path.Combine(GameConstants.ShaderDir, "hitflash.frag"));
 }
 
+// tabBarSelected: true when the cursor is on the tab bar (Left/Right will switch tabs).
+// When false the cursor is on an option row below; the active tab is still highlighted
+// but without the cursor arrow.
+void DrawPauseTabBar(PauseTab activeTab, bool tabBarSelected)
+{
+    // The shared panel is 720x480, centred on 1280x720
+    const float PanelW = 720f;
+    const float TitleH = 40f;
+    float panelX = (GameConstants.ScreenWidth  - PanelW) / 2f;
+    float panelY = (GameConstants.ScreenHeight - 480f) / 2f;
+
+    var font = GameConstants.GameOverFont;
+    string[] tabs = ["MAP", "OPTIONS"];
+
+    // Build labels first so we can measure the total width for centering.
+    var labels = new string[tabs.Length];
+    for (int i = 0; i < tabs.Length; i++)
+    {
+        bool active = (i == 0 && activeTab == PauseTab.Map) ||
+                      (i == 1 && activeTab == PauseTab.Options);
+        labels[i] = (tabBarSelected && active) ? "\u25BA " + tabs[i] : tabs[i];
+    }
+
+    const float TabGap = 32f;
+    float totalW = 0f;
+    for (int i = 0; i < labels.Length; i++)
+    {
+        totalW += Raylib.MeasureTextEx(font, labels[i], 16, 1).X;
+        if (i < labels.Length - 1) totalW += TabGap;
+    }
+
+    float tabX = panelX + (PanelW - totalW) / 2f;
+    for (int i = 0; i < labels.Length; i++)
+    {
+        bool active = (i == 0 && activeTab == PauseTab.Map) ||
+                      (i == 1 && activeTab == PauseTab.Options);
+        var color = active ? Color.Yellow : Color.White;
+        var size = Raylib.MeasureTextEx(font, labels[i], 16, 1);
+        Raylib.DrawTextEx(font, labels[i],
+            new Vector2(tabX, panelY + (TitleH - size.Y) / 2f),
+            16, 1, color);
+        tabX += size.X + TabGap;
+    }
+}
+
+void ApplyPauseResolution()
+{
+    if (Raylib.IsWindowFullscreen()) Raylib.ToggleFullscreen();
+    var (w, h) = settings.WindowSize();
+    Raylib.SetWindowSize(w, h);
+}
+
+void ApplyPauseFullscreen()
+{
+    bool isFs = Raylib.IsWindowFullscreen();
+    if (settings.Fullscreen && !isFs) Raylib.ToggleFullscreen();
+    else if (!settings.Fullscreen && isFs) Raylib.ToggleFullscreen();
+}
+
 void RunGame()
 {
-    TitleScreen.ShowTitle();
+    if (!TitleScreen.ShowTitle(renderCanvas, BlitToScreen, settings)) return;
 
     string currentRoom = "Map1";
     int currentRegion = 1;
@@ -69,6 +157,9 @@ void RunGame()
     var roomCache  = new Dictionary<(int region, string room), Env>();
     var cacheQueue = new Queue<(int region, string room)>();
 
+    var pauseTab = PauseTab.Map;
+    int pauseOptionsRow = -1; // -1 = cursor on tab bar; >= 0 = cursor on that option row
+
     while (!Raylib.WindowShouldClose() && gameState is GameState.Playing or GameState.Paused or GameState.GameOver)
     {
         if (currentMusic.HasValue) Raylib.UpdateMusicStream(currentMusic.Value);
@@ -82,18 +173,71 @@ void RunGame()
         }
 
         if (Controller.IsActionJustPressed(InputAction.Pause))
-            gameState = gameState == GameState.Paused ? GameState.Playing : GameState.Paused;
+        {
+            if (gameState == GameState.Paused)
+            {
+                gameState = GameState.Playing;
+                pauseTab = PauseTab.Map;
+                pauseOptionsRow = -1;
+            }
+            else
+            {
+                gameState = GameState.Paused;
+            }
+        }
         if (Controller.IsActionJustPressed(InputAction.Debug))
             debugMode = !debugMode;
 
-        // --- Update (skipped while paused) ---
-        if (gameState == GameState.Paused) goto Draw;
+        if (gameState == GameState.Paused)
+        {
+            if (pauseOptionsRow == -1) // cursor is on the tab bar
+            {
+                // Left/Right switch tabs
+                if (Controller.IsActionJustPressed(InputAction.Left) ||
+                    Controller.IsActionJustPressed(InputAction.Right))
+                    pauseTab = pauseTab == PauseTab.Map ? PauseTab.Options : PauseTab.Map;
 
+                // Down moves cursor into options (Options tab only;
+                // Map tab has no selectable options so Down does nothing there)
+                if (Controller.IsActionJustPressed(InputAction.Down) &&
+                    pauseTab == PauseTab.Options)
+                    pauseOptionsRow = 0;
+            }
+            else // cursor is on an option row
+            {
+                if (Controller.IsActionJustPressed(InputAction.Up))
+                    pauseOptionsRow = pauseOptionsRow == 0 ? -1 : pauseOptionsRow - 1;
+                if (Controller.IsActionJustPressed(InputAction.Down))
+                    pauseOptionsRow = Math.Min(pauseOptionsRow + 1, 1); // rows 0 and 1
+
+                // Left/Right change the focused row's value
+                if (Controller.IsActionJustPressed(InputAction.Left) ||
+                    Controller.IsActionJustPressed(InputAction.Right))
+                {
+                    bool next = Controller.IsActionJustPressed(InputAction.Right);
+                    if (pauseOptionsRow == 0)
+                    {
+                        settings.Resolution = next ? settings.NextResolution() : settings.PrevResolution();
+                        settings.Save();
+                        ApplyPauseResolution();
+                    }
+                    else
+                    {
+                        settings.Fullscreen = !settings.Fullscreen;
+                        settings.Save();
+                        ApplyPauseFullscreen();
+                    }
+                }
+            }
+            goto Draw;
+        }
+
+        // --- Update (skipped while paused) ---
         player.HandleInput();
 
         // Hitstop: freeze all entity updates for a few frames when a melee hit lands.
         // HandleInput still runs (so _attacking ticks and inputs are buffered),
-        // but nothing moves — creating the classic "weight on impact" feel.
+        // but nothing moves -- creating the classic "weight on impact" feel.
         if (env.HitStop > 0) { env.HitStop--; goto Draw; }
 
         // Sprite-vs-enemy collision
@@ -135,7 +279,7 @@ void RunGame()
         foreach (var d in env.DyingAnimationGroup)
         {
             var state = d.Update();
-            if (state == GameState.Won) { TitleScreen.ShowCredits(); gameState = GameState.GameOver; }
+            if (state == GameState.Won) { TitleScreen.ShowCredits(renderCanvas, BlitToScreen); gameState = GameState.GameOver; }
             else if (state == GameState.GameOver) gameState = GameState.GameOver;
         }
 
@@ -148,7 +292,7 @@ void RunGame()
 
         // --- Draw ---
         Draw:
-        Raylib.BeginDrawing();
+        Raylib.BeginTextureMode(renderCanvas);
         Raylib.ClearBackground(env.BgColor);
 
         Raylib.BeginMode2D(camera);
@@ -165,10 +309,17 @@ void RunGame()
         statusbar.Draw(); // screen-space HUD
 
         if (gameState == GameState.Paused)
-            RegionMap.Draw(currentRegion,
-                visitedRooms.GetValueOrDefault(currentRegion, new HashSet<string>()),
-                currentRoom,
-                compassActive: player.CompassRegions.Contains(currentRegion));
+        {
+            // Draw panel content first, then tab bar on top so it isn't covered
+            if (pauseTab == PauseTab.Map)
+                RegionMap.Draw(currentRegion,
+                    visitedRooms.GetValueOrDefault(currentRegion, new HashSet<string>()),
+                    currentRoom,
+                    compassActive: player.CompassRegions.Contains(currentRegion));
+            else
+                OptionsMenu.Draw(settings, pauseOptionsRow);
+            DrawPauseTabBar(pauseTab, tabBarSelected: pauseOptionsRow == -1);
+        }
 
         if (gameState == GameState.GameOver)
         {
@@ -180,7 +331,8 @@ void RunGame()
                 24, 1, Color.White);
         }
 
-        Raylib.EndDrawing();
+        Raylib.EndTextureMode();
+        BlitToScreen(renderCanvas);
 
         // --- Room transitions ---
         if (env.IsOutsideMap(player.Fallbox()))
@@ -196,7 +348,7 @@ string? TryStartMusic(Env env, ref Music? currentMusic, string? currentSong)
 {
     // Check if music changed
     string? newSong = null;
-    if (Env.SongsByRoom.TryGetValue(env.Region, out var songs) && 
+    if (Env.SongsByRoom.TryGetValue(env.Region, out var songs) &&
         songs.TryGetValue(env.Name, out var song))
     {
         newSong = song;
@@ -320,7 +472,7 @@ void HandleRoomTransition(ref Env env, ref Hero player, ref Camera2D camera,
                     if (!roomCache.TryGetValue((currentRegion, currentRoom), out var cachedEnv))
                         cachedEnv = new Env(currentRoom, currentRegion);
                     env = cachedEnv;
-                    // Calculate new position — matches worldtree.py:139-176 exactly
+                    // Calculate new position -- matches worldtree.py:139-176 exactly
             int newCol = 0, newRow = 0;
             if (dir == TransitionDirection.Left)
             {
@@ -342,12 +494,12 @@ void HandleRoomTransition(ref Env env, ref Hero player, ref Camera2D camera,
                 newCol = ulCol + match.Offset;
                 newRow = 0;
             }
-            
+
             // Update player
             player.ChangeRooms(env, (newCol, newRow));
-            
+
             // Update camera
-            env.SetScreenOffset(player.Rect.CenterX() - GameConstants.ScreenWidth/2f, 
+            env.SetScreenOffset(player.Rect.CenterX() - GameConstants.ScreenWidth/2f,
                                 player.Rect.CenterY() - GameConstants.ScreenHeight/2f);
             camera = env.MakeCamera(); // Refresh limits
             camera = env.Scroll(camera, player.Fallbox());

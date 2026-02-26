@@ -18,7 +18,7 @@ public static class RegionMap
     private const float PanelW   = 720f;
     private const float PanelH   = 480f;
     private const float Padding  = 24f;
-    private const float TitleH   = 28f; // height reserved for the "MAP" header
+    private const float TitleH   = 40f; // height reserved for the tab bar header
 
     /// <summary>Call once after Environment.Regions and AllTransitions are populated.</summary>
     public static void ComputeLayouts()
@@ -128,13 +128,6 @@ public static class RegionMap
 
         Raylib.DrawRectangle((int)panelX, (int)panelY, (int)PanelW, (int)PanelH, Color.Black);
         Raylib.DrawRectangleLines((int)panelX, (int)panelY, (int)PanelW, (int)PanelH, Color.White);
-
-        // "MAP" title centred in the header strip
-        var title = "MAP";
-        var titleSize = Raylib.MeasureTextEx(GameConstants.GameOverFont, title, 16, 1);
-        Raylib.DrawTextEx(GameConstants.GameOverFont, title,
-            new Vector2(panelX + (PanelW - titleSize.X) / 2f, panelY + (TitleH - titleSize.Y) / 2f),
-            16, 1, Color.White);
 
         // Bounding box of ALL rooms in the region → consistent scale regardless of visited set
         int minX = int.MaxValue, minY = int.MaxValue;

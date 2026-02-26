@@ -7,13 +7,13 @@ public static class GameConstants
 {
     public const string GameName = "World Tree";
     public const string Font = "PressStart2P.ttf";
-    public const int ScreenWidth = 960;
+    public const int ScreenWidth = 1280;
     public const int ScreenHeight = 720;
-    public const int MapWidth = 960;
+    public const int MapWidth = 1280;
     public const int MapHeight = 640;
     public const int MapX = 0;
     public const int MapY = ScreenHeight - MapHeight;   // 80
-    public const int ScrollMarginX = 360;
+    public const int ScrollMarginX = 480;
     public const int ScrollMarginY = 240;
     public const int TileWidth = 48;
     public const int TileHeight = 48;
@@ -43,3 +43,5 @@ public enum InputAction
 
 // Game state — replaces GameOverException / GameWonException
 public enum GameState { Playing, Paused, GameOver, Won }
+
+public enum PauseTab { Map, Options }

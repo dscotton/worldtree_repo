@@ -237,19 +237,23 @@ public class Environment
     }
 
     /// <summary>Set initial camera offset (e.g. on room transition).</summary>
-    public void SetScreenOffset(float x, float y) =>
+    public void SetScreenOffset(float x, float y)
+    {
+        float maxX = Width * GameConstants.TileWidth - GameConstants.MapWidth;
+        float maxY = Height * GameConstants.TileHeight - GameConstants.MapHeight;
         ScreenOffset = new Vector2(
-            Math.Clamp(x, 0, Width * GameConstants.TileWidth - GameConstants.MapWidth),
-            Math.Clamp(y, 0, Height * GameConstants.TileHeight - GameConstants.MapHeight));
+            maxX < 0 ? maxX / 2f : Math.Clamp(x, 0, maxX),
+            maxY < 0 ? maxY / 2f : Math.Clamp(y, 0, maxY));
+    }
 
     /// <summary>
     /// Draw the visible tiles. Call this inside BeginMode2D / EndMode2D.
     /// </summary>
     public void DrawTiles()
     {
-        int firstCol = (int)(ScreenOffset.X / GameConstants.TileWidth);
+        int firstCol = Math.Max(0, (int)(ScreenOffset.X / GameConstants.TileWidth));
         int lastCol = firstCol + GameConstants.MapWidth / GameConstants.TileWidth + 1;
-        int firstRow = (int)(ScreenOffset.Y / GameConstants.TileHeight);
+        int firstRow = Math.Max(0, (int)(ScreenOffset.Y / GameConstants.TileHeight));
         int lastRow = firstRow + GameConstants.MapHeight / GameConstants.TileHeight + 1;
 
         for (int col = firstCol; col <= Math.Min(lastCol, Width - 1); col++)
@@ -270,9 +274,9 @@ public class Environment
     /// </summary>
     public void DrawDebugBounds()
     {
-        int firstCol = (int)(ScreenOffset.X / GameConstants.TileWidth);
+        int firstCol = Math.Max(0, (int)(ScreenOffset.X / GameConstants.TileWidth));
         int lastCol  = firstCol + GameConstants.MapWidth  / GameConstants.TileWidth + 1;
-        int firstRow = (int)(ScreenOffset.Y / GameConstants.TileHeight);
+        int firstRow = Math.Max(0, (int)(ScreenOffset.Y / GameConstants.TileHeight));
         int lastRow  = firstRow + GameConstants.MapHeight / GameConstants.TileHeight + 1;
 
         for (int col = firstCol; col <= Math.Min(lastCol, Width - 1); col++)
