@@ -30,13 +30,10 @@ public class EnvironmentTests
         SetupMockRegion(50, 40); // 2400x1920 pixels
         var env = new Environment("TestMap", 1);
 
-        // Max offset = (2400 - 960, 1920 - 720) = (1440, 1200)
-        // Note: GameConstants.MapHeight is 640, MapWidth is 960. 
-        // ScreenHeight is 720, but MapY is 80. Viewport is 960x640.
-        // Max offset = (2400 - 960, 1920 - 640) = (1440, 1280)
-        
+        // Room is 50×40 tiles = 2400×1920 px.
+        // maxX = 2400 - 1280 = 1120, maxY = 1920 - 640 = 1280
         env.SetScreenOffset(2000, 2000);
-        Assert.Equal(1440, env.ScreenOffset.X);
+        Assert.Equal(1120, env.ScreenOffset.X);
         Assert.Equal(1280, env.ScreenOffset.Y);
 
         env.SetScreenOffset(-100, -100);
