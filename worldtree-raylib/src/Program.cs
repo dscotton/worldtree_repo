@@ -26,7 +26,6 @@ var renderCanvas = Raylib.LoadRenderTexture(GameConstants.ScreenWidth, GameConst
 // TODO: consider converting to a true LRU cache. Current eviction is FIFO
 // (insertion order), so a room visited early may be evicted even if recently
 // revisited. An LRU cache would refresh the eviction order on every access.
-const int RoomCacheSize = 6;
 
 void BlitToScreen(RenderTexture2D canvas)
 {
@@ -138,9 +137,8 @@ void RunGame()
 {
     if (!TitleScreen.ShowTitle(renderCanvas, BlitToScreen, settings)) return;
 
-    string currentRoom = "Map1";
-    int currentRegion = 1;
-    var env = new Env(currentRoom, currentRegion);
+    GameState.Reset();
+    var env = new Env(GameState.CurrentRoom, GameState.CurrentRegion);
     var player = new Hero(env, (2, 10));
     var statusbar = new Statusbar(player);
     var camera = env.MakeCamera();
@@ -150,12 +148,6 @@ void RunGame()
     string? currentSong = null;
     currentSong = TryStartMusic(env, ref currentMusic, null);
     bool debugMode = false;
-
-    var visitedRooms = new Dictionary<int, HashSet<string>>
-        { [currentRegion] = new HashSet<string> { currentRoom } };
-
-    var roomCache  = new Dictionary<(int region, string room), Env>();
-    var cacheQueue = new Queue<(int region, string room)>();
 
     var pauseTab = PauseTab.Map;
     int pauseOptionsRow = -1; // -1 = cursor on tab bar; >= 0 = cursor on that option row
@@ -312,10 +304,10 @@ void RunGame()
         {
             // Draw panel content first, then tab bar on top so it isn't covered
             if (pauseTab == PauseTab.Map)
-                RegionMap.Draw(currentRegion,
-                    visitedRooms.GetValueOrDefault(currentRegion, new HashSet<string>()),
-                    currentRoom,
-                    compassActive: player.CompassRegions.Contains(currentRegion));
+                RegionMap.Draw(GameState.CurrentRegion,
+                    GameState.VisitedRooms.GetValueOrDefault(GameState.CurrentRegion, new HashSet<string>()),
+                    GameState.CurrentRoom,
+                    compassActive: player.CompassRegions.Contains(GameState.CurrentRegion));
             else
                 OptionsMenu.Draw(settings, pauseOptionsRow);
             DrawPauseTabBar(pauseTab, tabBarSelected: pauseOptionsRow == -1);
@@ -336,9 +328,10 @@ void RunGame()
 
         // --- Room transitions ---
         if (env.IsOutsideMap(player.Fallbox()))
-            HandleRoomTransition(ref env, ref player, ref camera, ref currentRoom,
-                                 ref currentRegion, ref currentSong, ref currentMusic,
-                                 Env.AllTransitions, visitedRooms, roomCache, cacheQueue);
+        {
+            GameState.HandleRoomTransition(ref env, ref player, ref camera);
+            currentSong = TryStartMusic(env, ref currentMusic, currentSong);
+        }
     }
 
     if (currentMusic.HasValue) Raylib.StopMusicStream(currentMusic.Value);
@@ -413,99 +406,3 @@ Dictionary<int, Dictionary<string, Color>> BuildBgColorsByRoom()
     return dict;
 }
 
-void HandleRoomTransition(ref Env env, ref Hero player, ref Camera2D camera,
-                          ref string currentRoom, ref int currentRegion,
-                          ref string? currentSong, ref Music? currentMusic,
-                          Dictionary<int, Dictionary<string, Dictionary<TransitionDirection, List<TransitionInfo>>>> transitions,
-                          Dictionary<int, HashSet<string>> visitedRooms,
-                          Dictionary<(int region, string room), Env> roomCache,
-                          Queue<(int region, string room)> cacheQueue)
-{
-    // Determine direction of exit using Fallbox (consistent with IsOutsideMap check)
-    TransitionDirection dir;
-    Rectangle bounds = player.Fallbox();
-    if (bounds.CenterX() < 0) dir = TransitionDirection.Left;
-    else if (bounds.CenterX() > env.Width * GameConstants.TileWidth) dir = TransitionDirection.Right;
-    else if (bounds.CenterY() < 0) dir = TransitionDirection.Up;
-    else dir = TransitionDirection.Down;
-
-    if (transitions.TryGetValue(currentRegion, out var regionTrans) &&
-        regionTrans.TryGetValue(currentRoom, out var roomTrans) &&
-        roomTrans.TryGetValue(dir, out var transList))
-    {
-                // Use upper-left of hitbox for transition matching (Fix 3)
-                var ulTile = env.TileIndexForPoint(player.Hitbox().Left(), player.Hitbox().Top());
-                int ulCol = ulTile.col;
-                int ulRow = ulTile.row;
-
-                TransitionInfo? match = null;
-                foreach (var t in transList)
-                {
-                    if (dir == TransitionDirection.Left || dir == TransitionDirection.Right)
-                    {
-                        if (ulRow >= t.First && ulRow <= t.Last) { match = t; break; }
-                    }
-                    else
-                    {
-                        if (ulCol >= t.First && ulCol <= t.Last) { match = t; break; }
-                    }
-                }
-
-                if (match != null)
-                {
-                    // Save outgoing room to cache before updating currentRegion/currentRoom.
-                    var exitKey = (currentRegion, currentRoom);
-                    if (!roomCache.ContainsKey(exitKey))
-                    {
-                        cacheQueue.Enqueue(exitKey);
-                        while (cacheQueue.Count > RoomCacheSize)
-                            roomCache.Remove(cacheQueue.Dequeue());
-                    }
-                    roomCache[exitKey] = env;
-
-                    currentRegion = match.Region;
-                    currentRoom = match.Dest;
-                    visitedRooms.TryAdd(currentRegion, new HashSet<string>());
-                    visitedRooms[currentRegion].Add(currentRoom);
-
-                    // Restore cached state or load fresh.
-                    if (!roomCache.TryGetValue((currentRegion, currentRoom), out var cachedEnv))
-                        cachedEnv = new Env(currentRoom, currentRegion);
-                    env = cachedEnv;
-                    // Calculate new position -- matches worldtree.py:139-176 exactly
-            int newCol = 0, newRow = 0;
-            if (dir == TransitionDirection.Left)
-            {
-                newCol = env.Width - 1;
-                newRow = ulRow + match.Offset;
-            }
-            else if (dir == TransitionDirection.Right)
-            {
-                newCol = 0;
-                newRow = ulRow + match.Offset;
-            }
-            else if (dir == TransitionDirection.Up)
-            {
-                newCol = ulCol + match.Offset;
-                newRow = env.Height - 1;
-            }
-            else if (dir == TransitionDirection.Down)
-            {
-                newCol = ulCol + match.Offset;
-                newRow = 0;
-            }
-
-            // Update player
-            player.ChangeRooms(env, (newCol, newRow));
-
-            // Update camera
-            env.SetScreenOffset(player.Rect.CenterX() - GameConstants.ScreenWidth/2f,
-                                player.Rect.CenterY() - GameConstants.ScreenHeight/2f);
-            camera = env.MakeCamera(); // Refresh limits
-            camera = env.Scroll(camera, player.Fallbox());
-
-            // Update music
-            currentSong = TryStartMusic(env, ref currentMusic, currentSong);
-        }
-    }
-}
