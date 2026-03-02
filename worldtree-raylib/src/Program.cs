@@ -144,7 +144,7 @@ void RunGame()
     var player = new Hero(env, (2, 10));
     var statusbar = new Statusbar(player);
     var camera = env.MakeCamera();
-    var gameState = GameState.Playing;
+    var playState = PlayState.Playing;
 
     Music? currentMusic = default;
     string? currentSong = null;
@@ -160,12 +160,12 @@ void RunGame()
     var pauseTab = PauseTab.Map;
     int pauseOptionsRow = -1; // -1 = cursor on tab bar; >= 0 = cursor on that option row
 
-    while (!Raylib.WindowShouldClose() && gameState is GameState.Playing or GameState.Paused or GameState.GameOver)
+    while (!Raylib.WindowShouldClose() && playState is PlayState.Playing or PlayState.Paused or PlayState.GameOver)
     {
         if (currentMusic.HasValue) Raylib.UpdateMusicStream(currentMusic.Value);
 
         // --- Game over: freeze everything, wait for player to acknowledge ---
-        if (gameState == GameState.GameOver)
+        if (playState == PlayState.GameOver)
         {
             if (Controller.IsActionJustPressed(InputAction.Pause))
                 break;
@@ -174,21 +174,21 @@ void RunGame()
 
         if (Controller.IsActionJustPressed(InputAction.Pause))
         {
-            if (gameState == GameState.Paused)
+            if (playState == PlayState.Paused)
             {
-                gameState = GameState.Playing;
+                playState = PlayState.Playing;
                 pauseTab = PauseTab.Map;
                 pauseOptionsRow = -1;
             }
             else
             {
-                gameState = GameState.Paused;
+                playState = PlayState.Paused;
             }
         }
         if (Controller.IsActionJustPressed(InputAction.Debug))
             debugMode = !debugMode;
 
-        if (gameState == GameState.Paused)
+        if (playState == PlayState.Paused)
         {
             if (pauseOptionsRow == -1) // cursor is on the tab bar
             {
@@ -279,8 +279,8 @@ void RunGame()
         foreach (var d in env.DyingAnimationGroup)
         {
             var state = d.Update();
-            if (state == GameState.Won) { TitleScreen.ShowCredits(renderCanvas, BlitToScreen); gameState = GameState.GameOver; }
-            else if (state == GameState.GameOver) gameState = GameState.GameOver;
+            if (state == PlayState.Won) { TitleScreen.ShowCredits(renderCanvas, BlitToScreen); playState = PlayState.GameOver; }
+            else if (state == PlayState.GameOver) playState = PlayState.GameOver;
         }
 
         // Remove dead entities
@@ -308,7 +308,7 @@ void RunGame()
 
         statusbar.Draw(); // screen-space HUD
 
-        if (gameState == GameState.Paused)
+        if (playState == PlayState.Paused)
         {
             // Draw panel content first, then tab bar on top so it isn't covered
             if (pauseTab == PauseTab.Map)
@@ -321,7 +321,7 @@ void RunGame()
             DrawPauseTabBar(pauseTab, tabBarSelected: pauseOptionsRow == -1);
         }
 
-        if (gameState == GameState.GameOver)
+        if (playState == PlayState.GameOver)
         {
             var text = "Game Over";
             var size = Raylib.MeasureTextEx(GameConstants.GameOverFont, text, 24, 1);

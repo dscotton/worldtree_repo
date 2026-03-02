@@ -249,16 +249,16 @@ public class DyingAnimation
         }
     }
 
-    public GameState Update()
+    public PlayState Update()
     {
         _frames--;
         if (_frames <= 0)
         {
             IsDead = true;
-            if (_isPlayer) return GameState.GameOver;
-            if (_isBoss)   return GameState.Won;
+            if (_isPlayer) return PlayState.GameOver;
+            if (_isBoss)   return PlayState.Won;
         }
-        return GameState.Playing;
+        return PlayState.Playing;
     }
 
     public void Draw()

@@ -42,6 +42,6 @@ public enum InputAction
 }
 
 // Game state — replaces GameOverException / GameWonException
-public enum GameState { Playing, Paused, GameOver, Won }
+public enum PlayState { Playing, Paused, GameOver, Won }
 
 public enum PauseTab { Map, Options }
