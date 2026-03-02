@@ -18,15 +18,6 @@ Raylib.SetTargetFPS(60);
 if (settings.Fullscreen) Raylib.ToggleFullscreen();
 var renderCanvas = Raylib.LoadRenderTexture(GameConstants.ScreenWidth, GameConstants.ScreenHeight);
 
-// Rooms within the cache retain live entity state on re-entry (enemies stay
-// dead, dropped items persist). Rooms that fall out are reloaded fresh so
-// enemies respawn. One-time powerups never respawn regardless, because their
-// mapcodes are permanently zeroed in Environment.Regions on pickup.
-//
-// TODO: consider converting to a true LRU cache. Current eviction is FIFO
-// (insertion order), so a room visited early may be evicted even if recently
-// revisited. An LRU cache would refresh the eviction order on every access.
-
 void BlitToScreen(RenderTexture2D canvas)
 {
     float scaleX = Raylib.GetScreenWidth()  / (float)GameConstants.ScreenWidth;
