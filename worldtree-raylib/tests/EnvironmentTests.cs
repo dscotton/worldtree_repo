@@ -64,14 +64,13 @@ public class EnvironmentTests
         var env = new Environment("TestMap", 1);
         var camera = env.MakeCamera();
 
-        // Place rect near right edge of current viewport (960x640)
-        // Margin is 360. Right threshold = 0 + 960 - 360 = 600.
-        var rect = new Rectangle(700, 100, 50, 50); // CenterX = 725
-        
+        // Place rect past the right scroll threshold.
+        // MapWidth=1280, ScrollMarginX=480 → threshold = 1280-480 = 800.
+        var rect = new Rectangle(875, 100, 50, 50); // CenterX = 900
         camera = env.Scroll(camera, rect);
-        
-        // New offset.X should be 725 - (960 - 360) = 725 - 600 = 125
-        Assert.Equal(125, env.ScreenOffset.X);
-        Assert.Equal(125, camera.Target.X);
+
+        // New offset.X = 900 - (1280 - 480) = 100
+        Assert.Equal(100, env.ScreenOffset.X);
+        Assert.Equal(100, camera.Target.X);
     }
 }
