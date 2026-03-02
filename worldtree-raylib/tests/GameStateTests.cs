@@ -64,7 +64,7 @@ public class GameStateTests : IDisposable
         GameState.RoomCache[(1, "DestRoom")] = destEnv;
 
         // Position hero past the right edge (X > 30*48=1440), hitbox top at tile row 10.
-        var hero = new TestHero(srcEnv, (0, 0));
+        Hero hero = new TestHero(srcEnv, (0, 0));
         hero.Rect = new Rectangle(30 * 48 + 10f, 10 * 48f, 72, 96);
         var camera = new Camera2D();
 
@@ -82,7 +82,7 @@ public class GameStateTests : IDisposable
         GameState.Reset("TestMap", 1);
         GameState.RoomCache[(1, "DestRoom")] = destEnv;
 
-        var hero = new TestHero(srcEnv, (0, 0));
+        Hero hero = new TestHero(srcEnv, (0, 0));
         hero.Rect = new Rectangle(30 * 48 + 10f, 10 * 48f, 72, 96);
         var camera = new Camera2D();
 
@@ -100,7 +100,7 @@ public class GameStateTests : IDisposable
         GameState.Reset("TestMap", 1);
         GameState.RoomCache[(1, "DestRoom")] = destEnv;
 
-        var hero = new TestHero(srcEnv, (0, 0));
+        Hero hero = new TestHero(srcEnv, (0, 0));
         hero.Rect = new Rectangle(30 * 48 + 10f, 10 * 48f, 72, 96);
         var camera = new Camera2D();
 
@@ -122,7 +122,7 @@ public class GameStateTests : IDisposable
         GameState.RoomCache[(1, "DestRoom")] = destEnv;
 
         // Position hero past the bottom edge (Y > 15*48=720), hitbox left at tile col 8.
-        var hero = new TestHero(srcEnv, (0, 0));
+        Hero hero = new TestHero(srcEnv, (0, 0));
         hero.Rect = new Rectangle(8 * 48f, 15 * 48 + 10f, 72, 96);
         var camera = new Camera2D();
 
