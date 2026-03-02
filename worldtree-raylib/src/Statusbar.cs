@@ -31,8 +31,18 @@ public class Statusbar
         // Black background strip
         Raylib.DrawRectangle(0, 0, GameConstants.ScreenWidth, GameConstants.MapY, Color.Black);
 
-        string hpText = $"Health: {_player.Hp}/{_player.MaxHp}";
-        Raylib.DrawTextEx(_font, hpText, new Vector2(10, 10), 24, 1, Color.White);
+        // "Health" label + HP bar (1px per HP, red fill, 2px white border all sides, 24px total height)
+        // "Health" label + HP bar (1px per HP, red fill, 2px white border all sides)
+        const int barBorder = 2;
+        string hpLabel = "Health";
+        var labelSize = Raylib.MeasureTextEx(_font, hpLabel, 24, 1);
+        int barH   = (int)labelSize.Y - 2; // PressStart2P has 2px descender space; trim so bottom aligns with visible glyphs
+        int innerH = barH - barBorder * 2;
+        int barX   = 10 + (int)labelSize.X + 6;
+        Raylib.DrawTextEx(_font, hpLabel, new Vector2(10, 10), 24, 1, Color.White);
+        Raylib.DrawRectangle(barX, 10, _player.MaxHp + barBorder * 2, barH, Color.White);                          // white border
+        Raylib.DrawRectangle(barX + barBorder, 10 + barBorder, _player.MaxHp, innerH, Color.Black);                // clear inner
+        Raylib.DrawRectangle(barX + barBorder, 10 + barBorder, _player.Hp, innerH, new Color(216, 40, 0, 255));    // red fill
 
         if (_player.MaxAmmo > 0)
         {
