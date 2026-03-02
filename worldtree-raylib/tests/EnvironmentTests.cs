@@ -42,6 +42,61 @@ public class EnvironmentTests
     }
 
     [Fact]
+    public void SetScreenOffset_NarrowRoom_CentersX()
+    {
+        // 10×20 tiles = 480×960 px. Room narrower than MapWidth (1280).
+        // maxX = 480 - 1280 = -800 → center = -400. Y is normal: max = 960-640 = 320.
+        SetupMockRegion(10, 20);
+        var env = new Environment("TestMap", 1);
+
+        env.SetScreenOffset(0, 0);
+
+        Assert.Equal(-400f, env.ScreenOffset.X);
+        Assert.Equal(0f,    env.ScreenOffset.Y);
+    }
+
+    [Fact]
+    public void SetScreenOffset_ShortRoom_CentersY()
+    {
+        // 30×10 tiles = 1440×480 px. Room shorter than MapHeight (640).
+        // maxY = 480 - 640 = -160 → center = -80. X is normal: max = 1440-1280 = 160.
+        SetupMockRegion(30, 10);
+        var env = new Environment("TestMap", 1);
+
+        env.SetScreenOffset(0, 0);
+
+        Assert.Equal(0f,   env.ScreenOffset.X);
+        Assert.Equal(-80f, env.ScreenOffset.Y);
+    }
+
+    [Fact]
+    public void SetScreenOffset_NarrowAndShortRoom_CentersBothAxes()
+    {
+        // 10×10 tiles = 480×480 px. Smaller than screen on both axes.
+        SetupMockRegion(10, 10);
+        var env = new Environment("TestMap", 1);
+
+        env.SetScreenOffset(0, 0);
+
+        Assert.Equal(-400f, env.ScreenOffset.X);
+        Assert.Equal(-80f,  env.ScreenOffset.Y);
+    }
+
+    [Fact]
+    public void SetScreenOffset_LargeRoom_ClampsNormally()
+    {
+        // 28×16 tiles = 1344×768 px. Larger than screen on both axes.
+        // maxX = 1344-1280 = 64, maxY = 768-640 = 128.
+        SetupMockRegion(28, 16);
+        var env = new Environment("TestMap", 1);
+
+        env.SetScreenOffset(200, 200);
+
+        Assert.Equal(64f,  env.ScreenOffset.X);
+        Assert.Equal(128f, env.ScreenOffset.Y);
+    }
+
+    [Fact]
     public void IsWorldPointVisible_CorrectChecks()
     {
         SetupMockRegion(50, 40);
